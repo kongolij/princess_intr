@@ -28,6 +28,7 @@ paths:
       summary: Register a new user
       parameters:
         - $ref: '#/components/parameters/OcpApimSubscriptionKey'
+        - $ref: '#/components/parameters/Language'
         - $ref: '#/components/parameters/CartId'
         - $ref: '#/components/parameters/MyStoreId'
         - $ref: '#/components/parameters/MyPostalCode'
@@ -37,7 +38,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UserProfileCreate'
+              $ref: '#/components/schemas/UserProfileInput'
             examples:
               basicRegistration:
                 summary: Basic registration without marketing preferences
@@ -120,16 +121,14 @@ paths:
       parameters:
         - $ref: '#/components/parameters/OcpApimSubscriptionKey'
         - $ref: '#/components/parameters/Authorization'
-        - $ref: '#/components/parameters/CartId'
-        - $ref: '#/components/parameters/MyStoreId'
-        - $ref: '#/components/parameters/MyPostalCode'
+        - $ref: '#/components/parameters/Language'
       responses:
         '200':
           description: User profile retrieved successfully.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UserProfileBase'
+                $ref: '#/components/schemas/UserProfileOutput'
         '401':
           description: Invalid token
         '404':
@@ -176,6 +175,7 @@ paths:
       parameters:
         - $ref: '#/components/parameters/OcpApimSubscriptionKey'
         - $ref: '#/components/parameters/Authorization'
+        - $ref: '#/components/parameters/Language'
         - $ref: '#/components/parameters/CartId'
         - $ref: '#/components/parameters/MyStoreId'
         - $ref: '#/components/parameters/MyPostalCode'
@@ -184,14 +184,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UserProfileBase'
+              $ref: '#/components/schemas/UserProfileInput'
       responses:
         '200':
           description: User profile updated successfully.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UserProfileBase'
+                $ref: '#/components/schemas/UserProfileOutput'
         '401':
           description: Invalid token
         '400': 
@@ -240,6 +240,7 @@ paths:
       parameters:
         - $ref: '#/components/parameters/OcpApimSubscriptionKey'
         - $ref: '#/components/parameters/Authorization'
+        - $ref: '#/components/parameters/Language'
       responses:
         '200':
           description: List of user addresses retrieved successfully.
@@ -296,6 +297,7 @@ paths:
       parameters:
         - $ref: '#/components/parameters/OcpApimSubscriptionKey'
         - $ref: '#/components/parameters/Authorization'
+        - $ref: '#/components/parameters/Language'
       requestBody:
         required: true
         content:
@@ -357,6 +359,7 @@ paths:
       parameters:
         - $ref: '#/components/parameters/OcpApimSubscriptionKey'
         - $ref: '#/components/parameters/Authorization'
+        - $ref: '#/components/parameters/Language'
         - name: addressId
           in: path
           required: true
@@ -421,6 +424,7 @@ paths:
       parameters:
         - $ref: '#/components/parameters/OcpApimSubscriptionKey'
         - $ref: '#/components/parameters/Authorization'
+        - $ref: '#/components/parameters/Language'
         - name: addressId
           in: path
           required: true
@@ -477,7 +481,7 @@ paths:
       parameters:
         - $ref: '#/components/parameters/OcpApimSubscriptionKey'
         - $ref: '#/components/parameters/Authorization'
-        
+        - $ref: '#/components/parameters/Language'
       responses:
         '200':
           description: User preferences retrieved successfully.
@@ -519,6 +523,7 @@ paths:
       parameters:
         - $ref: '#/components/parameters/OcpApimSubscriptionKey'
         - $ref: '#/components/parameters/Authorization'
+        - $ref: '#/components/parameters/Language'
       requestBody:
         required: true
         content:
@@ -573,6 +578,14 @@ paths:
 
 components:
   parameters:
+    Language:
+      name: language
+      in: query
+      required: true
+      schema:
+        type: string
+        enum: [en, fr]
+      description: Language preference ("en" or "fr")
     Authorization:
       in: header
       name: Authorization
@@ -629,7 +642,7 @@ components:
         expires_in:
           type: integer
           description: Duration in seconds for which the token is valid.    
-    UserProfileCreate:
+    UserProfileInput:
       type: object
       required:
         - firstName
@@ -647,7 +660,7 @@ components:
           type: string
         preferences:
           $ref: '#/components/schemas/Preferences'
-    UserProfileBase:
+    UserProfileOutput:
       type: object
       required:
         - firstName
@@ -657,10 +670,8 @@ components:
           type: string
         lastName:
           type: string
-        email:
-          type: string
-        password:
-          type: string
+        customerGroupId:
+          type: integer
         preferences:
           $ref: '#/components/schemas/Preferences'
         addresses:
