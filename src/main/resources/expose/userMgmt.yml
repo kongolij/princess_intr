@@ -31,12 +31,13 @@ paths:
         - $ref: '#/components/parameters/CartId'
         - $ref: '#/components/parameters/MyStoreId'
         - $ref: '#/components/parameters/MyPostalCode'
+        - $ref: '#/components/parameters/RecaptchaToken'
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UserProfile'
+              $ref: '#/components/schemas/UserProfileCreate'
             examples:
               basicRegistration:
                 summary: Basic registration without marketing preferences
@@ -57,12 +58,61 @@ paths:
       responses:
         '201':
           description: User created successfully.
+          content:
+            application/json:
+              schema:
+                 $ref: '#/components/schemas/JWTResponse'
         '400':
-          $ref: '#/components/responses/BadRequest'
+          description: Validation failed.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                Required parameter firstName  is missing:
+                  value:
+                    error_code: user_99999
+                    message: Required parameter firstName is missing
+                    type: general
+        '409':
+          description: Conflict - The email address is already in use.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                EmailAlreadyExists:
+                  summary: Email address already registered
+                  value:
+                    error_code: user_00001
+                    message: The provided email address is already associated with an existing account.
+                    type: ConflictError            
+        '403':
+          description: Insufficient priviledges.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                Token has insufficent privileges:
+                  value:
+                    error_code: Forbidden
+                    message: You do not have permission to access this resource.
+                    type: AuthorizationError  
         '500':
-          $ref: '#/components/responses/InternalServerError'
-
-  /users/{userId}:
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                Critical dependent service is down:
+                  value:
+                    error_code: user_99999
+                    message: Service unavailable please try after some time
+                    type: General
+  
+  /users/me:
     get:
       tags:
         - user
@@ -73,20 +123,51 @@ paths:
         - $ref: '#/components/parameters/CartId'
         - $ref: '#/components/parameters/MyStoreId'
         - $ref: '#/components/parameters/MyPostalCode'
-        - name: userId
-          in: path
-          required: true
-          schema:
-            type: string
       responses:
         '200':
           description: User profile retrieved successfully.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UserProfile'
+                $ref: '#/components/schemas/UserProfileBase'
+        '401':
+          description: Invalid token
         '404':
-          $ref: '#/components/responses/NotFound'
+          description: Resource Not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                Resource not found:
+                  value:
+                    error_code: user_99999
+                    message: Resource not found
+                    type: general
+        '403':
+          description: Insufficient priviledges.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                Token has insufficent privileges:
+                  value:
+                    error_code: Forbidden
+                    message: You do not have permission to access this resource.
+                    type: AuthorizationError              
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                Critical dependent service is down:
+                  value:
+                    error_code: user_99999
+                    message: Service unavailable please try after some time
+                    type: General  
 
     put:
       tags:
@@ -98,22 +179,60 @@ paths:
         - $ref: '#/components/parameters/CartId'
         - $ref: '#/components/parameters/MyStoreId'
         - $ref: '#/components/parameters/MyPostalCode'
-        - name: userId
-          in: path
-          required: true
-          schema:
-            type: string
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UserProfile'
+              $ref: '#/components/schemas/UserProfileBase'
       responses:
         '200':
           description: User profile updated successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfileBase'
+        '401':
+          description: Invalid token
+        '400': 
+          description: Bad Request.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                Bad Request:
+                  value:
+                    error_code: user_99999
+                    message: "The email field contains invalid characters." 
+                    type: general
+        '403':
+          description: Insufficient priviledges.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                Token has insufficent privileges:
+                  value:
+                    error_code: Forbidden
+                    message: You do not have permission to access this resource.
+                    type: AuthorizationError              
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                Critical dependent service is down:
+                  value:
+                    error_code: user_99999
+                    message: Service unavailable please try after some time
+                    type: General  
+      
 
-  /users/{userId}/addresses:
+  /users/me/addresses:
     get:
       tags:
         - address
@@ -121,11 +240,6 @@ paths:
       parameters:
         - $ref: '#/components/parameters/OcpApimSubscriptionKey'
         - $ref: '#/components/parameters/Authorization'
-        - name: userId
-          in: path
-          required: true
-          schema:
-            type: string
       responses:
         '200':
           description: List of user addresses retrieved successfully.
@@ -135,6 +249,45 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Address'
+        '401':
+          description: Invalid token
+        '404':
+          description: Resource Not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                Resource not found:
+                  value:
+                    error_code: user_address_99999
+                    message: Resource not found
+                    type: general
+        '403':
+          description: Insufficient priviledges.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                Token has insufficent privileges:
+                  value:
+                    error_code: Forbidden
+                    message: You do not have permission to access this resource.
+                    type: AuthorizationError              
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                Critical dependent service is down:
+                  value:
+                    error_code: user_99999
+                    message: Service unavailable please try after some time
+                    type: General  
+      
 
     post:
       tags:
@@ -143,11 +296,6 @@ paths:
       parameters:
         - $ref: '#/components/parameters/OcpApimSubscriptionKey'
         - $ref: '#/components/parameters/Authorization'
-        - name: userId
-          in: path
-          required: true
-          schema:
-            type: string
       requestBody:
         required: true
         content:
@@ -155,10 +303,53 @@ paths:
             schema:
               $ref: '#/components/schemas/Address'
       responses:
-        '201':
+        '200':
           description: Address added successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Address'
+          
+        '401':
+          description: Invalid token
+        '403':
+          description: Insufficient priviledges.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                Token has insufficent privileges:
+                  value:
+                    error_code: Forbidden
+                    message: You do not have permission to access this resource.
+                    type: AuthorizationError 
+        '422': 
+          description: Bad Request.  
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                Bad Request:
+                  value:
+                    error_code: user_address_99999
+                    message: "The Address was not valid. This is the result of missing required fields, or of invalid data. See the response for more details." 
+                    type: general                         
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                Critical dependent service is down:
+                  value:
+                    error_code: user_99999
+                    message: Service unavailable please try after some time
+                    type: General   
 
-  /users/{userId}/addresses/{addressId}:
+  /users/me/addresses/{addressId}:
     put:
       tags:
         - address
@@ -166,11 +357,6 @@ paths:
       parameters:
         - $ref: '#/components/parameters/OcpApimSubscriptionKey'
         - $ref: '#/components/parameters/Authorization'
-        - name: userId
-          in: path
-          required: true
-          schema:
-            type: string
         - name: addressId
           in: path
           required: true
@@ -185,6 +371,48 @@ paths:
       responses:
         '200':
           description: Address updated successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Address'
+        '401':
+          description: Invalid token
+        '403':
+          description: Insufficient priviledges.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                Token has insufficent privileges:
+                  value:
+                    error_code: Forbidden
+                    message: You do not have permission to access this resource.
+                    type: AuthorizationError 
+        '422': 
+          description: Bad Request.  
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                Bad Request:
+                  value:
+                    error_code: user_address_99999
+                    message: "The Address was not valid. This is the result of missing required fields, or of invalid data. See the response for more details." 
+                    type: general                         
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                Critical dependent service is down:
+                  value:
+                    error_code: user_99999
+                    message: Service unavailable please try after some time
+                    type: General   
 
     delete:
       tags:
@@ -193,11 +421,6 @@ paths:
       parameters:
         - $ref: '#/components/parameters/OcpApimSubscriptionKey'
         - $ref: '#/components/parameters/Authorization'
-        - name: userId
-          in: path
-          required: true
-          schema:
-            type: string
         - name: addressId
           in: path
           required: true
@@ -206,8 +429,47 @@ paths:
       responses:
         '204':
           description: Address deleted successfully.
+        '400':
+          description: Validation failed.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                Required parameter account number is missing:
+                  value:
+                    error_code: user_adress_99999
+                    message: Required parameter address id is missing
+                    type: general  
+        '401':
+          description: Invalid token
+        '403':
+          description: Insufficient priviledges.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                Token has insufficent privileges:
+                  value:
+                    error_code: Forbidden
+                    message: You do not have permission to access this resource.
+                    type: AuthorizationError                     
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                Critical dependent service is down:
+                  value:
+                    error_code: user_99999
+                    message: Service unavailable please try after some time
+                    type: General      
+          
 
-  /users/{userId}/preferences:
+  /users/me/preferences:
     get:
       tags:
         - preferences
@@ -215,11 +477,7 @@ paths:
       parameters:
         - $ref: '#/components/parameters/OcpApimSubscriptionKey'
         - $ref: '#/components/parameters/Authorization'
-        - name: userId
-          in: path
-          required: true
-          schema:
-            type: string
+        
       responses:
         '200':
           description: User preferences retrieved successfully.
@@ -227,6 +485,32 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Preferences'
+        '401':
+          description: Invalid token
+        '403':
+          description: Insufficient priviledges.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                Token has insufficent privileges:
+                  value:
+                    error_code: Forbidden
+                    message: You do not have permission to access this resource.
+                    type: AuthorizationError              
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                Critical dependent service is down:
+                  value:
+                    error_code: user_99999
+                    message: Service unavailable please try after some time
+                    type: General         
 
     put:
       tags:
@@ -235,11 +519,6 @@ paths:
       parameters:
         - $ref: '#/components/parameters/OcpApimSubscriptionKey'
         - $ref: '#/components/parameters/Authorization'
-        - name: userId
-          in: path
-          required: true
-          schema:
-            type: string
       requestBody:
         required: true
         content:
@@ -249,6 +528,48 @@ paths:
       responses:
         '200':
           description: User preferences updated successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Preferences'  
+        '401':
+          description: Invalid token
+        '403':
+          description: Insufficient priviledges.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                Token has insufficent privileges:
+                  value:
+                    error_code: Forbidden
+                    message: You do not have permission to access this resource.
+                    type: AuthorizationError 
+        '422': 
+          description: Bad Request.  
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                Bad Request:
+                  value:
+                    error_code: user_address_99999
+                    message: "This is the result of missing required fields, or of invalid data. See the response for more details." 
+                    type: general                         
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                Critical dependent service is down:
+                  value:
+                    error_code: user_99999
+                    message: Service unavailable please try after some time
+                    type: General             
 
 components:
   parameters:
@@ -287,31 +608,28 @@ components:
       description: User's current postal code
       schema:
         type: string
-
-  responses:
-    BadRequest:
-      description: Validation failed.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/BadRequest'
-
-    NotFound:
-      description: Resource not found.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/NotFound'
-
-    InternalServerError:
-      description: Internal server error.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/InternalServerError'
+    RecaptchaToken:
+       name: Recaptcha-Token
+       in: header
+       required: true
+       description: Google reCAPTCHA v3 token
+       schema:
+        type: string
 
   schemas:
-    UserProfile:
+    JWTResponse:
+      type: object
+      properties:
+        access_token:
+          type: string
+          description:  JWT token.
+        token_type:
+          type: string
+          example: 'Authorization: Bearer xxxxx'
+        expires_in:
+          type: integer
+          description: Duration in seconds for which the token is valid.    
+    UserProfileCreate:
       type: object
       required:
         - firstName
@@ -319,8 +637,6 @@ components:
         - email
         - password
       properties:
-        id:
-          type: integer
         firstName:
           type: string
         lastName:
@@ -331,16 +647,27 @@ components:
           type: string
         preferences:
           $ref: '#/components/schemas/Preferences'
-        store:
-          type: object
-          properties:
-            preferredStoreId:
-              type: integer
+    UserProfileBase:
+      type: object
+      required:
+        - firstName
+        - lastName
+      properties:
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          type: string
+        password:
+          type: string
+        preferences:
+          $ref: '#/components/schemas/Preferences'
         addresses:
           type: array
           items:
-            $ref: '#/components/schemas/Address'
-
+            $ref: '#/components/schemas/Address'        
+            
     Preferences:
       type: object
       properties:
@@ -351,21 +678,31 @@ components:
           items:
             type: string
             enum: [promotions, events, products]
+        preferredStoreId:
+          type: integer
 
     Address:
       type: object
       required:
-        - type
-        - line1
+        - address1
         - city
         - province
         - postalCode
-        - country
+        - country 
       properties:
-        type:
+        id:
+          type: integer
+        addresstype:
           type: string
-          enum: [shipping, billing]
-        line1:
+          enum:
+            - residential
+            - commercial
+          description: The address type, either residential or commercial.
+        nickname:
+          type: string  
+        address1:
+          type: string
+        address2:
           type: string
         city:
           type: string
@@ -375,33 +712,20 @@ components:
           type: string
         country:
           type: string
+     
+        phone:
+          type: string
 
-    BadRequest:
+    ErrorResponse:
       type: object
       properties:
         error_code:
           type: string
+          description: A unique identifier for the error type.
         message:
           type: string
+          description: A human-readable explanation of the error.
         type:
           type: string
-
-    NotFound:
-      type: object
-      properties:
-        error_code:
-          type: string
-        message:
-          type: string
-        type:
-          type: string
-
-    InternalServerError:
-      type: object
-      properties:
-        error_code:
-          type: string
-        message:
-          type: string
-        type:
-          type: string
+          description: The category or nature of the error.
+    
