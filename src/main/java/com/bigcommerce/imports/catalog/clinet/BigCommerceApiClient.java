@@ -13,6 +13,21 @@ public class BigCommerceApiClient {
 	private static final String STORE_HASH = "nkqg1lsole";
 	private static final String ACCESS_TOKEN = "o85zg0lb40mrhtgx873a464lqohsobp";
 	private static final int NEXT_PUBLIC_BC_CHANNEL_ID = 1604412;
+	
+//	private static final String STORE_HASH = "w1jeucyusb";
+//	private static final String ACCESS_TOKEN = "e69e436a4cfe7f21b58f33c324b708df6fb186af85a66f27c2f3ceec5efeb4d2";
+//	private static final int NEXT_PUBLIC_BC_CHANNEL_ID = 1604412;
+	
+	
+	// used for api 
+//	ACCESS TOKEN: 148wypnv70g5uptk97cd5y5bjxeh6b0
+	
+//	CLIENT NAME: dev-admin-token-v1
+//	CLIENT ID: 72w0ns4c140sqiwfsevaoeof2vy4vcn
+//	CLIENT SECRET: e69e436a4cfe7f21b58f33c324b708df6fb186af85a66f27c2f3ceec5efeb4d2
+//	NAME: dev-admin-token-v1
+//	API PATH: https://api.bigcommerce.com/stores/w1jeucyusb/v3/
+		
 
 	public static HttpURLConnection createRequest(String storeHash, String accessToken, String endpoint, String method) throws Exception {
 

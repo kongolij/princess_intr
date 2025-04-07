@@ -2,7 +2,8 @@ package com.bigcommerce.imports.catalog.constants;
 
 public enum StoreHash {
 
-	EN("en", "nkqg1lsole"), // Store hash for English locale
+//	EN("en", "nkqg1lsole"), // Store hash for English locale: jimmy store
+	EN("en", "w1jeucyusb"), // Store hash for English locale: PAL store
 	FR("fr", "btwir1xrem"); // Store hash for French locale (replace with actual hash)
 
 	private final String locale;
@@ -24,7 +25,7 @@ public enum StoreHash {
 	// Static method to get store hash by locale
 	public static String getStoreHashByLocale(String locale) {
 		for (StoreHash storeHash : StoreHash.values()) {
-			if (storeHash.getLocale().equalsIgnoreCase(locale)) {
+			if (storeHash.getLocale().equalsIgnoreCase("en")) {
 				return storeHash.getHash();
 			}
 		}

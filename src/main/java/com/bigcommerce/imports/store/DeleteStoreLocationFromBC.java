@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.boot.CommandLineRunner;
@@ -29,14 +30,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.opencsv.CSVReader;
 
 //@Component
-public class ImportStoreLocationFromCVS implements CommandLineRunner {
+public class DeleteStoreLocationFromBC implements CommandLineRunner {
 
 	 
 	    private final BigCommerceStoreLocationService  bigCommerceStoreLocationService;
 	
 	    private final ObjectMapper objectMapper = new ObjectMapper();
 
-	   public ImportStoreLocationFromCVS(BigCommerceStoreLocationService  bigCommerceStoreLocationService) {
+	   public DeleteStoreLocationFromBC(BigCommerceStoreLocationService  bigCommerceStoreLocationService) {
 		   this.bigCommerceStoreLocationService=bigCommerceStoreLocationService;
 		   
 	   }
@@ -72,17 +73,12 @@ public class ImportStoreLocationFromCVS implements CommandLineRunner {
 	            	// Fetch existing location IDs from BigCommerce
 	            Map<String, Integer> existingLocationIds = bigCommerceStoreLocationService.getLocationIdsByCodes(storeCodes, "en"); // or use dynamic locale if needed
 	            System.out.println("\n📦 Total Store Locations in BC : " + existingLocationIds.size());	
-	            
-	            
-//	            printLocationDetails(locationMap);
-	            bigCommerceStoreLocationService.importStoresToBc(locationMap);
-//	            JSONArray a = BigCommerceLocationMapper.mapLocationToBigCommerce(locations.get(0));
-	            List<Location> locationList = locationMap.values()
-                        .stream()
-                        .map(StoreLocationBundle::getLocation)
-                        .toList();
-	           
-	            // Do something with locations...
+	            Map<Integer, Integer> pikcupMethods = bigCommerceStoreLocationService.getPickupMethodIdByLocationId("en");
+	            List<Integer>  pickupListToDelete= getPickupMethodsToDelete(existingLocationIds,pikcupMethods);
+	         
+	            bigCommerceStoreLocationService.deletePickupMethodsByIds(pickupListToDelete, "en");
+	            bigCommerceStoreLocationService.deleteInventoryLocationsOneByOne(existingLocationIds);
+//	           
 	        	long endTime = System.currentTimeMillis(); // End timing
 				long durationMillis = endTime - startTime;
 				double durationMinutes = durationMillis / 1000.0 / 60.0;
@@ -337,90 +333,40 @@ public class ImportStoreLocationFromCVS implements CommandLineRunner {
 	        return meta;
 	    }
 	    
-	    private void printLocationDetails(Map<String, StoreLocationBundle> locationMap) {
-	        System.out.println("\n🛒 Imported Store Locations:");
-	        for (Map.Entry<String, StoreLocationBundle> entry : locationMap.entrySet()) {
-	            Location loc = entry.getValue().getLocation();
-
-	            System.out.println("--------------------------------------------------");
-	            System.out.printf("ID       : %d\n", loc.getId());
-	            System.out.printf("Code     : %s\n", loc.getCode());
-	            System.out.printf("Label    : %s\n", loc.getLabel());
-	            System.out.printf("Type     : %s\n", loc.getType_id());
-	            System.out.printf("Timezone : %s\n", loc.getTime_zone());
-	            System.out.printf("Enabled  : %s\n", loc.isEnabled());
-	            System.out.printf("Visible  : %s\n", loc.isStorefront_visibility());
-
-	            Address addr = loc.getAddress();
-	            System.out.println("📍 Address:");
-	            System.out.printf("  %s %s\n", addr.getAddress1(), addr.getAddress2());
-	            System.out.printf("  %s, %s %s, %s\n", addr.getCity(), addr.getState(), addr.getZip(), addr.getCountry_code());
-	            System.out.printf("  📧 %s | 📞 %s\n", addr.getEmail(), addr.getPhone());
-
-	            System.out.println("🕒 Operating Hours:");
-	            loc.getOperating_hours().forEach((day, dh) -> {
-	                String status = dh.isOpen() ? String.format("%s - %s", dh.getOpening(), dh.getClosing()) : "Closed";
-	                System.out.printf("  %-9s : %s\n", capitalize(day), status);
-	            });
-
-	            if (loc.getSpecial_hours() != null && !loc.getSpecial_hours().isEmpty()) {
-	                System.out.println("📅 Holiday Hours:");
-	                for (HolidayEntry he : loc.getSpecial_hours()) {
-	                    String hours = (he.getHours() != null && !he.getHours().isEmpty())
-	                            ? String.join(", ", he.getHours())
-	                            : "Closed";
-	                    System.out.printf("  %s %2d (%s): %s\n", he.getMonth(), he.getDay(), he.getName(), hours);
-	                }
-	            }
-	        }
-	    }
-
+	
 	    
-	    
-	    private void printLocationDetails(List<Location> locations) {
-	        System.out.println("\n🛒 Imported Store Locations:");
-	        for (Location loc : locations) {
-	            System.out.println("--------------------------------------------------");
-	            System.out.printf("ID       : %d\n", loc.getId());
-	            System.out.printf("Code     : %s\n", loc.getCode());
-	            System.out.printf("Label    : %s\n", loc.getLabel());
-	            System.out.printf("Type     : %s\n", loc.getType_id());
-	            System.out.printf("Timezone : %s\n", loc.getTime_zone());
-	            System.out.printf("Enabled  : %s\n", loc.isEnabled());
-	            System.out.printf("Visible  : %s\n", loc.isStorefront_visibility());
+	    public List<Integer> getPickupMethodsToDelete(
+	    	    Map<String, Integer> existingLocationIds,
+	    	    Map<Integer, Integer> pickupMethods
+	    	) {
+	    	    // Collect valid (non-null) location IDs from first map
+	    	    Set<Integer> validLocationIds = existingLocationIds.values().stream()
+	    	        .filter(Objects::nonNull)
+	    	        .collect(Collectors.toSet());
 
-	            Address addr = loc.getAddress();
-	            System.out.println("📍 Address:");
-	            System.out.printf("  %s %s\n", addr.getAddress1(), addr.getAddress2());
-	            System.out.printf("  %s, %s %s, %s\n", addr.getCity(), addr.getState(), addr.getZip(), addr.getCountry_code());
-	            System.out.printf("  📧 %s | 📞 %s\n", addr.getEmail(), addr.getPhone());
+	    	    // Result list
+	    	    List<Integer> pickupMethodIdsToDelete = new ArrayList<>();
 
-	            System.out.println("🕒 Operating Hours:");
-	            loc.getOperating_hours().forEach((day, dh) -> {
-	                String status = dh.isOpen() ? String.format("%s - %s", dh.getOpening(), dh.getClosing()) : "Closed";
-	                System.out.printf("  %-9s : %s\n", capitalize(day), status);
-	            });
+	    	    for (Map.Entry<Integer, Integer> entry : pickupMethods.entrySet()) {
+	    	        Integer locationId = entry.getKey();
+	    	        Integer pickupMethodId = entry.getValue();
 
-	            if (loc.getSpecial_hours() != null && !loc.getSpecial_hours().isEmpty()) {
-	                System.out.println("📅 Holiday Hours:");
-	                for (HolidayEntry he : loc.getSpecial_hours()) {
-	                    String hours = (he.getHours() != null && !he.getHours().isEmpty())
-	                            ? String.join(", ", he.getHours())
-	                            : "Closed";
-	                    System.out.printf("  %s %2d (%s): %s\n", he.getMonth(), he.getDay(), he.getName(), hours);
-	                }
-	            }
-	        }
-	    }
+	    	        if (validLocationIds.contains(locationId)) {
+	    	            pickupMethodIdsToDelete.add(pickupMethodId);
+	    	            System.out.println("🗑️ Marking for delete: pickup method ID " + pickupMethodId + " (location ID: " + locationId + ")");
+	    	        }
+	    	    }
 
-	    private String capitalize(String input) {
-	        if (input == null || input.isBlank()) return "";
-	        return input.substring(0, 1).toUpperCase() + input.substring(1).toLowerCase();
-	    }
+	    	    System.out.println("📋 Total pickup methods to delete: " + pickupMethodIdsToDelete.size());
+	    	    return pickupMethodIdsToDelete;
+	    	}
+
+	
 
 	    private String cleanTime(String time) {
 	        return time == null ? "00:00" : time.replaceAll("\\s+", "");
 	    }
 	    
+	
 
 }

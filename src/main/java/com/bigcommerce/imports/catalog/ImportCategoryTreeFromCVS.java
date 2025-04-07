@@ -20,10 +20,14 @@ import com.bigcommerce.imports.catalog.dto.CategoryNode;
 import com.bigcommerce.imports.catalog.service.BigCommerceService;
 import com.opencsv.CSVReader;
 
-//@Component
+@Component
 public class ImportCategoryTreeFromCVS implements CommandLineRunner {
 
 	private final BigCommerceService bigCommerceCategoryService;
+	
+//	static int CATEGOU_TREE_ID=7;  // jimmy store
+    static int CATEGOU_TREE_ID=2;  // PAL store
+	
 
 	public ImportCategoryTreeFromCVS(BigCommerceService bigCommerceCategoryService) {
 
@@ -52,6 +56,8 @@ public class ImportCategoryTreeFromCVS implements CommandLineRunner {
 
 			String[] headers = rows.get(0); // first row is header
 			List<CategoryNode> rootCategories = buildCategoryTree(rows, headers);
+			
+			
 
 			System.out.println("✅ Root categories: " + rootCategories.size());
 			// printCategoryTree(rootCategories, 0);
@@ -77,9 +83,10 @@ public class ImportCategoryTreeFromCVS implements CommandLineRunner {
 			System.out.println("✅ Existing Category count IDS : " + categoriesForTheChannel1.size());
 			
 			printUnmatchedCategories( rootCategories, categoriesForTheChannel1, "en");
-//			bigCommerceCategoryService.importCategoryTreeInThreads(rootCategories, "en", 7, categoriesForTheChannel1);
+//			bigCommerceCategoryService.importCategoryTreeInThreads(rootCategories, "en", CATEGOU_TREE_ID, categoriesForTheChannel1);
 
-			
+			int missingImageCount = countMissingImages(rootCategories);
+			System.out.println("🖼️ Categories missing imageFileName: " + missingImageCount);
 
 			long endTime = System.currentTimeMillis(); // End timing
 			long durationMillis = endTime - startTime;
@@ -321,7 +328,24 @@ public class ImportCategoryTreeFromCVS implements CommandLineRunner {
 	    }
 	}
 
-	
+	private int countMissingImages(List<CategoryNode> nodes) {
+	    int[] count = {0};
+	    for (CategoryNode node : nodes) {
+	        countMissingImagesRecursive(node, count);
+	    }
+	    return count[0];
+	}
+
+	private void countMissingImagesRecursive(CategoryNode node, int[] count) {
+	    String imageFileName = node.getImageFileName();
+	    if (imageFileName == null || imageFileName.isBlank()) {
+	        count[0]++;
+	    }
+
+	    for (CategoryNode child : node.getChildren()) {
+	        countMissingImagesRecursive(child, count);
+	    }
+	}
 	
 	
 
