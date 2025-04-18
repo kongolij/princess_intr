@@ -3,8 +3,14 @@ package com.bigcommerce.imports.catalog.constants;
 public enum StoreHash {
 
 //	EN("en", "nkqg1lsole"), // Store hash for English locale: jimmy store
-	EN("en", "w1jeucyusb"), // Store hash for English locale: PAL store
-	FR("fr", "btwir1xrem"); // Store hash for French locale (replace with actual hash)
+//PAl-dev
+//	EN("en", "w1jeucyusb"), // Store hash for English locale: PAL store
+//EPAM_DEV	
+	EN("en", "u2rpux9vkx"), // Store hash for English locale: PAL store
+// EAPM QA	
+//	EN("fr", "kpz3wrpdrb"); // Store hash for French locale (replace with actual hash)
+	
+	FR("fr", "kpz3wrpdrb");
 
 	private final String locale;
 	private final String hash;

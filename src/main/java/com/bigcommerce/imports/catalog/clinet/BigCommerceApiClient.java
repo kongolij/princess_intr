@@ -10,9 +10,20 @@ import java.util.stream.Collectors;
 
 public class BigCommerceApiClient {
 
-	private static final String STORE_HASH = "nkqg1lsole";
-	private static final String ACCESS_TOKEN = "o85zg0lb40mrhtgx873a464lqohsobp";
-	private static final int NEXT_PUBLIC_BC_CHANNEL_ID = 1604412;
+	//DEV
+	private static final String STORE_HASH = "u2rpux9vkx";
+	private static final String ACCESS_TOKEN = "211w656tmge6rmsgo0olr8jtky50j38";
+	private static final int NEXT_PUBLIC_BC_CHANNEL_ID = 1730140;
+	
+//	//QA
+//	private static final String STORE_HASH = "kpz3wrpdrb";
+//	private static final String ACCESS_TOKEN = "tt37h0cc8h7u7mqxi1kyra4qf2jg3wx";
+//	private static final int NEXT_PUBLIC_BC_CHANNEL_ID = 1730142;
+//	
+    //	
+//	private static final String STORE_HASH = "nkqg1lsole";
+//	private static final String ACCESS_TOKEN = "o85zg0lb40mrhtgx873a464lqohsobp";
+//	private static final int NEXT_PUBLIC_BC_CHANNEL_ID = 1604412;
 	
 //	private static final String STORE_HASH = "w1jeucyusb";
 //	private static final String ACCESS_TOKEN = "e69e436a4cfe7f21b58f33c324b708df6fb186af85a66f27c2f3ceec5efeb4d2";

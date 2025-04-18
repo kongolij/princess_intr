@@ -1,0 +1,156 @@
+[
+  {
+    "productNumber": "PROD-1001",
+    "categories": ["Tools", "Power Tools"],
+    "active": true,
+    "paCountryOfOrigin": "Canada",
+    "attributes": [
+      {
+        "id": "displayName",
+        "en": "Bore Threaded Head Utility Cylinders",
+        "fr_CA": "Vérins utilitaires à tête filetée avec alésage"
+      },
+      {
+        "id": "material",
+        "en": "Steel",
+        "fr_CA": "Acier"
+      },
+      {
+        "id": "warranty",
+        "en": "2 years",
+        "fr_CA": "2 ans"
+      }
+    ],
+    "variants": [
+      {
+        "skuNumber": "8411118",
+        "paSkuClearance": false,
+        "paAvailabilityCode": "IN_STOCK",
+        "paLevy": false,
+        "paShippable": true,
+        "paProductStatus": "ACTIVE",
+        "paVendorNumber": "VENDOR-001",
+        "paVendorPartNumber": "VENDPART-789",
+        "paUPC": "012345678905",
+        "paHeight": 5.0,
+        "paLength": 10.0,
+        "paWidth": 3.6,
+        "paWeight": 12.4,
+        "attributes": [
+          {
+            "id": "A01550",
+            "en": "2 in. Bore x 4 in. Stroke Threaded Head Utility Cylinder",
+            "fr_CA": "Cylindre utilitaire à tête filetée, alésage 2 po x course 4 po"
+          },
+          {
+            "id": "A00360",
+            "en": "Shurlift",
+            "fr_CA": "Shurlift"
+          },
+          {
+            "id": "A01194",
+            "en": "9,420",
+            "fr_CA": "9 420"
+          },
+          {
+            "id": "A03120",
+            "en": "Threaded Head Utility Cylinder",
+            "fr_CA": "Cylindre utilitaire à tête filetée"
+          },
+          {
+            "id": "A04066",
+            "en": "6 in.",
+            "fr_CA": "6 po"
+          },
+          {
+            "id": "A02270",
+            "en": "1",
+            "fr_CA": "1"
+          },
+          {
+            "id": "A40382",
+            "en": "12 in.",
+            "fr_CA": "12 po"
+          },
+          {
+            "id": "A02889",
+            "en": "4 in.",
+            "fr_CA": "4 po"
+          },
+          {
+            "id": "A00602",
+            "en": "Red",
+            "fr_CA": "Rouge"
+          },
+          {
+            "id": "A02326",
+            "en": "1 in.",
+            "fr_CA": "1 po"
+          },
+          {
+            "id": "A00178",
+            "en": "2-3/4 in.",
+            "fr_CA": "2-3/4 po"
+          },
+          {
+            "id": "A00630",
+            "en": "ORBF",
+            "fr_CA": "ORBF"
+          },
+          {
+            "id": "A02423",
+            "en": "3,000 PSI",
+            "fr_CA": "3 000 lb/po²"
+          },
+          {
+            "id": "A02578",
+            "en": "2-1/4 in.",
+            "fr_CA": "2-1/4 po"
+          },
+          {
+            "id": "A02576",
+            "en": "1-1/4 in.",
+            "fr_CA": "1-1/4 po"
+          },
+          {
+            "id": "A00343",
+            "en": "2",
+            "fr_CA": "2"
+          },
+          {
+            "id": "A01729",
+            "en": "Steel",
+            "fr_CA": "Acier"
+          },
+          {
+            "id": "A00858",
+            "en": "15-1/2 in.",
+            "fr_CA": "15-1/2 po"
+          }
+        ],
+        "option_values": [
+          {
+            "option_name": "Bore",
+            "value": "2 in"
+          },
+          {
+            "option_name": "Stroke Length",
+            "value": "6 in"
+          }
+        ]
+      }
+    ],
+    "assets": [
+      {
+        "type": "image",
+        "url": "8411118_A0CG_00_01.jpg",
+        "description": "Front view of the product"
+      },
+      {
+        "type": "manual",
+        "url": "8411118_oa_en_01_drawing.pdf",
+        "description": "User manual in PDF"
+      }
+    ]
+  }
+]

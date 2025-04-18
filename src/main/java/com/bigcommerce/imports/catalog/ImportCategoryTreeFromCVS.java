@@ -20,13 +20,15 @@ import com.bigcommerce.imports.catalog.dto.CategoryNode;
 import com.bigcommerce.imports.catalog.service.BigCommerceService;
 import com.opencsv.CSVReader;
 
-@Component
+//@Component
 public class ImportCategoryTreeFromCVS implements CommandLineRunner {
 
 	private final BigCommerceService bigCommerceCategoryService;
 	
 //	static int CATEGOU_TREE_ID=7;  // jimmy store
-    static int CATEGOU_TREE_ID=2;  // PAL store
+//    static int CATEGOU_TREE_ID=2;  // PAL store
+    public static int CATEGOU_TREE_ID=2;  // EPAM-PAL-DE store
+//    static int CATEGOU_TREE_ID=2;  // PAL store
 	
 
 	public ImportCategoryTreeFromCVS(BigCommerceService bigCommerceCategoryService) {

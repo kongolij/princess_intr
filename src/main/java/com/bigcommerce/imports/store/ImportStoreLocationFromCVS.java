@@ -75,7 +75,7 @@ public class ImportStoreLocationFromCVS implements CommandLineRunner {
 	            
 	            
 //	            printLocationDetails(locationMap);
-	            bigCommerceStoreLocationService.importStoresToBc(locationMap);
+//	            bigCommerceStoreLocationService.importStoresToBc(locationMap);
 //	            JSONArray a = BigCommerceLocationMapper.mapLocationToBigCommerce(locations.get(0));
 	            List<Location> locationList = locationMap.values()
                         .stream()
