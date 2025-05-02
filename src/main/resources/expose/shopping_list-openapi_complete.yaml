@@ -1,751 +1,1029 @@
 openapi: 3.0.3
 info:
-  title: Shopping Lists
-  description: This API provides an interface to manage Shopping Lists
-  version: v1
-  contact:
-    name: EPAM
-    email: jimmy-kongoli@epam.com
+   title: Shopping Lists
+   description: This API provides an interface to manage Shopping Lists
+   version: v1
+   contact:
+      name: EPAM
+      email: jimmy-kongoli@epam.com
 servers:
-  - url: 'https://devapic.princesauto.com/ecom/v1'
-    description: Dev environment
-  - url: 'https://testapic.princesauto.com/ecom/v1'
-    description: Test environment
-  - url: 'https://apic.princesauto.com/ecom/v1'
-    description: Production environment
+-  url: https://devapic.princesauto.com/ecom/v1
+   description: Dev environment
+-  url: https://testapic.princesauto.com/ecom/v1
+   description: Test environment
+-  url: https://apic.princesauto.com/ecom/v1
+   description: Production environment
 tags:
-  - name: Shopping Lists
-    description: Operations related to shopping lists
+-  name: Shopping Lists
+   description: Operations related to shopping lists
 security:
-  - bearerAuth: []
+-  bearerAuth: []
 paths:
-  /shopping-list:
-    get:
-      summary: List shopping lists
-      description: Retrieve a paginated list of all shopping lists created by the authenticated user.
-      operationId: queryShoppingLists
-      tags:
-        - Shopping Lists
-      parameters:
-        - $ref: '#/components/parameters/OcpApimSubscriptionKey'
-        - $ref: '#/components/parameters/Authorization'
-        - $ref: '#/components/parameters/Language'
-        - in: query
-          name: limit
-          schema:
-            type: integer
-            default: 10
-            minimum: 0
-            maximum: 50
-          description: The maximum number of shopping lists per page
-        - in: query
-          name: offset
-          schema:
-            type: integer
-            default: 0
-            minimum: 0
-            maximum: 100
-          description: The number of elements to skip
-        - in: query
-          name: sort
-          schema:
-            type: string
-            pattern: '^(name|numberOfLines) (asc|desc)$'
-            example: name asc
-          description: Sorting criteria for the shopping lists.
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/PagedShoppingListResponse'
-        400:
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              examples:
-                InvalidQueryParameterExample:
-                  value:
-                    error_code: SHOPPING_LIST_007_INVALID_REQUEST
-                    message: Invalid query parameters (limit must be between 0 and 50).
-                    type: ValidationError       
-        '401':
-          description: Unauthorized
-        '403':
-          description: Insufficient priviledges.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              examples:
-                Token has insufficent privileges:
-                  value:
-                    error_code: FORBIDDEN
-                    message: You do not have permission to access this resource.
-                    type: AuthorizationError 
-        '500':
-          description: Internal Server Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              examples:
-                Critical dependent service is down:
-                  value:
-                    error_code: INTERNAL_SERVER_ERROR
-                    message: Service unavailable please try after some time
-                    type: General
-          
-    post:
-      summary: Create a new shopping list
-      description: Create a new shopping list with  description and optional line items.
-      operationId: createShoppingList
-      tags:
-        - Shopping Lists
-      parameters:
-        - $ref: '#/components/parameters/OcpApimSubscriptionKey'
-        - $ref: '#/components/parameters/Authorization'
-        - $ref: '#/components/parameters/Language'
-        - in: query
-          name: handleDuplicateName
-          schema:
-            type: boolean
-            default: false
-          description: Handle duplicate names automatically.
-      requestBody:
-        required: true
-        content:
-          application/json:
+   /shopping-lists:
+      get:
+         summary: List shopping lists
+         description: Retrieve a paginated list of all shopping lists created by the authenticated user.
+         operationId: queryShoppingLists
+         tags:
+         - Shopping Lists
+         parameters:
+         -  $ref: '#/components/parameters/OcpApimSubscriptionKey'
+         -  $ref: '#/components/parameters/Authorization'
+         -  $ref: '#/components/parameters/MyStoreId'
+         -  $ref: '#/components/parameters/Language'
+         -  in: query
+            name: limit
             schema:
-              $ref: '#/components/schemas/CreateShoppingListRequest'
-      responses:
-        '201':
-          description: Shopping list successfully created.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ShoppingListCreateResponse'
-        '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              examples:
-                Token has insufficent privileges:
-                  value:
-                    error_code: SHOPPING_LIST_002_DUPLICATE_NAME
-                    message: Shopping list with the same name already exists..
-                    type: ValidationError  
-        '401':
-          description: Unauthorized
-        '403':
-          description: Insufficient priviledges.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              examples:
-                Token has insufficent privileges:
-                  value:
-                    error_code: FORBIDDEN
-                    message: You do not have permission to access this resource.
-                    type: AuthorizationError  
-        '500':
-          description: Internal Server Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              examples:
-                Critical dependent service is down:
-                  value:
-                    error_code: INTERNAL_SERVER_ERROR
-                    message: Service unavailable please try after some time
-                    type: General
-
-  /shopping-list/{id}:
-    get:
-      summary: Get shopping list details
-      description: Retrieve detailed information for a specific shopping list by ID.
-      operationId: getShoppingListById
-      tags:
-        - Shopping Lists
-      parameters:
-        - $ref: '#/components/parameters/OcpApimSubscriptionKey'
-        - $ref: '#/components/parameters/Authorization'
-        - $ref: '#/components/parameters/Language'
-        - in: path
-          name: id
-          required: true
-          schema:
-            type: integer
-          description: Shopping list ID
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ShoppingListDetailedResponse'
-        '404':
-          description: Shopping list not found
-        '401':
-          description: Unauthorized
-        '500':
-          description: Internal Server Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              examples:
-                Critical dependent service is down:
-                  value:
-                    error_code: INTERNAL_SERVER_ERROR
-                    message: Service unavailable please try after some time
-                    type: General
-    put:
-      summary: Update shopping list
-      description: Replace the shopping list's name, description, and all its items.
-      operationId: updateShoppingList
-      tags:
-        - Shopping Lists
-      parameters:
-        - $ref: '#/components/parameters/OcpApimSubscriptionKey'
-        - $ref: '#/components/parameters/Authorization'
-        - in: path
-          name: id
-          required: true
-          schema:
-            type: integer
-          description: Shopping list ID
-      requestBody:
-        required: true
-        content:
-          application/json:
+               type: integer
+               default: 10
+               minimum: 0
+               maximum: 50
+            description: The maximum number of shopping lists per page
+         -  in: query
+            name: offset
             schema:
-              $ref: '#/components/schemas/ShoppingListUpdateInput'
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/BasicShoppingListResponse'
-        '400':
-          description: Bad Request
-        '401':
-          description: Unauthorized
-        '404':
-          description: Shopping list not found
-        '500':
-          description: Internal Server Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              examples:
-                Critical dependent service is down:
-                  value:
-                    error_code: INTERNAL_SERVER_ERROR
-                    message: Service unavailable please try after some time
-                    type: General
-    delete:
-      summary: Delete shopping list
-      description: Permanently delete a shopping list by ID.
-      operationId: deleteShoppingList
-      tags:
-        - Shopping Lists
-      parameters:
-        - $ref: '#/components/parameters/OcpApimSubscriptionKey'
-        - $ref: '#/components/parameters/Authorization'
-        - in: path
-          name: id
-          required: true
-          schema:
-            type: integer
-          description: Shopping list ID
-      responses:
-        '204':
-          description: No Content
-        '400':
-          description: Bad Request
-        '401':
-          description: Unauthorized
-        '403':
-          description: Forbidden
-        '404':
-          description: Shopping list not found
-        '500':
-          description: Internal Server Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              examples:
-                Critical dependent service is down:
-                  value:
-                    error_code: INTERNAL_SERVER_ERROR
-                    message: Service unavailable please try after some time
-                    type: General
-
-  /shopping-list/{id}/items:
-    post:
-      summary: Add item(s) to a shopping list
-      operationId: addItemsToShoppingList
-      description: Adds one or more items to a specific shopping list.
-      tags:
-        - Shopping List Items
-      parameters:
-        - $ref: '#/components/parameters/OcpApimSubscriptionKey'
-        - $ref: '#/components/parameters/Authorization'
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
-          description: Shopping list ID
-      requestBody:
-        required: true
-        content:
-          application/json:
+               type: integer
+               default: 0
+               minimum: 0
+               maximum: 100
+            description: The number of elements to skip
+         -  in: query
+            name: sort
             schema:
-              type: object
-              properties:
-                items:
-                  type: array
-                  items:
-                    $ref: '#/components/schemas/ShoppingListCreateLineItemInput'
-      responses:
-        '200':
-          description: Items added successfully
-        '400':
-          description: Invalid input
-        '401':
-          description: Unauthorized
-        '403':
-          description: Forbidden
-        '404':
-          description: Shopping list not found
+               type: string
+               pattern: ^(name|numberOfLines) (asc|desc)$
+               example: name asc
+            description: Sorting criteria for the shopping lists.
+         responses:
+            '200':
+               description: OK
+               content:
+                  application/json:
+                     schema:
+                        $ref: '#/components/schemas/PagedShoppingListsResponse'
+            400:
+               description: Bad Request
+               content:
+                  application/json:
+                     schema:
+                        $ref: '#/components/schemas/ErrorResponse'
+                     examples:
+                        InvalidQueryParameterExample:
+                           value:
+                              error_code: SHOPPING_LIST_007_INVALID_REQUEST
+                              message: Invalid query parameters (limit must be between 0 and 50).
+                              type: ValidationError
+            '401':
+               description: Unauthorized
+               content:
+                  application/json:
+                     schema:
+                        $ref: '#/components/schemas/ErrorResponse'
+                     examples:
+                        Unauthorized:
+                           $ref: '#/components/examples/UnauthorizedErrorExample'
+            '500':
+               description: Internal Server Error
+               content:
+                  application/json:
+                     schema:
+                        $ref: '#/components/schemas/ErrorResponse'
+                     examples:
+                        InternalServerError:
+                           $ref: '#/components/examples/InternalServerErrorExample'
 
-  /shopping-list/{id}/items/{itemId}:
-    put:
-      summary: Update an item in a shopping list
-      operationId: updateItemInShoppingList
-      description: Replaces an item in a shopping list with new productId, variantId, and quantity.
-      tags:
-        - Shopping List Items
-      parameters:
-        - $ref: '#/components/parameters/OcpApimSubscriptionKey'
-        - $ref: '#/components/parameters/Authorization'
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
-          description: Shopping list ID
-        - name: itemId
-          in: path
-          required: true
-          schema:
-            type: integer
-          description: Item ID inside the shopping list
-      requestBody:
-          required: true
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  productId:
-                    type: integer
-                    description: New BigCommerce Product ID
-                  variantId:
-                    type: integer
-                    description: New BigCommerce Variant ID
-                  quantity:
-                    type: integer
-                    minimum: 1
-                    description: New quantity for the item
-                required:
-                  - productId
-                   - variantId
-                   - quantity
-      responses:
-        '200':
-          description: Item updated successfully
-        '400':
-          description: Invalid input
-        '401':
-          description: Unauthorized
-        '403':
-          description: Forbidden
-        '404':
-          description: Shopping list or item not found
-          
-    delete:
-      summary: Remove an item from a shopping list
-      operationId: removeItemFromShoppingList
-      description: Removes a specific item from a shopping list.
-      tags:
-        - Shopping List Items
-      parameters:
-        - $ref: '#/components/parameters/OcpApimSubscriptionKey'
-        - $ref: '#/components/parameters/Authorization'
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
-          description: Shopping list ID
-        - name: itemId
-          in: path
-          required: true
-          schema:
-            type: integer
-          description: Item ID inside the shopping list
-      responses:
-        '204':
-          description: Item successfully removed
-        '400':
-          description: Invalid input
-        '401':
-          description: Unauthorized
-        '403':
-          description: Forbidden
-        '404':
-          description: Shopping list or item not found
-                  
+
+      post:
+         summary: Create a new shopping list
+         description: Create a new shopping list with  description and optional line items.
+         operationId: createShoppingList
+         tags:
+         - Shopping Lists
+         parameters:
+         -  $ref: '#/components/parameters/OcpApimSubscriptionKey'
+         -  $ref: '#/components/parameters/Authorization'
+         -  $ref: '#/components/parameters/MyStoreId'
+         -  $ref: '#/components/parameters/Language'
+         -  in: query
+            name: handleDuplicateName
+            schema:
+               type: boolean
+               default: false
+            description: Handle duplicate names automatically.
+         requestBody:
+            required: true
+            content:
+               application/json:
+                  schema:
+                     $ref: '#/components/schemas/CreateShoppingListRequest'
+         responses:
+            '201':
+               description: Shopping list successfully created.
+               content:
+                  application/json:
+                     schema:
+                        $ref: '#/components/schemas/ShoppingListCreateResponse'
+            '400':
+               description: Bad Request
+               content:
+                  application/json:
+                     schema:
+                        $ref: '#/components/schemas/ErrorResponse'
+                     examples:
+                        Token has insufficent privileges:
+                           value:
+                              error_code: SHOPPING_LIST_002_DUPLICATE_NAME
+                              message: Shopping list with the same name already exists..
+                              type: ValidationError
+            '401':
+               description: Unauthorized
+               content:
+                  application/json:
+                     schema:
+                        $ref: '#/components/schemas/ErrorResponse'
+                     examples:
+                        Unauthorized:
+                           $ref: '#/components/examples/UnauthorizedErrorExample'
+            '500':
+               description: Internal Server Error
+               content:
+                  application/json:
+                     schema:
+                        $ref: '#/components/schemas/ErrorResponse'
+                     examples:
+                        InternalServerError:
+                           $ref: '#/components/examples/InternalServerErrorExample'
+
+   /shopping-lists/{id}:
+      get:
+         summary: Get shopping list details
+         description: Retrieve detailed information for a specific shopping list by ID.
+         operationId: getShoppingListById
+         tags:
+         - Shopping Lists
+         parameters:
+         -  $ref: '#/components/parameters/OcpApimSubscriptionKey'
+         -  $ref: '#/components/parameters/Authorization'
+         -  $ref: '#/components/parameters/MyStoreId'
+         -  $ref: '#/components/parameters/Language'
+         -  in: path
+            name: id
+            required: true
+            schema:
+               type: integer
+            description: Shopping list ID
+         responses:
+            '200':
+               description: OK
+               content:
+                  application/json:
+                     schema:
+                        $ref: '#/components/schemas/ShoppingListFull'
+            '404':
+               description: Shopping list not found
+               content:
+                  application/json:
+                     schema:
+                        $ref: '#/components/schemas/ErrorResponse'
+                     examples:
+                        NotFound:
+                           summary: Shopping list not found
+                           value:
+                              error_code: SHOPPING_LIST_008_NOT_FOUND
+                              type: NotFoundError
+                              message: The requested shopping list could not be found.
+            '401':
+               description: Unauthorized
+               content:
+                  application/json:
+                     schema:
+                        $ref: '#/components/schemas/ErrorResponse'
+                     examples:
+                        Unauthorized:
+                           $ref: '#/components/examples/UnauthorizedErrorExample'
+            '500':
+               description: Internal Server Error
+               content:
+                  application/json:
+                     schema:
+                        $ref: '#/components/schemas/ErrorResponse'
+                     examples:
+                        InternalServerError:
+                           $ref: '#/components/examples/InternalServerErrorExample'
+      patch:
+         summary: Update shopping list
+         description: Partially updates the shopping list. You may update the name, description, or modify/add items without
+            replacing the entire list. Items with an `id` will be updated; items without an `id` will be added.
+         operationId: patchShoppingList
+         tags:
+         - Shopping Lists
+         parameters:
+         -  $ref: '#/components/parameters/OcpApimSubscriptionKey'
+         -  $ref: '#/components/parameters/Authorization'
+         -  in: path
+            name: id
+            required: true
+            schema:
+               type: integer
+            description: Shopping list ID
+         requestBody:
+            required: true
+            content:
+               application/json:
+                  schema:
+                     $ref: '#/components/schemas/UpdateShoppingListRequest'
+         responses:
+            '200':
+               description: OK
+               content:
+                  application/json:
+                     schema:
+                        $ref: '#/components/schemas/ShoppingListSummary'
+            '400':
+               description: Bad Request
+               content:
+                  application/json:
+                     schema:
+                        $ref: '#/components/schemas/ErrorResponse'
+                     examples:
+                        InvalidPatchInput:
+                           value:
+                              error_code: SHOPPING_LIST_001_INVALID_INPUT
+                              type: ValidationError
+                              message: Provided data for patching is invalid or incomplete.
+
+            '404':
+               description: Shopping list not found
+               content:
+                  application/json:
+                     schema:
+                        $ref: '#/components/schemas/ErrorResponse'
+                     examples:
+                        NotFound:
+                           value:
+                              error_code: SHOPPING_LIST_008_NOT_FOUND
+                              type: NotFoundError
+                              message: The requested shopping list could not be found.
+            '401':
+               description: Unauthorized
+               content:
+                  application/json:
+                     schema:
+                        $ref: '#/components/schemas/ErrorResponse'
+                     examples:
+                        Unauthorized:
+                           $ref: '#/components/examples/UnauthorizedErrorExample'
+            '500':
+               description: Internal Server Error
+               content:
+                  application/json:
+                     schema:
+                        $ref: '#/components/schemas/ErrorResponse'
+                     examples:
+                        InternalServerError:
+                           $ref: '#/components/examples/InternalServerErrorExample'
+      delete:
+         summary: Delete shopping list
+         description: Permanently delete a shopping list by ID.
+         operationId: deleteShoppingList
+         tags:
+         - Shopping Lists
+         parameters:
+         -  $ref: '#/components/parameters/OcpApimSubscriptionKey'
+         -  $ref: '#/components/parameters/Authorization'
+         -  in: path
+            name: id
+            required: true
+            schema:
+               type: integer
+            description: Shopping list ID
+         responses:
+            '204':
+               description: No Content
+            '400':
+               description: Bad Request
+               content:
+                  application/json:
+                     schema:
+                        $ref: '#/components/schemas/ErrorResponse'
+                     examples:
+                        InvalidId:
+                           value:
+                              error_code: SHOPPING_LIST_001_INVALID_INPUT
+                              type: ValidationError
+                              message: Invalid shopping list ID format
+            '404':
+               description: Shopping list not found
+               content:
+                  application/json:
+                     schema:
+                        $ref: '#/components/schemas/ErrorResponse'
+                     examples:
+                        NotFound:
+                           value:
+                              error_code: SHOPPING_LIST_008_NOT_FOUND
+                              type: NotFoundError
+                              message: The requested shopping list could not be found.
+            '401':
+               description: Unauthorized
+               content:
+                  application/json:
+                     schema:
+                        $ref: '#/components/schemas/ErrorResponse'
+                     examples:
+                        Unauthorized:
+                           $ref: '#/components/examples/UnauthorizedErrorExample'
+            '500':
+               description: Internal Server Error
+               content:
+                  application/json:
+                     schema:
+                        $ref: '#/components/schemas/ErrorResponse'
+                     examples:
+                        InternalServerError:
+                           $ref: '#/components/examples/InternalServerErrorExample'
+
+   /shopping-lists/{id}/items:
+      get:
+         summary: Get items in a shopping list
+         description: Returns all line items within the specified shopping list.
+         operationId: getItemsInShoppingList
+         tags:
+         - Shopping List Items
+         parameters:
+         -  $ref: '#/components/parameters/OcpApimSubscriptionKey'
+         -  $ref: '#/components/parameters/Authorization'
+         -  $ref: '#/components/parameters/Language'
+         -  $ref: '#/components/parameters/MyStoreId'
+         -  name: id
+            in: path
+            required: true
+            schema:
+               type: integer
+            description: Shopping list ID
+         responses:
+            '200':
+               description: Line items retrieved successfully
+               content:
+                  application/json:
+                     schema:
+                        type: object
+                        properties:
+                           items:
+                              type: array
+                              items:
+                                 $ref: '#/components/schemas/ShoppingListLineItemExtended'
+            '400':
+               description: Invalid input
+               content:
+                  application/json:
+                     schema:
+                        $ref: '#/components/schemas/ErrorResponse'
+                     examples:
+                        InvalidId:
+                           value:
+                              error_code: SHOPPING_LIST_001_INVALID_INPUT
+                              type: ValidationError
+                              message: The shopping list ID is invalid.
+            '404':
+               description: Shopping list not found
+               content:
+                  application/json: 
+                    schema:
+                     $ref: '#/components/schemas/ErrorResponse'
+                    examples:
+                      NotFound:
+                         value:
+                           error_code: SHOPPING_LIST_008_NOT_FOUND
+                           type: NotFoundError
+                           message: The requested shopping list could not be found.
+            '401':
+               description: Unauthorized
+               content:
+                  application/json:
+                    schema:
+                      $ref: '#/components/schemas/ErrorResponse'
+                    examples:
+                      Unauthorized:
+                        $ref: '#/components/examples/UnauthorizedErrorExample'
+            '500':
+               description: Internal Server Error
+               content:
+                  application/json:
+                    schema:
+                      $ref: '#/components/schemas/ErrorResponse'
+                    examples:
+                      InternalServerError:
+                        $ref: '#/components/examples/InternalServerErrorExample'
+      post:
+         summary: Add item(s) to a shopping list
+         operationId: addItemsToShoppingList
+         description: Adds one or more items to a specific shopping list.
+         tags:
+         - Shopping List Items
+         parameters:
+         -  $ref: '#/components/parameters/OcpApimSubscriptionKey'
+         -  $ref: '#/components/parameters/Authorization'
+         -  name: id
+            in: path
+            required: true
+            schema:
+               type: integer
+            description: Shopping list ID
+         requestBody:
+            required: true
+            content:
+               application/json:
+                  schema:
+                     type: object
+                     properties:
+                        items:
+                           type: array
+                           items:
+                              $ref: '#/components/schemas/CreateShoppingListLineItemRequest'
+         responses:
+            '200':
+               description: Items added successfully
+            '400':
+               description: Invalid input
+            '404':
+               description: Shopping list not found
+            '401':
+               description: Unauthorized
+               content:
+                  application/json:
+                     schema:
+                        $ref: '#/components/schemas/ErrorResponse'
+                     examples:
+                        Unauthorized:
+                           $ref: '#/components/examples/UnauthorizedErrorExample'
+            '500':
+               description: Internal Server Error
+               content:
+                  application/json:
+                     schema:
+                        $ref: '#/components/schemas/ErrorResponse'
+                     examples:
+                        InternalServerError:
+                           $ref: '#/components/examples/InternalServerErrorExample'
+
+   /shopping-lists/{id}/items/{itemId}:
+      put:
+         summary: Update an item in a shopping list
+         operationId: updateItemInShoppingList
+         description: Replaces an item in a shopping list with new productId, variantId, and quantity.
+         tags:
+         - Shopping List Items
+         parameters:
+         -  $ref: '#/components/parameters/OcpApimSubscriptionKey'
+         -  $ref: '#/components/parameters/Authorization'
+         -  name: id
+            in: path
+            required: true
+            schema:
+               type: integer
+            description: Shopping list ID
+         -  name: itemId
+            in: path
+            required: true
+            schema:
+               type: integer
+            description: Item ID inside the shopping list
+         requestBody:
+            required: true
+            content:
+               application/json:
+                  schema:
+                     type: object
+                     properties:
+                        productId:
+                           type: integer
+                           description: New BigCommerce Product ID
+                        variantId:
+                           type: integer
+                           description: New BigCommerce Variant ID
+                        quantity:
+                           type: integer
+                           minimum: 1
+                           description: New quantity for the item
+                     required:
+                     - productId - variantId - quantity
+         responses:
+            '200':
+               description: Item updated successfully
+            '400':
+               description: Invalid input
+            '404':
+               description: Shopping list or item not found
+            '401':
+               description: Unauthorized
+               content:
+                  application/json:
+                     schema:
+                        $ref: '#/components/schemas/ErrorResponse'
+                     examples:
+                        Unauthorized:
+                           $ref: '#/components/examples/UnauthorizedErrorExample'
+            '500':
+               description: Internal Server Error
+               content:
+                  application/json:
+                     schema:
+                        $ref: '#/components/schemas/ErrorResponse'
+                     examples:
+                        InternalServerError:
+                           $ref: '#/components/examples/InternalServerErrorExample'
+      delete:
+         summary: Remove an item from a shopping list
+
+         operationId: removeItemFromShoppingList
+         description: Removes a specific item from a shopping list.
+         tags:
+         - Shopping List Items
+         parameters:
+         -  $ref: '#/components/parameters/OcpApimSubscriptionKey'
+         -  $ref: '#/components/parameters/Authorization'
+         -  name: id
+            in: path
+            required: true
+            schema:
+               type: integer
+            description: Shopping list ID
+         -  name: itemId
+            in: path
+            required: true
+            schema:
+               type: integer
+            description: Item ID inside the shopping list
+         responses:
+            '204':
+               description: Item successfully removed
+            '400':
+               description: Invalid input
+            '404':
+               description: Shopping list or item not found
+            '401':
+               description: Unauthorized
+               content:
+                  application/json:
+                     schema:
+                        $ref: '#/components/schemas/ErrorResponse'
+                     examples:
+                        Unauthorized:
+                           $ref: '#/components/examples/UnauthorizedErrorExample'
+            '500':
+               description: Internal Server Error
+               content:
+                  application/json:
+                     schema:
+                        $ref: '#/components/schemas/ErrorResponse'
+                     examples:
+                        InternalServerError:
+                           $ref: '#/components/examples/InternalServerErrorExample'
 components:
-  parameters:
-    Language:
-      name: language
-      in: query
-      schema:
-        type: string
-        enum: [en, fr]
-      description: Language preference ("en" or "fr")
-    Authorization:
-      in: header
-      name: Authorization
-      required: true
-      description: JWT token
-      schema:
-        type: string
-    OcpApimSubscriptionKey:
-      in: header
-      name: Ocp-Apim-Subscription-Key
-      required: true
-      description: Azure APIM subscription key
-      schema:
-        type: string
-    MyPostalCode:
-      in: header
-      name: MyPostalCode
-      required: false
-      description: User's current postal code
-      schema:
-        type: string
-        
-  schemas:
-    
-    SharingWithResponse:
-      type: object
-      properties:
-        id:
-          type: string
-        name:
-          type: string
-      example:
-        id: "100836"
-        name: My Hospital
-      required:
-        - id
-    
-    BasicShoppingListResponse:
-      type: object
-      properties:
-        id:
-          type: integer
-          description: Internal BigCommerce wishlist ID (entityId)
-        name:
-          type: string
-          description: Name of the wishlist
-        numberOfLines:
-          type: integer
-          description: Total number of items (line entries) in the wishlist
-        items:
-          type: array
-          items:
-            $ref: '#/components/schemas/ShoppingListItem'
-      example:
-        id: 12
-        name: My shopping list
-        numberOfLines: 2
-        items:
-          - productId: 132
-            variantId: 1935
-            productName: "Threaded Head Utility Cylinders"
-            quantity: 1
-            imageUrl: "https://cdn.site.com/images/P001.jpg"
-          - productId: 140
-            variantId: 2049
-            productName: "KLEIN TOOLS Combustible Gas Leak Detector"
-            quantity: 1
-            imageUrl: "https://cdn11.bigcommerce.com/s-u2rpux9vkx/products/140/images/385/9322322_A0CG_00_01__84988.1745258504.386.513.jpg"
-      required:
-        - id
-        - name
-        - numberOfLines
-        - items
-        
-    ShoppingListItem:
-      type: object
-      properties:
-        productId:
-          type: integer
-          description: Internal BigCommerce Product ID
-        variantId:
-          type: integer
-          description: Internal BigCommerce Variant ID
-        productName:
-          type: string
-          description: Localized product name in English and French
-        quantity:
-          type: integer
-          description: Quantity of the item in the shopping list
-          minimum: 1  
-        imageUrl:
-          type: string
-          description: Public URL to the variant image if available; falls back to the product image otherwise
-      required:
-        - productId
-        - variantId
-        - productName
-        - quantity
-   
-    
-    ShoppingListDetailedResponse:
-      type: object
-      properties:
-        id:
-          type: integer
-        name:
-          type: string
-        numberOfLines:
-          type: integer
-        items:
-          type: array
-          items:
-            $ref: '#/components/schemas/ShoppingListItemDetailed'
-      required:
+   parameters:
+
+      Language:
+
+         name: language
+         in: query
+         schema:
+            type: string
+            enum:
+            - en
+            - fr
+         description: Language preference ("en" or "fr")
+      Authorization:
+         in: header
+         name: Authorization
+         required: true
+         description: JWT token
+         schema:
+            type: string
+      OcpApimSubscriptionKey:
+         in: header
+         name: Ocp-Apim-Subscription-Key
+         required: true
+         description: Azure APIM subscription key
+         schema:
+            type: string
+      MyStoreId:
+         in: header
+         name: MyStoreId
+         required: false
+         description: Store identifier for personalized experience
+         schema:
+            type: string
+
+   securitySchemes:
+      bearerAuth:
+         type: http
+         scheme: bearer
+         description: internal JWT token
+         bearerFormat: internal JWT token
+
+   schemas:
+
+      Money:
+         type: object
+         description: Monetary amount in a specific currency.
+         properties:
+            type:
+               type: string
+               enum:
+               - centPrecision
+               - highPrecision
+               description: Precision type. "centPrecision" for regular currency precision, "highPrecision" for extra decimal
+                  places.
+               example: centPrecision
+            centAmount:
+               type: integer
+               description: Amount in the smallest unit of the currency (e.g., 1234 = $12.34).
+               example: 1234
+            fractionDigits:
+               type: integer
+               description: Number of fraction digits for the currency (e.g., 2 for CAD; more for highPrecision cases)
+               example: 2
+            currency:
+               type: string
+               description: ISO 4217 currency code (e.g., "USD", "CAD").
+               example: CAD
+         required:
+         - type
+         - centAmount
+         - fractionDigits
+         - currency
+         example:
+            type: centPrecision
+            currency: USD
+            centAmount: 1299
+
+            fractionDigits: 2
+      Availability:
+         type: object
+         description: Availability information (online and/or in-store).
+         properties:
+            online:
+               type: object
+               description: Online stock availability.
+               properties:
+                  isInStock:
+                     type: boolean
+                     description: Whether item is in stock online
+                  availableQuantity:
+                     type: integer
+                     description: Available quantity online
+            inStore:
+               type: object
+               nullable: true
+               description: In-store stock availability for provided storeId
+               properties:
+                  storeId:
+                     type: string
+                     description: Store ID
+                  storeName:
+                     type: string
+                     description: Store name
+                  isInStock:
+                     type: boolean
+                     description: Whether item is in stock at store
+                  availableQuantity:
+                     type: integer
+                     description: Available quantity at store
+         required:
+
+         - online
+      ShoppingListLineItem:
+         type: object
+         properties:
+            productId:
+               type: integer
+               description: Internal BigCommerce Product ID
+            variantId:
+               type: integer
+               description: Internal BigCommerce Variant ID
+            productName:
+               type: string
+               description: Localized product name in English and French
+            quantity:
+               type: integer
+               description: Quantity of the item in the shopping list
+               minimum: 1
+            imageUrl:
+               type: string
+               description: Public URL to the variant image if available; falls back to the product image otherwise
+         required:
+         - productId
+         - variantId
+         - productName
+         - quantity
+         
+      ShoppingListLineItemExtended:
+         allOf:
+         -  $ref: '#/components/schemas/ShoppingListLineItem'
+         -  type: object
+
+            properties:
+               updatedAt:
+                  type: string
+                  format: date-time
+                  description: When the item was added to the wishlist
+               options:
+                  type: array
+                  description: List of selected options for the variant (localized based on requested language)
+                  items:
+                     type: object
+                     properties:
+                        label:
+                           type: string
+                           description: Localized label for the option (single language)
+                        value:
+                           type: string
+                           description: Localized value for the option (single language)
+               prices:
+                  type: object
+                  description: Pricing information for the variant
+                  properties:
+                     price:
+                        $ref: '#/components/schemas/Money'
+                     salePrice:
+                        $ref: '#/components/schemas/Money'
+                  required:
+                  - price
+               availability:
+                  $ref: '#/components/schemas/Availability'
+           
+      ShoppingListSummary:
+         type: object
+         properties:
+            id:
+               type: integer
+               description: Internal BigCommerce wishlist ID (entityId)
+            name:
+               type: string
+               description: Name of the wishlist
+            numberOfLines:
+               type: integer
+               description: Total number of items (line entries) in the wishlist
+            lastUpdatedDate:
+               type: string
+               format: date-time
+               description: ISO8601 timestamp (UTC) when the shopping list was last updated
+            items:
+               type: array
+               items:
+                  $ref: '#/components/schemas/ShoppingListLineItem'
+         example:
+            id: 12
+            name: My shopping list
+            numberOfLines: 2
+            lastUpdatedDate: '2025-06-15T04:01:26Z'
+            items:
+            -  productId: 132
+               variantId: 1935
+               productName: Threaded Head Utility Cylinders
+               quantity: 1
+               imageUrl: https://cdn.site.com/images/P001.jpg
+            -  productId: 140
+               variantId: 2049
+               productName: KLEIN TOOLS Combustible Gas Leak Detector
+               quantity: 1
+               imageUrl: https://cdn11.bigcommerce.com/s-u2rpux9vkx/products/140/images/385/9322322_A0CG_00_01__84988.1745258504.386.513.jpg
+         required:
+         - id
+         - name
+         - numberOfLines
+
+         - items
+      ShoppingListFull:
+         type: object
+         properties:
+            id:
+               type: integer
+            name:
+               type: string
+            numberOfLines:
+               type: integer
+            items:
+               type: array
+               items:
+                  $ref: '#/components/schemas/ShoppingListLineItemExtended'
+         required:
          - id
          - name
          - numberOfLines
          - items
-      example:
-          id: 12345
-          name: My Summer Wishlist
-          numberOfLines: 2
-          items:
-            - productId: 5678
-              variantId: 9012
-              productName:
-                en: Portable BBQ Grill
-                fr: Barbecue portatif
-              imageUrl: https://cdn.site.com/images/portable-bbq.jpg
-              quantity: 1
-              addedDate: "2025-05-25T13:30:00Z"
-              options:
-               - label:
-                   en: Color
-                   fr: Couleur
-                 value:
-                   en: Red
-                   fr: Rouge
-            - productId: 6789
-              variantId: 3456
-              productName:
-                 en: Camping Tent
-                 fr: Tente de camping
-              imageUrl: https://cdn.site.com/images/camping-tent.jpg
-              quantity: 2
-              addedDate: "2025-05-24T15:00:00Z"
-              options:
-              - label:
-                en: Size
-                fr: Taille
-              value:
-                en: 4-person
-                fr: 4 personnes  
-        
-    ShoppingListItemDetailed:
-      allOf:
-        - $ref: '#/components/schemas/ShoppingListItem'
-        - type: object
-          properties:
+         example:
+            id: 12345
+            name: My Summer Wishlist
+            numberOfLines: 2
+            items:
+            -  productId: 5678
+               variantId: 9012
+               productName: Portable BBQ Grill
+               quantity: 1
+               imageUrl: https://cdn.site.com/images/portable-bbq.jpg
+               addedDate: '2025-05-25T13:30:00Z'
+               options:
+               -  label: Color
+                  value: Red
+               prices:
+                  price:
+                     type: centPrecision
+                     currency: USD
+                     centAmount: 12999
+                     fractionDigits: 2
+                  salePrice:
+                     type: centPrecision
+                     currency: USD
+                     centAmount: 9999
+                     fractionDigits: 2
+            -  productId: 6789
+               variantId: 3456
+               productName: Camping Tent
+               quantity: 2
+               imageUrl: https://cdn.site.com/images/camping-tent.jpg
+               addedDate: '2025-05-24T15:00:00Z'
+               options: []
+               prices:
+                  price:
+                     type: centPrecision
+                     currency: USD
+                     centAmount: 24999
+                     fractionDigits: 2
+               availability:
+                  online:
+                     isInStock: true
+                     availableQuantity: 20
+                  inStore:
+                     storeId: '56789'
+                     storeName: Downtown Toronto Store
+                     isInStock: true
+
+                     availableQuantity: 5
+      CreateShoppingListRequest:
+         type: object
+         properties:
+            name:
+               type: string
+               description: Name of the shopping list (required)
+               pattern: ^(?!\s)[\x00-\x7F]{1,40}(?<!\s)$
+            description:
+               type: string
+               description: Description of the shopping list (required)
+            items:
+               type: array
+               description: Initial list of line items
+               items:
+                  $ref: '#/components/schemas/CreateShoppingListLineItemRequest'
+         required:
+         - name
+
+         - description
+      UpdateShoppingListRequest:
+         type: object
+         description: Input object for partially updating a shopping list. Supports changing name, description, and modifying
+            or adding items. Existing items are updated by `id`, new ones are created if `id` is omitted
+         properties:
+            name:
+               type: string
+               description: Name of the wishlist
+               pattern: ^(?!\s)[\x00-\x7F]{1,40}(?<!\s)$
+            description:
+               type: string
+               description: Optional description of the shopping list
+            items:
+               type: array
+               description: List of line items to replace the current contents of the list
+               items:
+                  $ref: '#/components/schemas/ShoppingListItemInput'
+         required:
+         - name
+
+      PagedShoppingListsResponse:
+         type: object
+         properties:
+            limit:
+               type: integer
+            offset:
+               type: integer
+            count:
+               type: integer
+            total:
+               type: integer
+            results:
+               type: array
+               items:
+                  $ref: '#/components/schemas/ShoppingListSummary'
+         example:
+            limit: 1
+            offset: 0
+            count: 1
+            total: 10
+            results:
+            -  id: 12
+               name: My shopping list
+               numberOfLines: 2
+               lastUpdatedDate: '2025-06-15T04:01:26Z'
+               items:
+               -  productId: 132
+                  variantId: 1935
+                  productName: Threaded Head Utility Cylinders
+                  quantity: 1
+                  imageUrl: https://cdn.site.com/images/P001.jpg
+               -  productId: 140
+                  variantId: 2049
+                  quantity: 1
+                  productName: KLEIN TOOLS Combustible Gas Leak Detector
+                  imageUrl: https://cdn11.bigcommerce.com/s-u2rpux9vkx/products/140/images/385/9322322_A0CG_00_01__84988.1745258504.386.513.jpg
+         required:
+         - limit
+         - offset
+         - count
+         - total
+         - results
+
+
+      ShoppingListItemInput:
+         type: object
+         description: Input object for updating or creating a shopping list line item.
+         properties:
+            id:
+               type: string
+               description: |
+                  Internal Shopping List Item ID. Include this only when updating an existing line item. Omit it to create a new item; the system will auto-generate an ID.
+            productId:
+               type: integer
+               description: Internal BigCommerce Product ID
+            variantId:
+               type: integer
+               description: Internal BigCommerce Variant ID
             quantity:
-              type: integer
-              description: Optional quantity, only shown in detailed views
-            addedDate:
-              type: string
-              format: date-time
-              description: When the item was added to the wishlist
-            options:
-              type: array
-              description: List of selected options for the variant (localized)
-              items:
-                 type: object
-                 properties:
-                   label:
-                     type: object
-                     properties:
-                       en:
-                         type: string
-                       fr:
-                         type: string
-                   value:
-                     type: object
-                     properties:
-                       en:
-                         type: string
-                       fr:
-                         type: string
-   
-    CreateShoppingListRequest:
-      type: object
-      properties:
-        name:
-          type: string
-          description: Name of the shopping list (required)
-          pattern: "^(?!\\s)[\\x00-\\x7F]{1,40}(?<!\\s)$"
-        description:
-          type: string
-          description: Description of the shopping list (required)
-        items:
-          type: array
-          description: Initial list of line items
-          items:
-            $ref: '#/components/schemas/ShoppingListCreateLineItemInput'
-      required:
-       - name
-       - description    
-    
-    ShoppingListUpdateInput:
-      type: object
-      description: Input for updating a shopping list and replacing all items.
-      properties:
-        name:
-          type: string
-          description: Name of the wishlist
-          pattern: "^(?!\\s)[\\x00-\\x7F]{1,40}(?<!\\s)$"
-      required:
-        - name
-    
-    ErrorResponse:
-      type: object
-      properties:
-        code:
-          type: integer
-        message:
-          type: string
-        detailedMessage:
-          type: string
-      example:
-        code: 404
-        message: Not found
-        detailedMessage: Unable to find shopping list by provided id
-    
-   
-    PagedShoppingListResponse:
-      type: object
-      properties:
-        limit:
-          type: integer
-        offset:
-          type: integer
-        count:
-          type: integer
-        total:
-          type: integer
-        results:
-          type: array
-          items:
-            $ref: '#/components/schemas/BasicShoppingListResponse'
-      example:
-        limit: 1
-        offset: 0
-        count: 1
-        total: 10    
-        results:
-         - id: 12
-           name: My shopping list
-           numberOfLines: 2
-           items:
-              - productId: 132
-                variantId: 1935
-                productName: "Threaded Head Utility Cylinders"
-                quantity: 1
-                imageUrl: "https://cdn.site.com/images/P001.jpg"
-              - productId: 140
-                variantId: 2049
-                quantity: 1
-                productName: "KLEIN TOOLS Combustible Gas Leak Detector"
-                imageUrl: "https://cdn11.bigcommerce.com/s-u2rpux9vkx/products/140/images/385/9322322_A0CG_00_01__84988.1745258504.386.513.jpg"    
-      required:
-        - limit
-        - offset
-        - count
-        - total
-        - results
-    ShoppingListResponse:
-      type: object
-      properties:
-        id:
-          type: string
-        name:
-          type: string
-       
-    
-    ShoppingListCreateLineItemInput:
-      type: object
-      properties:
-        productId:
-          type: integer
-          description: Internal BigCommerce Product ID
-        variantId:
-          type: integer
-          description: Internal BigCommerce Variant ID
-        quantity:
-          type: integer
-          minimum: 1
-          default: 1
-          description: Quantity to add to the shopping list (defaults to 1 if not provided)
-      required:
-        - productId
-        - variantId
-    ShoppingListCreateResponse:
-      type: object
-      properties:
-        id:
-          type: string
-        requestedName:
-          type: string
-        savedName:
-          type: string
-      required:
-        - id
-        - requestedName
-        - savedName
-   
-  
-   
-  securitySchemes:
-    bearerAuth:
-      type: http
-      scheme: bearer
-      description: internal JWT token
-      bearerFormat: internal JWT token
+               type: integer
+               description: |
+                  Quantity of the item. If not provided, the quantity will default to 1.
+               minimum: 1
+         required:
+         - productId
+         - variantId
+      CreateShoppingListLineItemRequest:
+         type: object
+
+         properties:
+            productId:
+               type: integer
+               description: Internal BigCommerce Product ID
+            variantId:
+               type: integer
+               description: Internal BigCommerce Variant ID
+            quantity:
+               type: integer
+               minimum: 1
+               default: 1
+               description: Quantity to add to the shopping list (defaults to 1 if not provided)
+         required:
+         - productId
+         - variantId
+      ShoppingListCreateResponse:
+         type: object
+         properties:
+            id:
+               type: string
+               description: |
+                  Internal ID of the shopping list generated by BigCommerce.   This is an auto-generated unique identifier.
+            requestedName:
+               type: string
+               description: The name provided by the user when creating the shopping list.
+            savedName:
+               type: string
+               description: The actual name saved by the system. May differ from requestedName if a duplicate option was detected.
+         required:
+         - id
+         - requestedName
+         - savedName
+      ErrorResponse:
+         type: object
+         properties:
+
+            error_code:
+               type: string
+            message:
+               type: string
+            type:
+               type: string
+   examples:
+      UnauthorizedErrorExample:
+         value:
+            error_code: UNAUTHORIZED
+            message: Authentication credentials are missing or invalid.
+            type: AuthenticationError
+      ForbiddenErrorExample:
+         value:
+            error_code: FORBIDDEN
+            message: You do not have permission to access this resource.
+            type: AuthorizationError
+      InternalServerErrorExample:
+         value:
+            error_code: INTERNAL_SERVER_ERROR
+            message: Service unavailable please try after some time
+            type: General

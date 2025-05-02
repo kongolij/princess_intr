@@ -43,6 +43,10 @@ paths:
                   type: string
                   format: password
                   example: mySecurePassword123
+                rememberMe:
+                  type: boolean
+                  description: Indicates if the user should be automatically logged in on future visits (persistent session).
+                  example: true    
       responses:
         '200':
           description: Successfully authenticated

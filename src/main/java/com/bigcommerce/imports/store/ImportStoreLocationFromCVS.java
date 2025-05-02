@@ -75,7 +75,7 @@ public class ImportStoreLocationFromCVS implements CommandLineRunner {
 	            
 	            
 //	            printLocationDetails(locationMap);
-//	            bigCommerceStoreLocationService.importStoresToBc(locationMap);
+	            bigCommerceStoreLocationService.importStoresToBc(locationMap);
 //	            JSONArray a = BigCommerceLocationMapper.mapLocationToBigCommerce(locations.get(0));
 	            List<Location> locationList = locationMap.values()
                         .stream()
@@ -105,7 +105,9 @@ public class ImportStoreLocationFromCVS implements CommandLineRunner {
 	                Location loc = new Location();
 	                String idStr = getValue(headers, row, "id");
 	                loc.setId(Integer.parseInt(idStr));
-	                loc.setCode("store-" + idStr);
+	                //watch this 
+	                loc.setCode( idStr);
+//	                loc.setCode("store-" + idStr);
 	                loc.setLabel(getValue(headers, row, "name"));
 	                loc.setDescription("");
 	                loc.setType_id("PHYSICAL");
@@ -240,6 +242,7 @@ public class ImportStoreLocationFromCVS implements CommandLineRunner {
 	        Location loc = new Location();
 	        String idStr = getValue(headers, row, "id");
 	        loc.setId(Integer.parseInt(idStr));
+	        //loc.setCode( idStr);
 	        loc.setCode("store-" + idStr);
 	        loc.setLabel(getValue(headers, row, "name"));
 	        loc.setDescription("");

@@ -19,6 +19,8 @@ public class Variant {
     public double paWeight;
     public List<Attribute> attributes;
     public List<OptionValue> option_values;
+    public List<Asset> assets;
+    
 	public String getSkuNumber() {
 		return skuNumber;
 	}
@@ -109,5 +111,12 @@ public class Variant {
 	public void setOption_values(List<OptionValue> option_values) {
 		this.option_values = option_values;
 	}
+	public List<Asset> getAssets() {
+		return assets;
+	}
+	public void setAssets(List<Asset> assets) {
+		this.assets = assets;
+	}
+	
 
 }

@@ -7,6 +7,9 @@ public class Product {
 	public String productNumber;
 	public List<String> categories;
 	public boolean active;
+	public boolean paClearance;
+	public boolean paLevy;
+	public String paProductStatus;
 	public String paCountryOfOrigin;
 	public List<Attribute> attributes;
 	public List<Variant> variants;

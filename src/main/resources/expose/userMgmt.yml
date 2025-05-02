@@ -1,742 +1,1227 @@
 openapi: 3.0.3
 info:
-  title: User Management API
-  version: 1.0.0
-  description: API for managing user registration, profiles, addresses, and preferences.
+   title: User Management API
+   version: 1.0.0
+   description: API for managing user registration, profiles, addresses, and preferences.
 
 servers:
-  - url: https://devapic.princesauto.com/ecom/v1
-    description: Dev environment
-  - url: https://testapic.princesauto.com/ecom/v1
-    description: Test environment
-  - url: https://apic.princesauto.com/ecom/v1
-    description: Production environment
+-  url: https://devapic.princesauto.com/ecom/v1
+   description: Dev environment
+-  url: https://testapic.princesauto.com/ecom/v1
+   description: Test environment
+-  url: https://apic.princesauto.com/ecom/v1
+   description: Production environment
 
 tags:
-  - name: user
-    description: User registration and profile management
-  - name: address
-    description: Manage user shipping and billing addresses
-  - name: preferences
-    description: Manage user marketing and language preferences
+-  name: users
+   description: User registration and profile management
+-  name: address
+   description: Manage user shipping and billing addresses
+-  name: preferences
+   description: Manage user marketing and language preferences
 
 paths:
-  /users/register:
-    post:
-      tags:
-        - user
-      summary: Register a new user
-      parameters:
-        - $ref: '#/components/parameters/OcpApimSubscriptionKey'
-        - $ref: '#/components/parameters/Language'
-        - $ref: '#/components/parameters/CartId'
-        - $ref: '#/components/parameters/MyStoreId'
-        - $ref: '#/components/parameters/MyPostalCode'
-        - $ref: '#/components/parameters/RecaptchaToken'
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/UserProfileInput'
-            examples:
-              basicRegistration:
-                summary: Basic registration without marketing preferences
-                value:
-                  firstName: Jane
-                  lastName: Doe
-                  email: jane.doe@example.com
-                  password: SecureP@ss123
-              fullRegistration:
-                summary: Registration with full marketing preferences
-                value:
-                  firstName: John
-                  lastName: Smith
-                  email: john.smith@example.com
-                  password: AnotherSecureP@ss456
-                  preferences:
-                    marketingOptIn: ["promotions", "events", "products"]
-      responses:
-        '201':
-          description: User created successfully.
-          content:
-            application/json:
-              schema:
-                 $ref: '#/components/schemas/JWTResponse'
-        '400':
-          description: Validation failed.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              examples:
-                Required parameter firstName  is missing:
-                  value:
-                    error_code: user_99999
-                    message: Required parameter firstName is missing
-                    type: general
-        '409':
-          description: Conflict - The email address is already in use.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              examples:
-                EmailAlreadyExists:
-                  summary: Email address already registered
-                  value:
-                    error_code: user_00001
-                    message: The provided email address is already associated with an existing account.
-                    type: ConflictError            
-        '403':
-          description: Insufficient priviledges.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              examples:
-                Token has insufficent privileges:
-                  value:
-                    error_code: Forbidden
-                    message: You do not have permission to access this resource.
-                    type: AuthorizationError  
-        '500':
-          description: Internal Server Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              examples:
-                Critical dependent service is down:
-                  value:
-                    error_code: user_99999
-                    message: Service unavailable please try after some time
-                    type: General
-  
-  /users/me:
-    get:
-      tags:
-        - user
-      summary: Retrieve user profile
-      parameters:
-        - $ref: '#/components/parameters/OcpApimSubscriptionKey'
-        - $ref: '#/components/parameters/Authorization'
-        - $ref: '#/components/parameters/Language'
-      responses:
-        '200':
-          description: User profile retrieved successfully.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/UserProfileOutput'
-        '401':
-          description: Invalid token
-        '404':
-          description: Resource Not found.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              examples:
-                Resource not found:
-                  value:
-                    error_code: user_99999
-                    message: Resource not found
-                    type: general
-        '403':
-          description: Insufficient priviledges.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              examples:
-                Token has insufficent privileges:
-                  value:
-                    error_code: Forbidden
-                    message: You do not have permission to access this resource.
-                    type: AuthorizationError              
-        '500':
-          description: Internal Server Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              examples:
-                Critical dependent service is down:
-                  value:
-                    error_code: user_99999
-                    message: Service unavailable please try after some time
-                    type: General  
+   /users/register:
+      post:
+         tags:
+         - users
+         summary: Register a new user
+         parameters:
+         -  $ref: '#/components/parameters/OcpApimSubscriptionKey'
+         -  $ref: '#/components/parameters/Language'
+         -  $ref: '#/components/parameters/CartId'
+         -  $ref: '#/components/parameters/MyStoreId'
+         -  $ref: '#/components/parameters/RecaptchaToken'
+         requestBody:
+            required: true
+            content:
+               application/json:
+                  schema:
+                     $ref: '#/components/schemas/UserProfileInput'
+                  examples:
+                     basicRegistration:
+                        summary: Basic registration without marketing preferences
+                        value:
+                           firstName: Jane
+                           lastName: Doe
+                           email: jane.doe@example.com
+                           password: SecureP@ss123
+                     fullRegistration:
+                        summary: Registration with full marketing preferences
+                        value:
+                           firstName: John
+                           lastName: Smith
+                           email: john.smith@example.com
+                           password: AnotherSecureP@ss456
+                           preferences:
+                              marketingOptIn:
+                              - promotions
+                              - events
+                              - products
+                               
+         responses:
+            '201':
+               description: User created successfully.
+               content:
+                  application/json:
+                     schema:
+                        $ref: '#/components/schemas/JWTResponse'
+            '400':
+               description: Validation failed.
+               content:
+                  application/json:
+                     schema:
+                        $ref: '#/components/schemas/ErrorResponse'
+                     examples:
+                        UserFormValidationFailedGeneral:
+                           $ref: '#/components/examples/UserFormValidationFailedGeneralExample'
+                        FirstNameValidationFailed:
+                           $ref: '#/components/examples/FirstNameValidationFailedExample'
+                        LastNameValidationFailed:
+                           $ref: '#/components/examples/LastNameValidationFailedExample'
+                        EmailMissingFailed:
+                           $ref: '#/components/examples/EmailMissingExample'   
+                        EmailValidationFailed:
+                           $ref: '#/components/examples/EmailValidationFailedExample'
+                        PasswordMissingFailed:
+                           $ref: '#/components/examples/PasswordMissingExample'   
+                        PasswordValidationFailed:
+                           $ref: '#/components/examples/PasswordValidationFailedExample'
 
-    put:
-      tags:
-        - user
-      summary: Update user profile
-      parameters:
-        - $ref: '#/components/parameters/OcpApimSubscriptionKey'
-        - $ref: '#/components/parameters/Authorization'
-        - $ref: '#/components/parameters/Language'
-        - $ref: '#/components/parameters/CartId'
-        - $ref: '#/components/parameters/MyStoreId'
-        - $ref: '#/components/parameters/MyPostalCode'
-      requestBody:
-        required: true
-        content:
-          application/json:
+            '409':
+               description: Conflict - The email address is already in use.
+               content:
+                  application/json:
+                     schema:
+                        $ref: '#/components/schemas/ErrorResponse'
+                     examples:
+                        EmailAlreadyExists:
+                           summary: Email address already registered
+                           value:
+                              error_code: USER_001_EMAIL_EXISTS
+                              message: The provided email address is already associated with an existing account.
+                              type: ConflictError
+            '403':
+               description: Insufficient priviledges.
+               content:
+                  application/json:
+                     schema:
+                        $ref: '#/components/schemas/ErrorResponse'
+                     examples:
+                        Token has insufficent privileges:
+                           value:
+                              error_code: Forbidden
+                              message: You do not have permission to access this resource.
+                              type: AuthorizationError
+            '500':
+               description: Internal Server Error
+               content:
+                  application/json:
+                     schema:
+                        $ref: '#/components/schemas/ErrorResponse'
+                     examples:
+                        InternalServerError:
+                           $ref: '#/components/examples/InternalServerErrorExample'
+   /users/me:
+      get:
+         tags:
+         - users
+         summary: Retrieve user profile
+         parameters:
+         -  $ref: '#/components/parameters/OcpApimSubscriptionKey'
+         -  $ref: '#/components/parameters/Authorization'
+         -  $ref: '#/components/parameters/Language'
+         - name: expand
+           in: query
+           required: false
+           description: |
+               Optional. Use `expand=addresses` to include user's saved addresses in the response.
+           schema:
+             type: string
+             enum:
+                - preferences
+                - addresses
+             example: addresses    
+         responses:
+            '200':
+               description: User profile retrieved successfully.
+               content:
+                  application/json:
+                     schema:
+                        $ref: '#/components/schemas/FullUserProfileOutput'
+            '401':
+               description: Unauthorized
+               content:
+                  application/json:
+                     schema:
+                        $ref: '#/components/schemas/ErrorResponse'
+                     examples:
+                        Unauthorized:
+                           $ref: '#/components/examples/UnauthorizedErrorExample'
+            '404':
+               description: Resource Not found.
+               content:
+                  application/json:
+                     schema:
+                        $ref: '#/components/schemas/ErrorResponse'
+                     examples:
+                       ResourceNotFound:
+                         $ref: '#/components/examples/ResourceNotFoundExample'
+                       
+            '403':
+               description: Insufficient priviledges.
+               content:
+                  application/json:
+                     schema:
+                        $ref: '#/components/schemas/ErrorResponse'
+                     examples:
+                        Token has insufficent privileges:
+                           value:
+                              error_code: Forbidden
+                              message: You do not have permission to access this resource.
+                              type: AuthorizationError
+            '500':
+               description: Internal Server Error
+               content:
+                  application/json:
+                     schema:
+                        $ref: '#/components/schemas/ErrorResponse'
+                     examples:
+                        InternalServerError:
+                           $ref: '#/components/examples/InternalServerErrorExample'
+      put:
+         tags:
+         - users
+         summary: Update user profile
+         parameters:
+         -  $ref: '#/components/parameters/OcpApimSubscriptionKey'
+         -  $ref: '#/components/parameters/Authorization'
+         -  $ref: '#/components/parameters/Language'
+         requestBody:
+            required: true
+            content:
+               application/json:
+                  schema:
+                     $ref: '#/components/schemas/UserProfileUpdateInput'
+                  examples:
+                     FullUpdate:
+                       summary: Full update with all fields
+                       value:
+                         firstName: Alice
+                         middleName: Marie
+                         lastName: Smith
+                         phone: 123-456-7890
+                         customerGroupId: 12
+                         preferredLanguage: en       
+                     MinimalUpdate:
+                       summary: Only required fields
+                       value:
+                         firstName: Alice
+                         lastName: Smith             
+         responses:
+            '200':
+               description: User profile updated successfully.
+               content:
+                  application/json:
+                     schema:
+                        $ref: '#/components/schemas/UserProfileOutput'
+                    
+            '401':
+               description: Unauthorized
+               content:
+                  application/json:
+                     schema:
+                        $ref: '#/components/schemas/ErrorResponse'
+                     examples:
+                        Unauthorized:
+                           $ref: '#/components/examples/UnauthorizedErrorExample'
+            '400':
+               description: Bad Request.
+               content:
+                  application/json:
+                     schema:
+                        $ref: '#/components/schemas/ErrorResponse'
+                     examples:
+                        UserFormValidationFailedGeneral:
+                           $ref: '#/components/examples/UserFormValidationFailedGeneralExample'
+                        FirstNameValidationFailed:
+                           $ref: '#/components/examples/FirstNameValidationFailedExample'
+                        LastNameValidationFailed:
+                           $ref: '#/components/examples/LastNameValidationFailedExample'
+            '403':
+               description: Insufficient priviledges.
+               content:
+                  application/json:
+                     schema:
+                        $ref: '#/components/schemas/ErrorResponse'
+                     examples:
+                        Token has insufficent privileges:
+                           value:
+                              error_code: Forbidden
+                              message: You do not have permission to access this resource.
+                              type: AuthorizationError
+            '500':
+               description: Internal Server Error
+               content:
+                  application/json:
+                     schema:
+                        $ref: '#/components/schemas/ErrorResponse'
+                     examples:
+                        InternalServerError:
+                           $ref: '#/components/examples/InternalServerErrorExample'
+   
+   /users/password-reset-request:
+      post:
+          tags:
+            - users
+          summary: Request password reset email
+          description: |
+                Triggers an email to the user with a password reset link.
+          parameters:
+            - $ref: '#/components/parameters/OcpApimSubscriptionKey'
+            - $ref: '#/components/parameters/Language'
+          requestBody:
+            required: true
+            content:
+               application/json:
+                 schema:
+                   type: object
+                   required:
+                      - email
+                   properties:
+                     email:
+                       type: string
+                       format: email
+                       example: user@example.com
+          responses:
+             '200':
+                 description: Reset email sent successfully.
+             '400':
+                description: Email not associated with any user.
+                content:
+                   application/json:
+                      schema:
+                        $ref: '#/components/schemas/ErrorResponse'
+                      examples:
+                        EmailMissingFailed:
+                           $ref: '#/components/examples/EmailMissingExample'   
+                        EmailValidationFailed:
+                           $ref: '#/components/examples/EmailValidationFailedExample'
+                        EmailNotFound:
+                           $ref: '#/components/examples/EmailNotFoundExample'
+                          
+             '500':
+               description: Internal Server Error
+               content:
+                  application/json:
+                     schema:
+                        $ref: '#/components/schemas/ErrorResponse'
+                     examples:
+                        InternalServerError:
+                           $ref: '#/components/examples/InternalServerErrorExample'
+   
+   /users/reset-password:
+      get:
+         tags:
+           - users
+         summary: Initialize password reset from token link
+         description: >
+               Accepts a JWT token from the email link, validates its signature and expiry,
+               stores it as a secure, HTTP-only cookie, and redirects the user to the password reset page.
+         parameters:
+          - name: token
+            in: query
+            required: true
             schema:
-              $ref: '#/components/schemas/UserProfileInput'
-      responses:
-        '200':
-          description: User profile updated successfully.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/UserProfileOutput'
-        '401':
-          description: Invalid token
-        '400': 
-          description: Bad Request.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              examples:
-                Bad Request:
-                  value:
-                    error_code: user_99999
-                    message: "The email field contains invalid characters." 
-                    type: general
-        '403':
-          description: Insufficient priviledges.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              examples:
-                Token has insufficent privileges:
-                  value:
-                    error_code: Forbidden
-                    message: You do not have permission to access this resource.
-                    type: AuthorizationError              
-        '500':
-          description: Internal Server Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              examples:
-                Critical dependent service is down:
-                  value:
-                    error_code: user_99999
-                    message: Service unavailable please try after some time
-                    type: General  
+               type: string
+            description: JWT token from password reset email
+         responses:
+           '302':
+               description: Token accepted, cookie set, user redirected to reset-password page.
+               headers:
+                  Location:
+                      description: URL of the password reset page
+                      schema:
+                        type: string
+                        example: https://www.princessauto.com/reset-password
+           '400':
+               description: Invalid or expired token
+               content:
+                  application/json:
+                    schema:
+                      $ref: '#/components/schemas/ErrorResponse'
+                    examples:
+                      InvalidToken:
+                        $ref: '#/components/examples/InvalidTokenExample'
+      post:
+          tags:
+           - users
+          summary: Submit new password using reset token
+          description: |
+             Accepts a password reset token and new password. Validates the token and updates the user's password.
+          parameters:
+             - $ref: '#/components/parameters/OcpApimSubscriptionKey'
+             - $ref: '#/components/parameters/Language'
+          requestBody:
+             required: true
+             content:
+               application/json:
+                     schema:
+                        $ref: '#/components/schemas/PasswordResetInput'     
+          responses:
+             '200':
+                description: Password reset successfully.
+                content:
+                   application/json:
+                     schema:
+                        $ref: '#/components/schemas/PasswordResetOutput' 
+             '400':
+                description: Invalid token or weak password.
+                content:
+                     application/json:
+                       schema:
+                         $ref: '#/components/schemas/ErrorResponse'          
+                       examples:
+                          PasswordMissing:
+                            $ref: '#/components/examples/PasswordMissingExample'   
+                          PasswordValidationFailed:
+                            $ref: '#/components/examples/PasswordValidationFailedExample'
+                          InvalidToken:
+                           $ref: '#/components/examples/InvalidTokenExample'         
+                
+             '500':
+                description: Internal Server Error
+                content:
+                  application/json:
+                     schema:
+                        $ref: '#/components/schemas/ErrorResponse'
+                     examples:
+                        InternalServerError:
+                           $ref: '#/components/examples/InternalServerErrorExample'
+                          
+   
+   /users/me/addresses:
+      get:
+         tags:
+         - address
+         summary: Retrieve user addresses
+         parameters:
+         -  $ref: '#/components/parameters/OcpApimSubscriptionKey'
+         -  $ref: '#/components/parameters/Authorization'
+         -  $ref: '#/components/parameters/Language'
+         responses:
+            '200':
+               description: List of user addresses retrieved successfully.
+               content:
+                  application/json:
+                     schema:
+                        type: array
+                        items:
+                           $ref: '#/components/schemas/Address'
+                     examples:
+                        AddressListExample:
+                           summary: Two addresses
+                           value:
+                             - id: 928
+                               nickname: Home
+                               address1: 123 Main St
+                               address2: Apt 4B
+                               city: Winnipeg
+                               province: MB
+                               postalCode: R3C0A1
+                               country: CA
+                               phone: 204-555-1234
+                               addresstype: residential
+                             - id: 929
+                               nickname: Work
+                               address1: 456 Commerce Ave
+                               city: Winnipeg
+                               province: MB
+                               postalCode: R3C0A2
+                               country: CA
+                               phone: 204-555-6789
+                               addresstype: commercial        
+            '401':
+               description: Unauthorized
+               content:
+                  application/json:
+                     schema:
+                        $ref: '#/components/schemas/ErrorResponse'
+                     examples:
+                        Unauthorized:
+                           $ref: '#/components/examples/UnauthorizedErrorExample'
+            
+            '404':
+               description: Resource Not found.
+               content:
+                  application/json:
+                     schema:
+                        $ref: '#/components/schemas/ErrorResponse'
+                     examples:
+                       ResourceNotFound:
+                         $ref: '#/components/examples/ResourceNotFoundExample'        
+            '403':
+               description: Insufficient priviledges.
+               content:
+                  application/json:
+                     schema:
+                        $ref: '#/components/schemas/ErrorResponse'
+                     examples:
+                        Token has insufficent privileges:
+                           value:
+                              error_code: Forbidden
+                              message: You do not have permission to access this resource.
+                              type: AuthorizationError
+            '500':
+               description: Internal Server Error
+               content:
+                  application/json:
+                     schema:
+                        $ref: '#/components/schemas/ErrorResponse'
+                     examples:
+                        InternalServerError:
+                           $ref: '#/components/examples/InternalServerErrorExample'
+      post:
+         tags:
+         - address
+         summary: Add a new address for the user
+         parameters:
+         -  $ref: '#/components/parameters/OcpApimSubscriptionKey'
+         -  $ref: '#/components/parameters/Authorization'
+         -  $ref: '#/components/parameters/Language'
+         requestBody:
+            required: true
+            content:
+               application/json:
+                  schema:
+                     $ref: '#/components/schemas/Address'
+                  examples:
+                     BasicAddress:
+                       summary: Minimal required fields
+                       value:
+                         address1: 123 Main St
+                         city: Winnipeg
+                         province: MB
+                         postalCode: R3C0A1
+                         country: CA
+                     FullAddress:
+                       summary: Full address with optional fields
+                       value:
+                         nickname: Home
+                         address1: 123 Main St
+                         address2: Apt 4B
+                         city: Winnipeg
+                         province: MB
+                         postalCode: R3C0A1
+                         country: CA
+                         phone: 204-555-1234
+                         addresstype: residential    
+         responses:
+            '201':
+               description: Address added successfully.
+               content:
+                  application/json:
+                     schema:
+                        $ref: '#/components/schemas/Address'
+                     examples:
+                        AddressCreated:
+                          summary: Address with system-generated ID
+                          value:
+                            id: 928
+                            nickname: Home
+                            address1: 123 Main St
+                            address2: Apt 4B
+                            city: Winnipeg
+                            province: MB
+                            postalCode: R3C0A1
+                            country: CA
+                            phone: 204-555-1234
+                            addresstype: residential    
+            '401':
+               description: Unauthorized
+               content:
+                  application/json:
+                     schema:
+                        $ref: '#/components/schemas/ErrorResponse'
+                     examples:
+                        Unauthorized:
+                           $ref: '#/components/examples/UnauthorizedErrorExample'
+            '403':
+               description: Insufficient priviledges.
+               content:
+                  application/json:
+                     schema:
+                        $ref: '#/components/schemas/ErrorResponse'
+                     examples:
+                        Token has insufficent privileges:
+                           value:
+                              error_code: Forbidden
+                              message: You do not have permission to access this resource.
+                              type: AuthorizationError
+            '400':
+               description: Bad Request.
+               content:
+                  application/json:
+                     schema:
+                        $ref: '#/components/schemas/ErrorResponse'
+                     examples:
+                        UserFormValidationFailedGeneral:
+                           $ref: '#/components/examples/UserFormValidationFailedGeneralExample'
+                        AddressMissingAddress1:
+                           $ref: '#/components/examples/AddressMissingAddress1Example'
+                        AddressMissingCity:
+                           $ref: '#/components/examples/AddressMissingCityExample'
+                        AddressMissingProvince:
+                           $ref: '#/components/examples/AddressMissingProvinceExample'   
+                        AddressMissingCountry:
+                           $ref: '#/components/examples/AddressMissingCountryExample'
+                        AddressMissingPostalCode:
+                           $ref: '#/components/examples/AddressMissingPostalCodeExample'   
+                        AddressInvalidPostalCode:
+                           $ref: '#/components/examples/AddressInvalidPostalCodeExample'
+                        AddressInvalidPhone: 
+                           $ref: '#/components/examples/AddressInvalidPhoneExample'   
+             
+            '500':
+               description: Internal Server Error
+               content:
+                  application/json:
+                     schema:
+                        $ref: '#/components/schemas/ErrorResponse'
+                     examples:
+                        InternalServerError:
+                           $ref: '#/components/examples/InternalServerErrorExample'
+
+   /users/me/addresses/{addressId}:
+      put:
+         tags:
+         - address
+         summary: Update an existing address
+         parameters:
+         -  $ref: '#/components/parameters/OcpApimSubscriptionKey'
+         -  $ref: '#/components/parameters/Authorization'
+         -  $ref: '#/components/parameters/Language'
+         -  name: addressId
+            in: path
+            required: true
+            schema:
+               type: string
+         requestBody:
+            required: true
+            content:
+               application/json:
+                  schema:
+                     $ref: '#/components/schemas/Address'
+         responses:
+            '200':
+               description: Address updated successfully.
+               content:
+                  application/json:
+                     schema:
+                        $ref: '#/components/schemas/Address'
+            '401':
+               description: Unauthorized
+               content:
+                  application/json:
+                     schema:
+                        $ref: '#/components/schemas/ErrorResponse'
+                     examples:
+                        Unauthorized:
+                           $ref: '#/components/examples/UnauthorizedErrorExample'
+            '403':
+               description: Insufficient priviledges.
+               content:
+                  application/json:
+                     schema:
+                        $ref: '#/components/schemas/ErrorResponse'
+                     examples:
+                        Token has insufficent privileges:
+                           value:
+                              error_code: Forbidden
+                              message: You do not have permission to access this resource.
+                              type: AuthorizationError
+            '404':
+               description: Resource Not found.
+               content:
+                  application/json:
+                     schema:
+                        $ref: '#/components/schemas/ErrorResponse'
+                     examples:
+                       ResourceNotFound:
+                         $ref: '#/components/examples/ResourceNotFoundExample'        
+            '400':
+               description: Bad Request.
+               content:
+                  application/json:
+                     schema:
+                        $ref: '#/components/schemas/ErrorResponse'
+                     examples:
+                        UserFormValidationFailedGeneral:
+                           $ref: '#/components/examples/UserFormValidationFailedGeneralExample'
+                        AddressMissingAddress1:
+                           $ref: '#/components/examples/AddressMissingAddress1Example'
+                        AddressMissingCity:
+                           $ref: '#/components/examples/AddressMissingCityExample'
+                        AddressMissingProvince:
+                           $ref: '#/components/examples/AddressMissingProvinceExample'   
+                        AddressMissingCountry:
+                           $ref: '#/components/examples/AddressMissingCountryExample'
+                        AddressMissingPostalCode:
+                           $ref: '#/components/examples/AddressMissingPostalCodeExample'   
+                        AddressInvalidPostalCode:
+                           $ref: '#/components/examples/AddressInvalidPostalCodeExample'
+                        AddressInvalidPhone: 
+                           $ref: '#/components/examples/AddressInvalidPhoneExample'   
+            '500':
+               description: Internal Server Error
+               content:
+                  application/json:
+                     schema:
+                        $ref: '#/components/schemas/ErrorResponse'
+                     examples:
+                        InternalServerError:
+                           $ref: '#/components/examples/InternalServerErrorExample'
+      delete:
+         tags:
+         - address
+         summary: Delete an address
+         parameters:
+         -  $ref: '#/components/parameters/OcpApimSubscriptionKey'
+         -  $ref: '#/components/parameters/Authorization'
+         -  $ref: '#/components/parameters/Language'
+         -  name: addressId
+            in: path
+            required: true
+            schema:
+               type: string
+         responses:
+            '204':
+               description: Address deleted successfully.
+            '400':
+               description: Validation failed.
+               content:
+                  application/json:
+                     schema:
+                        $ref: '#/components/schemas/ErrorResponse'
+                     examples:
+                        Required parameter account number is missing:
+                           value:
+                              error_code: user_adress_99999
+                              message: Required parameter address id is missing
+                              type: general
+            '401':
+               description: Unauthorized
+               content:
+                  application/json:
+                     schema:
+                        $ref: '#/components/schemas/ErrorResponse'
+                     examples:
+                        Unauthorized:
+                           $ref: '#/components/examples/UnauthorizedErrorExample'
+            '403':
+               description: Insufficient priviledges.
+               content:
+                  application/json:
+                     schema:
+                        $ref: '#/components/schemas/ErrorResponse'
+                     examples:
+                        Token has insufficent privileges:
+                           value:
+                              error_code: Forbidden
+                              message: You do not have permission to access this resource.
+                              type: AuthorizationError
+            '404':
+               description: Resource Not found.
+               content:
+                  application/json:
+                     schema:
+                        $ref: '#/components/schemas/ErrorResponse'
+                     examples:
+                       ResourceNotFound:
+                         $ref: '#/components/examples/ResourceNotFoundExample'        
+            '500':
+               description: Internal Server Error
+               content:
+                  application/json:
+                     schema:
+                        $ref: '#/components/schemas/ErrorResponse'
+                     examples:
+                        InternalServerError:
+                           $ref: '#/components/examples/InternalServerErrorExample'
+   /users/me/preferences:
+      get:
+         tags:
+         - preferences
+         summary: Retrieve user preferences
+         parameters:
+         -  $ref: '#/components/parameters/OcpApimSubscriptionKey'
+         -  $ref: '#/components/parameters/Authorization'
+         -  $ref: '#/components/parameters/Language'
+         responses:
+            '200':
+               description: User preferences retrieved successfully.
+               content:
+                  application/json:
+                     schema:
+                        $ref: '#/components/schemas/Preferences'
+            '401':
+               description: Unauthorized
+               content:
+                  application/json:
+                     schema:
+                        $ref: '#/components/schemas/ErrorResponse'
+                     examples:
+                        Unauthorized:
+                           $ref: '#/components/examples/UnauthorizedErrorExample'
+            '403':
+               description: Insufficient priviledges.
+               content:
+                  application/json:
+                     schema:
+                        $ref: '#/components/schemas/ErrorResponse'
+                     examples:
+                        Token has insufficent privileges:
+                           value:
+                              error_code: Forbidden
+                              message: You do not have permission to access this resource.
+                              type: AuthorizationError
+            '500':
+               description: Internal Server Error
+               content:
+                  application/json:
+                     schema:
+                        $ref: '#/components/schemas/ErrorResponse'
+                     examples:
+                        InternalServerError:
+                           $ref: '#/components/examples/InternalServerErrorExample'
+      put:
+         tags:
+         - preferences
+         summary: Update user preferences
+         parameters:
+         -  $ref: '#/components/parameters/OcpApimSubscriptionKey'
+         -  $ref: '#/components/parameters/Authorization'
+         -  $ref: '#/components/parameters/Language'
+         requestBody:
+            required: true
+            content:
+               application/json:
+                  schema:
+                     $ref: '#/components/schemas/Preferences'
+         responses:
+            '200':
+               description: User preferences updated successfully.
+               content:
+                  application/json:
+                     schema:
+                        $ref: '#/components/schemas/Preferences'
+            '401':
+               description: Unauthorized
+               content:
+                  application/json:
+                     schema:
+                        $ref: '#/components/schemas/ErrorResponse'
+                     examples:
+                        Unauthorized:
+                           $ref: '#/components/examples/UnauthorizedErrorExample'
+            '403':
+               description: Insufficient priviledges.
+               content:
+                  application/json:
+                     schema:
+                        $ref: '#/components/schemas/ErrorResponse'
+                     examples:
+                        Token has insufficent privileges:
+                           value:
+                              error_code: Forbidden
+                              message: You do not have permission to access this resource.
+                              type: AuthorizationError
+            '400':
+               description: Bad Request.
+               content:
+                  application/json:
+                     schema:
+                        $ref: '#/components/schemas/ErrorResponse'
+                     examples:
+                        Bad Request:
+                           value:
+                              error_code: user_address_99999
+                              message: This is the result of missing required fields, or of invalid data. See the response
+                                 for more details.
+                              type: general
+            '500':
+               description: Internal Server Error
+               content:
+                  application/json:
+                     schema:
+                        $ref: '#/components/schemas/ErrorResponse'
+                     examples:
+                        InternalServerError:
+                           $ref: '#/components/examples/InternalServerErrorExample'
+
+components:
+   parameters:
+      Language:
+         name: language
+         in: query
+         required: true
+         schema:
+            type: string
+            enum: [en, fr ]
+         description: Language preference ("en" or "fr")
+      Authorization:
+         in: header
+         name: Authorization
+         required: true
+         description: JWT token
+         schema:
+            type: string
+      OcpApimSubscriptionKey:
+         in: header
+         name: Ocp-Apim-Subscription-Key
+         required: true
+         description: Azure APIM subscription key
+         schema:
+            type: string
+      CartId:
+         in: header
+         name: CartId
+         required: false
+         description: Internal cart ID or "current"
+         schema:
+            type: string
+      MyStoreId:
+         in: header
+         name: MyStoreId
+         required: false
+         description: Store identifier for personalized experience
+         schema:
+            type: string
+     
+      RecaptchaToken:
+         name: Recaptcha-Token
+         in: header
+         required: true
+         description: Google reCAPTCHA v3 token
+         schema:
+            type: string
+   schemas:
+      JWTResponse:
+         type: object
+         properties:
+            access_token:
+               type: string
+               description: JWT access token used for authenticated requests.
+            refresh_token:
+               type: string
+               description: Long-lived token used to obtain a new access token without re-authenticating.
+            token_type:
+               type: string
+               example: Bearer
+               description: Token type, typically 'Bearer'.
+
+            expires_in:
+               type: integer
+               description: Duration in seconds for which the access token is valid.
+         required:
+         - access_token
+         - refresh_token
+         - token_type
+         - expires_in
+      UserProfileInput:
+         type: object
+         required:
+         - firstName
+         - lastName
+         - email
+         - password
+         properties:
+            firstName:
+               type: string
+            lastName:
+               type: string
+            email:
+               type: string
+               format: email
+            password:
+               type: string
+               example: StrongP@ssw0rd
+               minLength: 8
+               pattern: '^(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$'
+            preferences:
+               $ref: '#/components/schemas/Preferences'
+               
+      UserProfileUpdateInput:
+         type: object
+         required:
+           - firstName
+           - lastName
+         properties:
+            firstName:
+              type: string
+            middleName:
+              type: string
+            lastName:
+              type: string
+            customerGroupId:
+              type: integer   
+            phone:
+              type: string
+              pattern: '^\d{3}-\d{3}-\d{4}$'
+              example: 204-555-1234  
+            preferredLanguage:
+              type: string
+              enum: [en, fr]
+               
+      PasswordResetInput:
+         type: object
+         required:
+             - password
+         properties:
+            password:
+              type: string
+              minLength: 8
+              example: NewStr0ng@Pass
+              pattern: '^(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$'
+              description: >
+                    The new password to set. Must include at least 1 uppercase letter, 1 digit, and 1 special character.
       
-
-  /users/me/addresses:
-    get:
-      tags:
-        - address
-      summary: Retrieve user addresses
-      parameters:
-        - $ref: '#/components/parameters/OcpApimSubscriptionKey'
-        - $ref: '#/components/parameters/Authorization'
-        - $ref: '#/components/parameters/Language'
-      responses:
-        '200':
-          description: List of user addresses retrieved successfully.
-          content:
-            application/json:
-              schema:
+      UserProfileOutput:
+         type: object
+         required:
+           - firstName
+           - lastName
+         properties:
+           firstName:
+             type: string
+           lastName:
+             type: string
+           middleName:
+             type: string
+           phone:
+             type: string
+             pattern: '^\d{3}-\d{3}-\d{4}$'
+             example: 204-555-1234
+           customerGroupId:
+             type: integer
+           preferences:
+             $ref: '#/components/schemas/Preferences'
+        
+      FullUserProfileOutput:
+        allOf:
+          - $ref: '#/components/schemas/UserProfileOutput'
+          - type: object
+            properties:
+              addresses:
                 type: array
                 items:
                   $ref: '#/components/schemas/Address'
-        '401':
-          description: Invalid token
-        '404':
-          description: Resource Not found.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              examples:
-                Resource not found:
-                  value:
-                    error_code: user_address_99999
-                    message: Resource not found
-                    type: general
-        '403':
-          description: Insufficient priviledges.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              examples:
-                Token has insufficent privileges:
-                  value:
-                    error_code: Forbidden
-                    message: You do not have permission to access this resource.
-                    type: AuthorizationError              
-        '500':
-          description: Internal Server Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              examples:
-                Critical dependent service is down:
-                  value:
-                    error_code: user_99999
-                    message: Service unavailable please try after some time
-                    type: General  
-      
-
-    post:
-      tags:
-        - address
-      summary: Add a new address for the user
-      parameters:
-        - $ref: '#/components/parameters/OcpApimSubscriptionKey'
-        - $ref: '#/components/parameters/Authorization'
-        - $ref: '#/components/parameters/Language'
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Address'
-      responses:
-        '200':
-          description: Address added successfully.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Address'
-          
-        '401':
-          description: Invalid token
-        '403':
-          description: Insufficient priviledges.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              examples:
-                Token has insufficent privileges:
-                  value:
-                    error_code: Forbidden
-                    message: You do not have permission to access this resource.
-                    type: AuthorizationError 
-        '422': 
-          description: Bad Request.  
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              examples:
-                Bad Request:
-                  value:
-                    error_code: user_address_99999
-                    message: "The Address was not valid. This is the result of missing required fields, or of invalid data. See the response for more details." 
-                    type: general                         
-        '500':
-          description: Internal Server Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              examples:
-                Critical dependent service is down:
-                  value:
-                    error_code: user_99999
-                    message: Service unavailable please try after some time
-                    type: General   
-
-  /users/me/addresses/{addressId}:
-    put:
-      tags:
-        - address
-      summary: Update an existing address
-      parameters:
-        - $ref: '#/components/parameters/OcpApimSubscriptionKey'
-        - $ref: '#/components/parameters/Authorization'
-        - $ref: '#/components/parameters/Language'
-        - name: addressId
-          in: path
-          required: true
-          schema:
-            type: string
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Address'
-      responses:
-        '200':
-          description: Address updated successfully.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Address'
-        '401':
-          description: Invalid token
-        '403':
-          description: Insufficient priviledges.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              examples:
-                Token has insufficent privileges:
-                  value:
-                    error_code: Forbidden
-                    message: You do not have permission to access this resource.
-                    type: AuthorizationError 
-        '422': 
-          description: Bad Request.  
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              examples:
-                Bad Request:
-                  value:
-                    error_code: user_address_99999
-                    message: "The Address was not valid. This is the result of missing required fields, or of invalid data. See the response for more details." 
-                    type: general                         
-        '500':
-          description: Internal Server Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              examples:
-                Critical dependent service is down:
-                  value:
-                    error_code: user_99999
-                    message: Service unavailable please try after some time
-                    type: General   
-
-    delete:
-      tags:
-        - address
-      summary: Delete an address
-      parameters:
-        - $ref: '#/components/parameters/OcpApimSubscriptionKey'
-        - $ref: '#/components/parameters/Authorization'
-        - $ref: '#/components/parameters/Language'
-        - name: addressId
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        '204':
-          description: Address deleted successfully.
-        '400':
-          description: Validation failed.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              examples:
-                Required parameter account number is missing:
-                  value:
-                    error_code: user_adress_99999
-                    message: Required parameter address id is missing
-                    type: general  
-        '401':
-          description: Invalid token
-        '403':
-          description: Insufficient priviledges.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              examples:
-                Token has insufficent privileges:
-                  value:
-                    error_code: Forbidden
-                    message: You do not have permission to access this resource.
-                    type: AuthorizationError                     
-        '500':
-          description: Internal Server Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              examples:
-                Critical dependent service is down:
-                  value:
-                    error_code: user_99999
-                    message: Service unavailable please try after some time
-                    type: General      
-          
-
-  /users/me/preferences:
-    get:
-      tags:
-        - preferences
-      summary: Retrieve user preferences
-      parameters:
-        - $ref: '#/components/parameters/OcpApimSubscriptionKey'
-        - $ref: '#/components/parameters/Authorization'
-        - $ref: '#/components/parameters/Language'
-      responses:
-        '200':
-          description: User preferences retrieved successfully.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Preferences'
-        '401':
-          description: Invalid token
-        '403':
-          description: Insufficient priviledges.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              examples:
-                Token has insufficent privileges:
-                  value:
-                    error_code: Forbidden
-                    message: You do not have permission to access this resource.
-                    type: AuthorizationError              
-        '500':
-          description: Internal Server Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              examples:
-                Critical dependent service is down:
-                  value:
-                    error_code: user_99999
-                    message: Service unavailable please try after some time
-                    type: General         
-
-    put:
-      tags:
-        - preferences
-      summary: Update user preferences
-      parameters:
-        - $ref: '#/components/parameters/OcpApimSubscriptionKey'
-        - $ref: '#/components/parameters/Authorization'
-        - $ref: '#/components/parameters/Language'
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Preferences'
-      responses:
-        '200':
-          description: User preferences updated successfully.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Preferences'  
-        '401':
-          description: Invalid token
-        '403':
-          description: Insufficient priviledges.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              examples:
-                Token has insufficent privileges:
-                  value:
-                    error_code: Forbidden
-                    message: You do not have permission to access this resource.
-                    type: AuthorizationError 
-        '422': 
-          description: Bad Request.  
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              examples:
-                Bad Request:
-                  value:
-                    error_code: user_address_99999
-                    message: "This is the result of missing required fields, or of invalid data. See the response for more details." 
-                    type: general                         
-        '500':
-          description: Internal Server Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              examples:
-                Critical dependent service is down:
-                  value:
-                    error_code: user_99999
-                    message: Service unavailable please try after some time
-                    type: General             
-
-components:
-  parameters:
-    Language:
-      name: language
-      in: query
-      required: true
-      schema:
-        type: string
-        enum: [en, fr]
-      description: Language preference ("en" or "fr")
-    Authorization:
-      in: header
-      name: Authorization
-      required: true
-      description: JWT token
-      schema:
-        type: string
-    OcpApimSubscriptionKey:
-      in: header
-      name: Ocp-Apim-Subscription-Key
-      required: true
-      description: Azure APIM subscription key
-      schema:
-        type: string
-    CartId:
-      in: header
-      name: CartId
-      required: false
-      description: Internal cart ID or "current"
-      schema:
-        type: string
-    MyStoreId:
-      in: header
-      name: MyStoreId
-      required: false
-      description: Store identifier for personalized experience
-      schema:
-        type: string
-    MyPostalCode:
-      in: header
-      name: MyPostalCode
-      required: false
-      description: User's current postal code
-      schema:
-        type: string
-    RecaptchaToken:
-       name: Recaptcha-Token
-       in: header
-       required: true
-       description: Google reCAPTCHA v3 token
-       schema:
-        type: string
-
-  schemas:
-    JWTResponse:
-      type: object
-      properties:
-        access_token:
-          type: string
-          description:  JWT token.
-        token_type:
-          type: string
-          example: 'Authorization: Bearer xxxxx'
-        expires_in:
-          type: integer
-          description: Duration in seconds for which the token is valid.    
-    UserProfileInput:
-      type: object
-      required:
-        - firstName
-        - lastName
-        - email
-        - password
-      properties:
-        firstName:
-          type: string
-        lastName:
-          type: string
-        email:
-          type: string
-        password:
-          type: string
-        preferences:
-          $ref: '#/components/schemas/Preferences'
-    UserProfileOutput:
-      type: object
-      required:
-        - firstName
-        - lastName
-      properties:
-        firstName:
-          type: string
-        lastName:
-          type: string
-        customerGroupId:
-          type: integer
-        preferences:
-          $ref: '#/components/schemas/Preferences'
-        addresses:
-          type: array
-          items:
-            $ref: '#/components/schemas/Address'        
             
-    Preferences:
-      type: object
-      properties:
-        language:
-          type: string
-        marketingOptIn:
-          type: array
-          items:
-            type: string
-            enum: [promotions, events, products]
-        preferredStoreId:
-          type: integer
-
-    Address:
-      type: object
-      required:
-        - address1
-        - city
-        - province
-        - postalCode
-        - country 
-      properties:
-        id:
-          type: integer
-        addresstype:
-          type: string
-          enum:
-            - residential
-            - commercial
-          description: The address type, either residential or commercial.
-        nickname:
-          type: string  
-        address1:
-          type: string
-        address2:
-          type: string
-        city:
-          type: string
-        province:
-          type: string
-        postalCode:
-          type: string
-        country:
-          type: string
      
-        phone:
-          type: string
+      PasswordResetOutput:
+        type: object
+        properties:
+          status:
+            type: string
+            enum: [success]
+            example: success
+            description: Always "success" for a successful reset
+          code:
+            type: string
+            enum: [USER_011_PASSWORD_RESET_SUCCESS]
+            example: USER_011_PASSWORD_RESET_SUCCESS
+            description: Password has been updated
+      
+      
+      Preferences:
+         type: object
+         properties:
+            language:
+               type: string
+            marketingOptIn:
+               type: array
+               items:
+                  type: string
+                  enum:
+                  - promotions
+                  - events
+                  - products
+            preferredStoreId:
+               type: integer
+      Address:
+         type: object
+         required:
+         - address1
+         - city
+         - province
+         - postalCode
+         - country
+         properties:
+            id:
+               type: integer
+               readOnly: true
+               description: BigCommerce address ID (read-only, returned after creation or retrieval)
+            addresstype:
+               type: string
+               enum:
+               - residential
+               - commercial
+               description: The address type, either residential or commercial.
+            nickname:
+               type: string
+            address1:
 
-    ErrorResponse:
-      type: object
-      properties:
-        error_code:
-          type: string
-          description: A unique identifier for the error type.
-        message:
-          type: string
-          description: A human-readable explanation of the error.
-        type:
-          type: string
-          description: The category or nature of the error.
-    
+               type: string
+            address2:
+               type: string
+            city:
+               type: string
+            province:
+               type: string
+            postalCode:
+               type: string
+            country:
+               type: string
+               description: Two-letter ISO 3166-1 alpha-2 country code (e.g., "CA", "US")
+               minLength: 2
+               maxLength: 2
+               example: CA
+            phone:
+               type: string
+               pattern: '^\d{3}-\d{3}-\d{4}$'
+               example: 204-555-1234  
+      
+      ErrorResponse:
+         type: object
+         properties:
+            error_code:
+               type: string
+               description: A unique identifier for the error type.
+            message:
+               type: string
+               description: A human-readable explanation of the error.
+            type:
+               type: string
+               description: The category or nature of the error.
+
+   examples:
+      UnauthorizedErrorExample:
+         value:
+            error_code: UNAUTHORIZED
+            message: Authentication credentials are missing or invalid.
+            type: AuthenticationError
+      ForbiddenErrorExample:
+         value:
+            error_code: FORBIDDEN
+            message: You do not have permission to access this resource.
+            type: AuthorizationError
+      InternalServerErrorExample:
+         value:
+            error_code: INTERNAL_SERVER_ERROR
+            message: Service unavailable please try after some time
+            type: General  
+      ResourceNotFoundExample:
+         value:
+            error_code: RESOURCE_NOT_FOUND
+            message: The requested resource could not be found.
+            type: NotFoundError
+      UserFormValidationFailedGeneralExample:
+         value:
+            error_code: USER_002_VALIDATION_FAILED
+            message: Submitted data failed validation (e.g., missing or invalid fields)
+            type: ValidationError
+
+      FirstNameValidationFailedExample:
+         value:
+            error_code: USER_003__MISSING_FIRST_NAME
+            message: First name must not be empty and cannot contain special characters
+            type: ValidationError
+
+      LastNameValidationFailedExample:
+         value:
+            error_code: USER_004_MISSING_LAST_NAME
+            message: Last name must not be empty and cannot contain special characters
+            type: ValidationError
+            
+      EmailMissingExample:
+         value:
+            error_code: USER_005_MISSING_EMAIL
+            message: Email must not be empty .
+            type: ValidationError      
+
+      EmailValidationFailedExample:
+         value:
+            error_code: USER_006_INVALID_EMAIL
+            message: Email format is invalid.
+            type: ValidationError
+
+      PasswordMissingExample:
+         value:
+            error_code: USER_007_MISSING_PASSWORD
+            message: Password must not be empty
+            type: ValidationError
+            
+      PasswordValidationFailedExample:
+         value:
+            error_code: USER_008_INVALID_PASSWORD
+            message: |
+                      Password must meet the required complexity: minimum 8 characters,
+                      including at least one uppercase letter, one number, and one special character.
+            type: ValidationError
+            
+      EmailNotFoundExample:
+         value:
+            error_code: USER_009_EMAIL_NOT_FOUND
+            message: No user found with the given email address
+            type: ValidationError      
+      
+      InvalidTokenExample:
+         value:
+            error_code: USER_010_INVALID_TOKEN
+            message: Token is invalid or expired.
+            type: ValidationError        
+            
+            
+      AddressMissingAddress1Example:
+         value:
+            error_code: USER_102_MISSING_ADDRESS1
+            message: Address line 1 is required.
+            type: ValidationError
+
+      AddressMissingCityExample:
+         value:
+           error_code: USER_103_MISSING_CITY
+           message: City is required.
+           type: ValidationError
+
+      AddressMissingProvinceExample:
+         value:
+           error_code: USER_104_MISSING_PROVINCE
+           message: Province is required.
+           type: ValidationError
+
+      AddressMissingCountryExample:
+         value:
+           error_code: USER_105_MISSING_COUNTRY
+           message: Country is required.
+           type: ValidationError
+
+      AddressMissingPostalCodeExample:
+         value:
+           error_code: USER_106_MISSING_POSTAL_CODE
+           message: Postal code is required.
+           type: ValidationError
+
+      AddressInvalidPostalCodeExample:
+         value:
+           error_code: USER_107_INVALID_POSTAL_CODE
+           message: Postal code format is invalid.
+           type: ValidationError
+
+      AddressInvalidPhoneExample:
+         value:
+           error_code: USER_108_INVALID_PHONE
+           message: Phone number format is invalid.
+           type: ValidationError
+            
+             

@@ -30,4 +30,14 @@ public class Attribute {
 		this.fr_CA = fr_CA;
 	}
 
+	public boolean isAttributeLabel() {
+        // Matches something like A01550, A1234, etc.
+        boolean looksLikeCode = id != null && id.matches("^[A-Z]\\d{4,6}$");
+
+        // Doesn't have meaningful content
+        boolean noTranslation = (en == null || en.trim().isEmpty())
+                && (fr_CA == null || fr_CA.trim().isEmpty());
+
+        return looksLikeCode && noTranslation;
+    }
 }

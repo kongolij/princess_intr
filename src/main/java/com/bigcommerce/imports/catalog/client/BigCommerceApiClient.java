@@ -1,4 +1,4 @@
-package com.bigcommerce.imports.catalog.clinet;
+package com.bigcommerce.imports.catalog.client;
 
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
@@ -11,9 +11,9 @@ import java.util.stream.Collectors;
 public class BigCommerceApiClient {
 
 	//DEV
-	private static final String STORE_HASH = "u2rpux9vkx";
-	private static final String ACCESS_TOKEN = "211w656tmge6rmsgo0olr8jtky50j38";
-	private static final int NEXT_PUBLIC_BC_CHANNEL_ID = 1730140;
+//	private static final String STORE_HASH = "u2rpux9vkx";
+//	private static final String ACCESS_TOKEN = "211w656tmge6rmsgo0olr8jtky50j38";
+//	private static final int NEXT_PUBLIC_BC_CHANNEL_ID = 1730140;
 	
 //	//QA
 //	private static final String STORE_HASH = "kpz3wrpdrb";
@@ -51,7 +51,7 @@ public class BigCommerceApiClient {
 		return connection;
 	}
 
-	public static HttpURLConnection createRequest(String storeHash, String endpoint, String method,
+	public static HttpURLConnection createRequest(String storeHash, String accessToken, String endpoint, String method,
 			Map<String, Object> queryParams) throws Exception {
 
 		String baseUrl = "https://api.bigcommerce.com/stores/" + storeHash + "/v3/" + endpoint;
@@ -65,7 +65,7 @@ public class BigCommerceApiClient {
 		URL url = new URL(urlWithParams);
 		HttpURLConnection connection = (HttpURLConnection) url.openConnection();
 		connection.setRequestMethod(method);
-		connection.setRequestProperty("X-Auth-Token", ACCESS_TOKEN);
+		connection.setRequestProperty("X-Auth-Token", accessToken);
 		connection.setRequestProperty("Content-Type", "application/json");
 		connection.setDoOutput(true);
 		return connection;

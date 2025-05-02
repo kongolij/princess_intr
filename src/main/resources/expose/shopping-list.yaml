@@ -1,0 +1,1581 @@
+openapi: 3.0.3
+info:
+  title: WishList
+  description: This API provides an interface to manage Wishlists
+  version: v1
+  contact:
+    name: EPAM 
+    email: jimmy-kongoli@epam.com
+servers:
+  - url: 'https://devapic.princesauto.com/ecom/v1'
+    description: Dev environment
+  - url: 'https://testapic.princesauto.com/ecom/v1'
+    description: Test environment
+  - url: 'https://apic.princesauto.com/ecom/v1'
+    description: Production environment
+tags:
+  - name: WishList
+    description: WishList
+security:
+  - bearerAuth: []
+paths:
+  /whishlists:
+    get:
+      description: Query whishlists
+      operationId: queryWhishlists
+      tags:
+        - whishlists
+      parameters:
+        - in: header
+          name: Authorization
+          required: true
+          description: It is a pass-through header containing JWT token.
+          schema:
+            type: string
+            example: 'Authorization: Bearer xxxxx'
+        - in: query
+          name: limit
+          description: The maximum number of whishlists  per page
+          schema:
+            type: integer
+            default: 10
+            example: 10
+            minimum: 0
+            maximum: 500
+        - in: query
+          name: offset
+          description: The number of the elements to skip
+          schema:
+            type: integer
+            default: 0
+            example: 20
+            minimum: 0
+            maximum: 10000
+        - in: query
+          name: sort
+          description: The sorting criteria for the whishlists lists. Field which can be used as a sorting parameter are name, creationDate, lastAccessedDate, lastUpdatedDate, numberOfLines All of them support asc and desc order.
+          schema:
+            type: string
+            pattern: '^(name|creationDate|lastAccessedDate|lastUpdatedDate|numberOfLines) (asc|desc)$'
+            example: lastAccessedDate desc
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PagedShoppingListResponse'
+              example:
+                limit: 10
+                offset: 20
+                count: 5
+                total: 35
+                results:
+                  - id: 10bc7570-b22c-48ad-ae8e-0b4f6b7e4c2c
+                    name: My shopping list
+                    creationDate: 03/08/2023
+                    lastAccessedDate: 03/09/2023
+                    lastUpdatedDate: 03/08/2023
+                    creatorName: UserName
+                    lockedForEdit: false
+                    numberOfLines: 10
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                code: 400
+                message: Bad request
+                detailedMessage: Please provide valid parameters
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                code: 500
+                message: Internal Server Error
+                detailedMessage: Try again later
+    post:
+      description: Create wishlist
+      operationId: createWishlist
+      tags:
+        - wishlist
+      parameters:
+        - in: header
+          name: Authorization
+          required: true
+          description: It is a pass-through header containing JWT token.
+          schema:
+            type: string
+            example: 'Authorization: Bearer xxxxx'
+        - in: query
+          name: handleDuplicateName
+          description: |
+            Indicates whether the duplicate name will be handled 
+            or simply 400 will be returned in case of detecting a duplicate name
+          required: false
+          schema:
+            type: boolean
+            default: false
+            example: true
+      requestBody:
+        $ref: '#/components/requestBodies/shoppingListCreateDto'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShoppingListCreateResponse'
+              example:
+                id: "d81d466d-86a6-409e-a6d3-e5d02daf683f"
+                requestedName: "GENERATED SL EXAMPLE"
+                savedName: "GENERATED SL EXAMPLE-08/07/2023-11.15.20"
+        '400':
+          description: Bad Request
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                code: 500
+                message: Internal Server Error
+                detailedMessage: Try again later
+  
+  /shopping-lists/line-items/skus:
+    get:
+      description: Search for sku details by CMIR, SKU and Manufacturer code
+      operationId: searchSkus
+      tags:
+        - sku
+      parameters:
+        - in: header
+          name: Authorization
+          required: true
+          description: It is a pass-through header containing JWT token.
+          schema:
+            type: string
+            example: 'Authorization: Bearer xxxxx'
+        - in: header
+          name: Ping-Authorization
+          description: It is a pass-through header, only to be consumed by ATG to identify an user. Only for internal consumers.
+          schema:
+            type: string
+            example: 'Bearer 0001kpwaLWmMnYHFPmncApdC2uSQ2y69Vv20hdwDM2'
+          required: true
+        - in: query
+          name: soldToAccountId
+          description: Sold to account id
+          required: true
+          schema:
+            type: string
+            pattern: '^.+$'
+            example: '1000836'
+        - in: query
+          name: shipToAccountId
+          description: Ship to account id
+          required: true
+          schema:
+            type: string
+            pattern: '^.+$'
+            example: '1000836'
+        - in: query
+          name: searchValue
+          description: Search value to look for sku with
+          required: true
+          schema:
+            type: string
+            pattern: '^(?!\s*$).+$'
+            example: 'sku'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SkuSearchResponse'
+              example:
+                - sku: "MDPDYND70316"
+                  material: "DYND70316"
+                  description: "Blue gloves"
+                  customerItemNumber: "cmir123"
+                  primaryImageUrl: "path/to/image"
+        '400':
+          description: Bad Request
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                code: 500
+                message: Internal Server Error
+                detailedMessage: Try again later
+  /shopping-lists/{id}:
+    delete:
+      description: Delete shopping list by ID
+      operationId: deleteShoppingListById
+      tags:
+        - shopping-list
+      parameters:
+        - in: header
+          name: Authorization
+          required: true
+          description: It is a pass-through header containing JWT token.
+          schema:
+            type: string
+            example: 'Authorization: Bearer xxxxx'
+        - in: header
+          name: Ping-Authorization
+          description: It is a pass-through header, only to be consumed by ATG to identify an user. Only for internal consumers.
+          schema:
+            type: string
+            example: 'Bearer 0001kpwaLWmMnYHFPmncApdC2uSQ2y69Vv20hdwDM2'
+          required: true
+        - in: query
+          name: soldToAccountId
+          description: Sold to account id
+          required: true
+          schema:
+            type: string
+            pattern: '^.+$'
+            example: '1000836'
+        - in: query
+          name: shipToAccountId
+          description: Ship to account id
+          required: true
+          schema:
+            type: string
+            pattern: '^.+$'
+            example: '1000836'
+        - in: path
+          name: id
+          required: true
+          description: The ID of the shopping list to delete
+          schema:
+            type: string
+            example: 10bc7570-b22c-48ad-ae8e-0b4f6b7e4c2c
+      responses:
+        '204':
+          description: No Content
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                code: 400
+                message: Invalid id
+                detailedMessage: Please provide valid id
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                code: 404
+                message: No shopping list found by provided id
+                detailedMessage: Please provide valid id
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                code: 500
+                message: Internal Server Error
+                detailedMessage: Try again later
+    get:
+      description: Get shopping list by ID
+      operationId: getShoppingListById
+      tags:
+        - shopping-list
+      parameters:
+        - in: header
+          name: Authorization
+          required: true
+          description: It is a pass-through header containing JWT token.
+          schema:
+            type: string
+            example: 'Authorization: Bearer xxxxx'
+        - in: header
+          name: Ping-Authorization
+          description: It is a pass-through header, only to be consumed by ATG to identify an user. Only for internal consumers.
+          schema:
+            type: string
+            example: 'Bearer 0001kpwaLWmMnYHFPmncApdC2uSQ2y69Vv20hdwDM2'
+          required: true
+        - in: query
+          name: soldToAccountId
+          description: Sold to account id
+          required: true
+          schema:
+            type: string
+            pattern: '^.+$'
+            example: '1000836'
+        - in: query
+          name: shipToAccountId
+          description: Ship to account id
+          required: true
+          schema:
+            type: string
+            pattern: '^.+$'
+            example: '1000836'
+        - in: path
+          name: id
+          required: true
+          description: The ID of the shopping list to get
+          schema:
+            type: string
+            example: 10bc7570-b22c-48ad-ae8e-0b4f6b7e4c2c
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShoppingListResponse'
+              example:
+                id: 10bc7570-b22c-48ad-ae8e-0b4f6b7e4c2c
+                name: my shopping list
+                categories:
+                  - id: 10bc7570-b22c-48ad-ae8e-0b4f6b7e4c3c
+                    name: category_1
+                    defaultCategory: true
+                    lineItems:
+                      - id: 10bc7570-b22c-48ad-ae8e-0b4f6b7e4c4c
+                        sku: sku_1
+                        material: material_1
+                        quantity: 1
+                        description: the item from sku_1
+                        customDescription: custom description
+                        packageStringShort: 1EA
+                        salesUnitOfMeasurement: EA
+                        formulary: F
+                        disclaimers:
+                          - name: hazardous
+                            value: N
+                          - name: itemTemperatureControl
+                            value: N
+                          - name: returnable
+                            value: Y
+                          - name: containsLatex
+                            value: "false"
+                        skuIsOnPromo: true
+                        lineItemDetails:
+                          material: material_1
+                          name: name_1
+                          manufacturer: manufacturer_product_code_1
+                          unitOfMeasurementLong: 50 Each / 10 box / Case
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                code: 400
+                message: Invalid id
+                detailedMessage: Please provide valid id
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                code: 404
+                message: No shopping list found by provided id
+                detailedMessage: Please provide valid id
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                code: 500
+                message: Internal Server Error
+                detailedMessage: Try again later
+    put:
+      description: Update of shopping list by ID
+      operationId: updateShoppingListById
+      tags:
+        - shopping-list
+      parameters:
+        - in: header
+          name: Authorization
+          required: true
+          description: It is a pass-through header containing JWT token.
+          schema:
+            type: string
+            example: 'Authorization: Bearer xxxxx'
+        - in: header
+          name: Ping-Authorization
+          description: It is a pass-through header, only to be consumed by ATG to identify an user. Only for internal consumers.
+          schema:
+            type: string
+            example: 'Bearer 0001kpwaLWmMnYHFPmncApdC2uSQ2y69Vv20hdwDM2'
+          required: true
+        - in: query
+          name: soldToAccountId
+          description: Sold to account id
+          required: true
+          schema:
+            type: string
+            pattern: '^.+$'
+            example: '1000836'
+        - in: query
+          name: shipToAccountId
+          description: Ship to account id
+          required: true
+          schema:
+            type: string
+            pattern: '^.+$'
+            example: '1000836'
+        - in: path
+          name: id
+          required: true
+          description: The ID of the shopping list to update
+          schema:
+            type: string
+            example: 10bc7570-b22c-48ad-ae8e-0b4f6b7e4c2c
+      requestBody:
+        $ref: '#/components/requestBodies/shoppingListUpdateDto'
+      responses:
+        '204':
+          description: No Content
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                code: 400
+                message: Invalid id
+                detailedMessage: Please provide valid id
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                code: 404
+                message: No shopping list found by provided id
+                detailedMessage: Please provide valid id
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                code: 500
+                message: Internal Server Error
+                detailedMessage: Try again later
+    patch:
+      description: Partial update of shopping list by ID
+      operationId: partialUpdateShoppingListById
+      tags:
+        - shopping-list
+      parameters:
+        - in: header
+          name: Authorization
+          required: true
+          description: It is a pass-through header containing JWT token.
+          schema:
+            type: string
+            example: 'Authorization: Bearer xxxxx'
+        - in: header
+          name: Ping-Authorization
+          description: It is a pass-through header, only to be consumed by ATG to identify an user. Only for internal consumers.
+          schema:
+            type: string
+            example: 'Bearer 0001kpwaLWmMnYHFPmncApdC2uSQ2y69Vv20hdwDM2'
+          required: true
+        - in: query
+          name: soldToAccountId
+          description: Sold to account id
+          required: true
+          schema:
+            type: string
+            pattern: '^.+$'
+            example: '1000836'
+        - in: query
+          name: shipToAccountId
+          description: Ship to account id
+          required: true
+          schema:
+            type: string
+            pattern: '^.+$'
+            example: '1000836'
+        - in: path
+          name: id
+          required: true
+          description: The ID of the shopping list to update
+          schema:
+            type: string
+            example: 10bc7570-b22c-48ad-ae8e-0b4f6b7e4c2c
+      requestBody:
+        $ref: '#/components/requestBodies/shoppingListPartialUpdateDto'
+      responses:
+        '204':
+          description: No Content
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                code: 400
+                message: Invalid id
+                detailedMessage: Please provide valid id
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                code: 404
+                message: No shopping list found by provided id
+                detailedMessage: Please provide valid id
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                code: 500
+                message: Internal Server Error
+                detailedMessage: Try again later
+  /shopping-lists/{id}/sharing-with:
+    put:
+      description: Update shopping list sharingWith
+      operationId: updateShoppingListSharingWith
+      tags:
+        - shopping-list
+      parameters:
+        - in: header
+          name: Authorization
+          required: true
+          description: It is a pass-through header containing JWT token.
+          schema:
+            type: string
+            example: 'Authorization: Bearer xxxxx'
+        - in: header
+          name: Ping-Authorization
+          description: It is a pass-through header, only to be consumed by ATG to identify an user. Only for internal consumers.
+          schema:
+            type: string
+            example: 'Bearer 0001kpwaLWmMnYHFPmncApdC2uSQ2y69Vv20hdwDM2'
+          required: true
+        - in: query
+          name: soldToAccountId
+          description: Sold to account id
+          required: true
+          schema:
+            type: string
+            pattern: '^.+$'
+            example: '1000836'
+        - in: query
+          name: shipToAccountId
+          description: Ship to account id
+          required: true
+          schema:
+            type: string
+            pattern: '^.+$'
+            example: '1000836'
+        - in: path
+          name: id
+          required: true
+          description: The ID of the shopping list to be exported
+          schema:
+            type: string
+            example: 10bc7570-b22c-48ad-ae8e-0b4f6b7e4c2c
+      requestBody:
+        $ref: '#/components/requestBodies/shoppingListUpdateSharingWithDto'
+      responses:
+        '204':
+          description: No content
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                code: 400
+                message: Invalid id
+                detailedMessage: Please provide valid id
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                code: 404
+                message: No shopping list found by provided id
+                detailedMessage: Please provide valid id
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                code: 500
+                message: Internal Server Error
+                detailedMessage: Try again later
+  /shopping-lists/{id}/xls:
+    post:
+      description: Generate shopping list Excel export
+      operationId: generateShoppingListExcelExport
+      tags:
+        - shopping-list
+      parameters:
+        - in: header
+          name: Authorization
+          required: true
+          description: It is a pass-through header containing JWT token.
+          schema:
+            type: string
+            example: 'Authorization: Bearer xxxxx'
+        - in: header
+          name: Ping-Authorization
+          description: It is a pass-through header, only to be consumed by ATG to identify an user. Only for internal consumers.
+          schema:
+            type: string
+            example: 'Bearer 0001kpwaLWmMnYHFPmncApdC2uSQ2y69Vv20hdwDM2'
+          required: true
+        - in: query
+          name: soldToAccountId
+          description: Sold to account id
+          required: true
+          schema:
+            type: string
+            pattern: '^.+$'
+            example: '1000836'
+        - in: query
+          name: shipToAccountId
+          description: Ship to account id
+          required: true
+          schema:
+            type: string
+            pattern: '^.+$'
+            example: '1000836'
+        - in: path
+          name: id
+          required: true
+          description: The ID of the shopping list to be exported
+          schema:
+            type: string
+            example: 10bc7570-b22c-48ad-ae8e-0b4f6b7e4c2c
+      requestBody:
+        $ref: '#/components/requestBodies/shoppingListExportDto'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/vnd.ms-excel:
+              schema:
+                type: string
+                format: binary
+              example:
+                xls file
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                code: 400
+                message: Invalid id
+                detailedMessage: Please provide valid id
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                code: 404
+                message: No shopping list found by provided id
+                detailedMessage: Please provide valid id
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                code: 500
+                message: Internal Server Error
+                detailedMessage: Try again later
+  /shopping-lists/{id}/pdf:
+    post:
+      description: Generate shopping list PDF export
+      operationId: generateShoppingListPdfExport
+      tags:
+        - shopping-list
+      parameters:
+        - in: header
+          name: Authorization
+          required: true
+          description: It is a pass-through header containing JWT token.
+          schema:
+            type: string
+            example: 'Authorization: Bearer xxxxx'
+        - in: header
+          name: Ping-Authorization
+          description: It is a pass-through header, only to be consumed by ATG to identify an user. Only for internal consumers.
+          schema:
+            type: string
+            example: 'Bearer 0001kpwaLWmMnYHFPmncApdC2uSQ2y69Vv20hdwDM2'
+          required: true
+        - in: query
+          name: soldToAccountId
+          description: Sold to account id
+          required: true
+          schema:
+            type: string
+            pattern: '^.+$'
+            example: '1000836'
+        - in: query
+          name: shipToAccountId
+          description: Ship to account id
+          required: true
+          schema:
+            type: string
+            pattern: '^.+$'
+            example: '1000836'
+        - in: path
+          name: id
+          required: true
+          description: The ID of the shopping list to be exported
+          schema:
+            type: string
+            example: 10bc7570-b22c-48ad-ae8e-0b4f6b7e4c2c
+      requestBody:
+        $ref: '#/components/requestBodies/shoppingListExportDto'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+              example:
+                pdf file
+          headers:
+            Content-Disposition:
+              schema:
+                type: string
+                example: inline; filename=Medline_Shopping_List_TEST.pdf
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                code: 400
+                message: Invalid id
+                detailedMessage: Please provide valid id
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                code: 404
+                message: No shopping list found by provided id
+                detailedMessage: Please provide valid id
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                code: 500
+                message: Internal Server Error
+                detailedMessage: Try again later
+  /shopping-lists/{id}/categories:
+    post:
+      description: Create custom category
+      operationId: createCustomCategory
+      tags:
+        - shopping-list
+      parameters:
+        - in: header
+          name: Authorization
+          required: true
+          description: It is a pass-through header containing JWT token.
+          schema:
+            type: string
+            example: 'Authorization: Bearer xxxxx'
+        - in: header
+          name: Ping-Authorization
+          description: It is a pass-through header, only to be consumed by ATG to identify an user. Only for internal consumers.
+          schema:
+            type: string
+            example: 'Bearer 0001kpwaLWmMnYHFPmncApdC2uSQ2y69Vv20hdwDM2'
+          required: true
+        - in: query
+          name: soldToAccountId
+          description: Sold to account id
+          required: true
+          schema:
+            type: string
+            pattern: '^.+$'
+            example: '1000836'
+        - in: query
+          name: shipToAccountId
+          description: Ship to account id
+          required: true
+          schema:
+            type: string
+            pattern: '^.+$'
+            example: '1000836'
+        - in: path
+          name: id
+          required: true
+          description: The ID of the shopping list to add new category to
+          schema:
+            type: string
+            example: 10bc7570-b22c-48ad-ae8e-0b4f6b7e4c2c
+      requestBody:
+        $ref: '#/components/requestBodies/categoryCreateDto'
+      responses:
+        '200':
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CategoryCreateResponse'
+              example:
+                id: 10bc7570-b22c-48ad-ae8e-0b4f6b7e4c2c
+                name: new category
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                code: 400
+                message: Invalid id
+                detailedMessage: Please provide valid id
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                code: 404
+                message: No shopping list found by provided id
+                detailedMessage: Please provide valid id
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                code: 500
+                message: Internal Server Error
+                detailedMessage: Try again later
+  /shopping-lists/{id}/categories/{categoryId}:
+    delete:
+      description: Delete custom category
+      operationId: deleteCustomCategory
+      tags:
+        - shopping-list
+      parameters:
+        - in: header
+          name: Authorization
+          required: true
+          description: It is a pass-through header containing JWT token.
+          schema:
+            type: string
+            example: 'Authorization: Bearer xxxxx'
+        - in: header
+          name: Ping-Authorization
+          description: It is a pass-through header, only to be consumed by ATG to identify an user. Only for internal consumers.
+          schema:
+            type: string
+            example: 'Bearer 0001kpwaLWmMnYHFPmncApdC2uSQ2y69Vv20hdwDM2'
+          required: true
+        - in: query
+          name: soldToAccountId
+          description: Sold to account id
+          required: true
+          schema:
+            type: string
+            pattern: '^.+$'
+            example: '1000836'
+        - in: query
+          name: shipToAccountId
+          description: Ship to account id
+          required: true
+          schema:
+            type: string
+            pattern: '^.+$'
+            example: '1000836'
+        - in: path
+          name: id
+          required: true
+          description: The ID of the shopping list to delete category from
+          schema:
+            type: string
+            example: 10bc7570-b22c-48ad-ae8e-0b4f6b7e4c2c
+        - in: path
+          name: categoryId
+          required: true
+          description: The ID of the category to be deleted
+          schema:
+            type: string
+            example: 10bc7570-b22c-48ad-ae8e-0b4f6b7e4c2c
+      responses:
+        '204':
+          description: No content
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                code: 400
+                message: Invalid id
+                detailedMessage: Please provide valid id
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                code: 404
+                message: No shopping list found by provided id
+                detailedMessage: Please provide valid id
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                code: 500
+                message: Internal Server Error
+                detailedMessage: Try again later
+components:
+  schemas:
+    SharingWithResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+      example:
+        id: "100836"
+        name: My Hospital
+      required:
+        - id
+    BasicShoppingListResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        sharingWith:
+          type: array
+          items:
+            $ref: '#/components/schemas/SharingWithResponse'
+        creationDate:
+          type: string
+          pattern: '^\d{2}/\d{2}/\d{4}$'
+        lastAccessedDate:
+          type: string
+          pattern: '^\d{2}/\d{2}/\d{4}$'
+        lastUpdatedDate:
+          type: string
+          pattern: '^\d{2}/\d{2}/\d{4}$'
+        creatorName:
+          type: string
+        lockedForEdit:
+          type: boolean
+        numberOfLines:
+          type: integer
+      example:
+        id: 10bc7570-b22c-48ad-ae8e-0b4f6b7e4c2c
+        name: My shopping list
+        sharingWith:
+          - id: "100836"
+            name: "My Hospital"
+        creationDate: 03/08/2023
+        lastAccessedDate: 03/09/2023
+        lastUpdatedDate: 03/08/2023
+        creatorName: UserName
+        lockedForEdit: false
+        numberOfLines: 10
+      required:
+        - id
+        - name
+        - creationDate
+        - lastAccessedDate
+        - lastUpdatedDate
+        - creatorName
+        - lockedForEdit
+        - numberOfLines
+    CategoryResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        defaultCategory:
+          type: boolean
+        lineItems:
+          type: array
+          items:
+            $ref: '#/components/schemas/LineItemResponse'
+      required:
+        - name
+        - defaultCategory
+        - lineItems
+    ErrorResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+        message:
+          type: string
+        detailedMessage:
+          type: string
+      example:
+        code: 404
+        message: Not found
+        detailedMessage: Unable to find shopping list by provided id
+    LineItemResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        sku:
+          type: string
+        material:
+          type: string
+        quantity:
+          type: integer
+        description:
+          type: string
+        customDescription:
+          type: string
+        packageStringShort:
+          type: string
+        salesUnitOfMeasurement:
+          type: string
+        formulary:
+          type: string
+          enum:
+            - F
+            - PPD
+        customerItemNumber:
+          type: string
+        disclaimers:
+          type: array
+          items:
+            $ref: '#/components/schemas/SkuDisclaimerResponse'
+        skuIsOnPromo:
+          type: boolean
+        accountLinked:
+          $ref: '#/components/schemas/AccountLinkedResponse'
+        glCode:
+          type: string
+        lineItemDetails:
+          $ref: '#/components/schemas/LineItemDetailsResponse'
+      required:
+        - id
+        - sku
+        - material
+        - quantity
+        - description
+        - packageStringShort
+        - salesUnitOfMeasurement
+        - lineItemDetails
+    SkuDisclaimerResponse:
+      type: object
+      properties:
+        name:
+          type: string
+        value:
+          type: string
+        message:
+          type: string
+      example:
+        name: "Green"
+        value: "Y"
+        message: "Disclaimer message"
+    AccountLinkedResponse:
+      type: object
+      properties:
+        accountLinkedItem:
+          type: boolean
+        lastOrderedDate:
+          type: string
+        accountLinkedMessage:
+          type: string
+    LineItemDetailsResponse:
+      type: object
+      properties:
+        material:
+          type: string
+        name:
+          type: string
+        manufacturer:
+          type: string
+        unitOfMeasurementLong:
+          type: string
+        primaryImageUrl:
+          type: string
+      required:
+        - material
+        - name
+        - manufacturer
+        - unitOfMeasurementLong
+      example:
+        material: "aa123"
+        name: "Blue gloves, Size S"
+        manufacturer: "MEDLINE"
+        unitOfMeasurementLong: "50 Each / 10 box / Case"
+    PagedShoppingListResponse:
+      type: object
+      properties:
+        limit:
+          type: integer
+        offset:
+          type: integer
+        count:
+          type: integer
+        total:
+          type: integer
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/BasicShoppingListResponse'
+      required:
+        - limit
+        - offset
+        - count
+        - total
+        - results
+    ShoppingListResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        categories:
+          type: array
+          items:
+            $ref: '#/components/schemas/CategoryResponse'
+      required:
+        - id
+        - name
+        - categories
+    ShoppingListCreateDto:
+      type: object
+      properties:
+        name:
+          type: string
+          pattern: "^(?!\\s)[\\x00-\\x7F]{1,40}(?<!\\s)$"
+        soldToAccountId:
+          type: string
+          pattern: '^.+$'
+        shipToAccountId:
+          type: string
+          pattern: '^.+$'
+        categories:
+          type: array
+          items:
+            $ref: '#/components/schemas/ShoppingListCreateCategoryDto'
+        uncategorizedLineItems:
+          type: array
+          items:
+            $ref: '#/components/schemas/ShoppingListCreateLineItemDto'
+      required:
+        - name
+        - soldToAccountId
+        - shipToAccountId
+    ShoppingListCreateCategoryDto:
+      type: object
+      properties:
+        name:
+          type: string
+          pattern: "^(?!\\s)[\\x00-\\x7F]{1,40}(?<!\\s|[Uu][Nn][Cc][Aa][Tt][Ee][Gg][Oo][Rr][Ii][Zz][Ee][Dd])$"
+        lineItems:
+          type: array
+          items:
+            $ref: '#/components/schemas/ShoppingListCreateLineItemDto'
+      required:
+        - name
+    ShoppingListCreateLineItemDto:
+      type: object
+      properties:
+        sku:
+          type: string
+        quantity:
+          type: integer
+          minimum: 0
+      required:
+        - sku
+        - quantity
+    ShoppingListCreateResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        requestedName:
+          type: string
+        savedName:
+          type: string
+      required:
+        - id
+        - requestedName
+        - savedName
+    ShoppingListUpdateDto:
+      type: object
+      properties:
+        name:
+          type: string
+          pattern: "^(?!\\s)[\\x00-\\x7F]{1,40}(?<!\\s)$"
+        categories:
+          type: array
+          items:
+            $ref: '#/components/schemas/ShoppingListUpdateCategoryDto'
+        uncategorizedLineItems:
+          type: array
+          items:
+            $ref: '#/components/schemas/ShoppingListUpdateLineItemDto'
+      required:
+        - name
+    ShoppingListUpdateCategoryDto:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+          pattern: "^(?!\\s)[\\x00-\\x7F]{1,40}(?<!\\s|[Uu][Nn][Cc][Aa][Tt][Ee][Gg][Oo][Rr][Ii][Zz][Ee][Dd])$"
+        lineItems:
+          type: array
+          items:
+            $ref: '#/components/schemas/ShoppingListUpdateLineItemDto'
+      required:
+        - name
+    ShoppingListUpdateLineItemDto:
+      type: object
+      properties:
+        id:
+          type: string
+        sku:
+          type: string
+        quantity:
+          type: integer
+          minimum: 0
+        customDescription:
+          type: string
+          pattern: "^(?!\\s)[\\x00-\\x7F]{1,256}(?<!\\s)$"
+      required:
+        - sku
+        - quantity
+    ShoppingListPartialUpdateDto:
+      type: object
+      properties:
+        status:
+          type: string
+          enum:
+            - Active
+            - Archived
+    ShoppingListValidationDto:
+      type: object
+      properties:
+        shoppingListName:
+          type: string
+          description: Max length is 40 characters. Only ASCII characters are allowed. Empty strings, strings consisting only of spaces, strings starting or ending with spaces are not allowed.
+          pattern: "^(?!\\s)[\\x00-\\x7F]{1,40}(?<!\\s)$"
+    SkuDetailsResponse:
+      type: object
+      properties:
+        sku:
+          type: string
+        material:
+          type: string
+        customerItemNumber:
+          type: string
+        description:
+          type: string
+        primaryImageUrl:
+          type: string
+      required:
+        - sku
+        - material
+        - description
+    SkuSearchResponse:
+      type: array
+      items:
+        $ref: '#/components/schemas/SkuDetailsResponse'
+    CategoryCreateDto:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+    CategoryCreateResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+    ShoppingListExportLineItemSortField:
+      type: string
+      enum:
+        - SKU
+        - DESCRIPTION
+        - QUANTITY
+    ShoppingListExportLineItemSortDirection:
+      type: string
+      enum:
+        - ASC
+        - DESC
+    ShoppingListExportBasicSortDto:
+      type: object
+      properties:
+        sortField:
+          $ref: '#/components/schemas/ShoppingListExportLineItemSortField'
+        sortDirection:
+          $ref: '#/components/schemas/ShoppingListExportLineItemSortDirection'
+      required:
+        - sortField
+        - sortDirection
+    ShoppingListExportCustomCategorySortDto:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/ShoppingListExportBasicSortDto'
+        - type: object
+          properties:
+            categoryId:
+              type: string
+          required:
+            - categoryId
+    ShoppingListExportDto:
+      type: object
+      properties:
+        globalItemsSorting:
+          $ref: '#/components/schemas/ShoppingListExportBasicSortDto'
+        uncategorizedItemsSorting:
+          $ref: '#/components/schemas/ShoppingListExportBasicSortDto'
+        customCategoriesItemsSorting:
+          type: array
+          items:
+            $ref: '#/components/schemas/ShoppingListExportCustomCategorySortDto'
+    ShoppingListUpdateSharingWithDto:
+      type: object
+      properties:
+        soldToAccounts:
+          type: array
+          items:
+            type: string
+            pattern: '^(?!\s*$).+$'
+        groups:
+          type: array
+          items:
+            type: string
+            pattern: '^(?!\s*$).+$'
+        sendToEmails:
+          type: array
+          items:
+            type: string
+            pattern: '^(?=.{1,64}@)[A-Za-z0-9_-]+(\.[A-Za-z0-9_-]+)*@[^-][A-Za-z0-9-]+(\.[A-Za-z0-9-]+)*(\.[A-Za-z]{2,})$'
+  requestBodies:
+    shoppingListCreateDto:
+      required: true
+      description: An object with the data needed to create a shopping list.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ShoppingListCreateDto'
+          example:
+            name: 'Shopping list name'
+            soldToAccountId: '1000836'
+            shipToAccountId: '1000836'
+            categories:
+              - name: 'Custom Category with line item'
+                lineItems:
+                  - sku: 'MDPMMMMS04'
+                    quantity: 0
+              - name: 'Custom Category'
+            uncategorizedLineItems:
+              - sku: 'MDPFG100L'
+                quantity: 2
+    shoppingListUpdateDto:
+      required: true
+      description: An object with the data needed to partially update a shopping list.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ShoppingListUpdateDto'
+          example:
+            name: 'Shopping list name'
+            categories:
+              - id: "68549b2e-2a6d-46f3-8025-507c5432e6d6"
+                name: 'Custom Category with line item'
+                lineItems:
+                  - id: "68549b2e-2a6d-46f3-8025-507c5432e6d6"
+                    sku: 'MDPMMMMS04'
+                    quantity: 0
+                    customDescription: "Custom line-item description"
+              - name: 'Custom Category'
+            uncategorizedLineItems:
+              - sku: 'MDPFG100L'
+                quantity: 2
+    shoppingListPartialUpdateDto:
+      required: true
+      description: An object with the data needed to partially update a shopping list.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ShoppingListPartialUpdateDto'
+          example:
+            status: Archived
+    shoppingListValidationDto:
+      required: true
+      description: An object which hold the data which needs to be validated
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ShoppingListValidationDto'
+          example:
+            shoppingListName: 'Shopping list name'
+    categoryCreateDto:
+      required: true
+      description: An object with the data needed to create a shopping list.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/CategoryCreateDto'
+          example:
+            name: 'New category name'
+    shoppingListExportDto:
+      required: false
+      description: An object with the data needed to export shopping list
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ShoppingListExportDto'
+          example:
+            globalItemsSorting:
+              sortField: "SKU"
+              sortDirection: "ASC"
+            uncategorizedItemsSorting:
+              sortField: "SKU"
+              sortDirection: "DESC"
+            customCategoriesItemsSorting:
+              - categoryId: "176cdd64-1946-4a6f-a6d1-b72f10ed6841"
+                sortField: "DESCRIPTION"
+                sortDirection: "ASC"
+    shoppingListUpdateSharingWithDto:
+      required: false
+      description: An object with the data needed to update shopping list sharingWith properties
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ShoppingListUpdateSharingWithDto'
+          example:
+            soldToAccounts:
+              - "123"
+            groups:
+              - "G123"
+            sendToEmails:
+              - "test@email.com"
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      description: internal JWT token
+      bearerFormat: internal JWT token

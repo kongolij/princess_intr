@@ -20,7 +20,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.stereotype.Component;
 
-import com.bigcommerce.imports.catalog.clinet.BigCommerceApiClient;
+import com.bigcommerce.imports.catalog.client.BigCommerceApiClient;
 import com.bigcommerce.imports.catalog.constants.AccessToken;
 import com.bigcommerce.imports.catalog.constants.CommonConstants;
 import com.bigcommerce.imports.catalog.constants.LocaleConstants;

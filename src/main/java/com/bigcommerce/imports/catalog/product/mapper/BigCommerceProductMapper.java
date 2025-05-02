@@ -12,9 +12,11 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.stereotype.Component;
 
+import com.bigcommerce.imports.catalog.product.constant.AttributeLabels;
 import com.bigcommerce.imports.catalog.product.dto.Attribute;
 import com.bigcommerce.imports.catalog.product.dto.OptionValue;
 import com.bigcommerce.imports.catalog.product.dto.Product;
+import com.bigcommerce.imports.catalog.product.dto.ProductCreationResult;
 import com.bigcommerce.imports.catalog.product.dto.Variant;
 
 @Component
@@ -30,7 +32,7 @@ public class BigCommerceProductMapper {
 
 		productJson.put("type", "physical");
 		Variant firstVariant = product.variants != null && !product.variants.isEmpty() ? product.variants.get(0) : null;
-		if (product.variants.size() == 1 && firstVariant.getOption_values().isEmpty()) {
+		if (product.variants.size() == 1 && (firstVariant.getOption_values()==null || firstVariant.getOption_values().isEmpty())) {
 			productJson.put("name", getLocalizedAttribute(product.attributes, "displayName", locale));
 			productJson.put("sku", firstVariant.getSkuNumber());
 			productJson.put("weight", firstVariant.paWeight);
@@ -47,7 +49,6 @@ public class BigCommerceProductMapper {
 			productJson.put("sku", product.getProductNumber());
 			productJson.put("weight", firstVariant.paWeight); // required
 			productJson.put("price", 0.00); // required
-
 			productJson.put("variants", mapVariantsToBigCommerce(product.variants));
 		}
 
@@ -57,10 +58,31 @@ public class BigCommerceProductMapper {
 	public JSONArray mapProductToBigCommerceCustomAttr(Product product) {
 
 		Variant firstVariant = product.variants != null && !product.variants.isEmpty() ? product.variants.get(0) : null;
-		if (product.variants.size() == 1 && firstVariant.getOption_values().isEmpty()) {
-			return mapProductAttributesToCustomFields(product.getVariants().get(0).getAttributes());
-		} else if (product.variants.size() > 1) {
-			return mapProductAttributesToCustomFields(product.attributes);
+		if (product.variants.size() == 1 && (firstVariant.getOption_values()==null || firstVariant.getOption_values().isEmpty())) {
+			List<Attribute> allAttrs = firstVariant.getAttributes();
+
+			// Step 1: Find the label code (if any)
+			Optional<Attribute> labelAttr = allAttrs.stream()
+			    .filter(attr -> attr.getId() != null && attr.getId().matches("^[A-Z]\\d{4,6}$"))
+			    .filter(attr -> (attr.getEn() == null || attr.getEn().trim().isEmpty()) &&
+			                    (attr.getFr_CA() == null || attr.getFr_CA().trim().isEmpty()))
+			    .findFirst();
+
+			// Step 2: Exclude it
+			List<Attribute> filteredAttrs = product.getAttributes();
+			return mapProductAttributesToCustomFields(filteredAttrs);
+		} else 
+		if (product.variants.size() >= 1) {
+			JSONArray customFields=  mapProductAttributesToCustomFields(product.attributes);
+			String countryOfOrigin = product.getPaCountryOfOrigin();
+			if (countryOfOrigin != null && !countryOfOrigin.isEmpty()) {
+			    JSONObject countryField = new JSONObject();
+			    countryField.put("name", "countryOfOrigin");
+			    countryField.put("value", countryOfOrigin);
+			    customFields.put(countryField);
+			}
+			return customFields;
+			
 		}
 		return null;
 
@@ -68,16 +90,51 @@ public class BigCommerceProductMapper {
 
 	public Map<String, Map<String, JSONObject>> mapVaraintAttribtuesToBigCommerceCustomAttr(Product product) {
 
-		 Map<String, Map<String, JSONObject>> localeSkuMap = new HashMap<>();
-		Map<String, JSONObject> enMap = mapAttributesToLocale(product.getVariants(), "en");
-		Map<String, JSONObject> frMap = mapAttributesToLocale(product.getVariants(), "fr_CA");
-		 localeSkuMap.put("en", enMap);
-		    localeSkuMap.put("fr_CA", frMap);
+		Map<String, Map<String, JSONObject>> localeSkuMap = new HashMap<>();
 		
+//		Map<String, JSONObject> enMap = mapAttributesToLocale(product.getVariants(), "en");
+//		Map<String, JSONObject> frMap = mapAttributesToLocale(product.getVariants(), "fr_CA");
+		
+		Map<String, JSONObject> enMap = mapAttributesAndAttLabelsToLocale(product.getVariants(), "en");
+		Map<String, JSONObject> frMap = mapAttributesAndAttLabelsToLocale(product.getVariants(), "fr_CA");
+		localeSkuMap.put("en", enMap);
+		localeSkuMap.put("fr_CA", frMap);
+		
+		
+		
+
 		return localeSkuMap;
 	}
 	
 	
+	public Map<String, JSONObject> mapToVariantAttrToMetadata(Product product) {
+	    Map<String, JSONObject> result = new HashMap<>();
+
+	    for (Variant variant : product.getVariants()) {
+	        String sku = variant.getSkuNumber();
+	        if (sku == null || sku.isEmpty()) continue;
+
+	        JSONObject staticAttributes = new JSONObject();
+	        staticAttributes.put("clearance", String.valueOf(variant.isPaSkuClearance()));
+	        staticAttributes.put("availabilityCode", variant.getPaAvailabilityCode() != null ? variant.getPaAvailabilityCode() : "");
+	        staticAttributes.put("levy", String.valueOf(variant.isPaLevy()));
+	        staticAttributes.put("shippable", "Y");
+//	        staticAttributes.put("productStatus", variant.getPaProductStatus() != null ? variant.getPaProductStatus() : "");
+	        staticAttributes.put("productStatus", "A");
+
+	        // ✅ Add first "manual" asset if available
+	        if (variant.getAssets() != null) {
+	            variant.getAssets().stream()
+	                .filter(asset -> "manual".equalsIgnoreCase(asset.getType()))
+	                .findFirst()
+	                .ifPresent(manualAsset -> staticAttributes.put("manual", manualAsset.getPaDocumentsFileName()));
+	        }
+	        
+	        result.put(sku, staticAttributes);
+	    }
+
+	    return result;
+	}
 	
 	
 	public static JSONArray mapProductAttributesToCustomFields(List<Attribute> attributes) {
@@ -86,7 +143,7 @@ public class BigCommerceProductMapper {
 		for (Attribute attr : attributes) {
 			// English field
 			JSONObject enField = new JSONObject();
-			enField.put("name", attr.getId() + "_fr");
+			enField.put("name", attr.getId() + "_en");
 			enField.put("value", attr.en != null ? attr.en : "");
 			customFields.put(enField);
 
@@ -97,6 +154,7 @@ public class BigCommerceProductMapper {
 			customFields.put(frField);
 		}
 
+		
 		return customFields;
 	}
 
@@ -138,7 +196,8 @@ public class BigCommerceProductMapper {
 	        metafield.put("key", "custom_attributes_" + keySuffix);
 	        metafield.put("value", valueString);
 	        metafield.put("namespace", "variant_attributes");
-	        metafield.put("permission_set", "app_only");
+	        //Allows anyone to read the metafield (e.g. via API), but only the creator can update/delete it.
+	        metafield.put("permission_set", "read");
 	        metafield.put("description", "Variant attributes ordered by: " + keySuffix);
 	        metafield.put("resource_id", variantId);
 
@@ -147,6 +206,10 @@ public class BigCommerceProductMapper {
 
 	    return metafields;
 	}
+	
+	
+
+	
 	public Map<String, JSONArray> buildLocaleMetafields(
 	        Map<String, Map<String, JSONObject>> localeSkuAttributeMap,
 	        Map<String, Integer> skuToVariantIdMap) {
@@ -168,10 +231,11 @@ public class BigCommerceProductMapper {
 	            if (attributes == null) continue;
 
 	            JSONObject metafield = new JSONObject();
-	            metafield.put("key", "custom_attributes_" + locale);
+	            metafield.put("key", "variant_attributes_" + locale);
 	            metafield.put("value", attributes.toString());  // serialized JSON object
-	            metafield.put("namespace", "variant_attributes_" + locale);
-	            metafield.put("permission_set", "app_only");
+	            metafield.put("namespace", "variant_attributes");
+	            //Allows anyone to read the metafield (e.g. via API), but only the creator can update/delete it.
+	            metafield.put("permission_set", "read");
 	            metafield.put("description", "All variant attributes in " + locale);
 	            metafield.put("resource_id", variantId);
 
@@ -183,6 +247,76 @@ public class BigCommerceProductMapper {
 
 	    return metafieldMap;
 	}
+	
+	public Map<String, JSONArray> buildProductLocaleMetafields(
+	        Map<String, Map<String, JSONObject>> localeSkuAttributeMap,
+	        ProductCreationResult pr) {
+
+	    Map<String, JSONArray> metafieldMap = new HashMap<>();
+
+	    for (Map.Entry<String, Map<String, JSONObject>> localeEntry : localeSkuAttributeMap.entrySet()) {
+	        String locale = localeEntry.getKey();
+	        Map<String, JSONObject> skuToAttrs = localeEntry.getValue();
+
+	        JSONArray metafieldsForLocale = new JSONArray();
+	        Map<String, Integer> skuToVariantIdMap = pr.getSkuToVariantIdMap();
+	        for (Map.Entry<String, Integer> skuEntry : skuToVariantIdMap.entrySet()) {
+	            String sku = skuEntry.getKey();
+	            Integer variantId = skuEntry.getValue();
+	            if (variantId == null) continue;
+
+	            JSONObject attributes = skuToAttrs.get(sku);
+	            if (attributes == null) continue;
+
+	            JSONObject metafield = new JSONObject();
+	            metafield.put("key", "product_attributes_" + locale);
+	            metafield.put("value", attributes.toString());  // serialized JSON object
+	            metafield.put("namespace", "product_attributes");
+	            //Allows anyone to read the metafield (e.g. via API), but only the creator can update/delete it.
+	            metafield.put("permission_set", "read");
+	            metafield.put("description", "All variant attributes in " + locale);
+	            metafield.put("resource_id", pr.getProductId());
+
+	            metafieldsForLocale.put(metafield);
+	        }
+
+	        metafieldMap.put(locale, metafieldsForLocale);
+	    }
+
+	    return metafieldMap;
+	}
+	
+	public JSONArray buildStaticVariantMetafields(
+		    Map<String, JSONObject> staticSkuAttributeMap,
+		    Map<String, Integer> skuToVariantIdMap
+		) {
+		    JSONArray staticMetafields = new JSONArray();
+
+		    for (Map.Entry<String, Integer> skuEntry : skuToVariantIdMap.entrySet()) {
+		        String sku = skuEntry.getKey();
+		        Integer variantId = skuEntry.getValue();
+		        if (variantId == null) continue;
+
+		        JSONObject staticAttrs = staticSkuAttributeMap.get(sku);
+		        if (staticAttrs == null) continue;
+
+		        for (String fieldName : staticAttrs.keySet()) {
+		            JSONObject field = new JSONObject();
+		            field.put("key", fieldName);
+		            field.put("value", staticAttrs.get(fieldName).toString());
+		            field.put("namespace", "variant_attributes");
+		            //Allows anyone to read the metafield (e.g. via API), but only the creator can update/delete it.
+		            field.put("permission_set", "read");
+		            field.put("description", "Variant flags: " + fieldName);
+		            field.put("resource_id", variantId);
+
+		            staticMetafields.put(field);
+		        }
+		    }
+
+		    return staticMetafields;
+		}
+
 
 	private JSONArray mapVariantsToBigCommerce(List<Variant> variants) {
 		JSONArray variantsArray = new JSONArray();
@@ -205,7 +339,9 @@ public class BigCommerceProductMapper {
 			variantJson.put("gtin", variant.getPaVendorNumber());
 			variantJson.put("mpn", variant.getPaVendorPartNumber());
 
-			variantJson.put("option_values", mapVariantsOptionValues(variant));
+			if (variant.getOption_values() != null && !variant.getOption_values().isEmpty() ) {
+				variantJson.put("option_values", mapVariantsOptionValues(variant));
+			}
 
 			variantsArray.put(variantJson);
 		}
@@ -239,6 +375,46 @@ public class BigCommerceProductMapper {
 		}
 
 		return optionValuesArray;
+	}
+	
+	public static Map<String, JSONObject> mapAttributesAndAttLabelsToLocale(List<Variant> variants, String locale) {
+	    Map<String, JSONObject> result = new HashMap<>();
+
+	    // Pick the correct label map
+	    Map<String, String> labelMap = "fr_CA".equals(locale)
+	            ? AttributeLabels.LABELS_FR
+	            : AttributeLabels.LABELS_EN;
+
+	    for (Variant variant : variants) {
+	        JSONObject localizedAttributes = new JSONObject();
+
+	        if (variant.attributes != null) {
+	            for (Attribute attr : variant.attributes) {
+	                String value = "";
+	                switch (locale) {
+	                    case "fr_CA":
+	                        value = attr.fr_CA != null ? attr.fr_CA : "";
+	                        break;
+	                    case "en":
+	                    default:
+	                        value = attr.en != null ? attr.en : "";
+	                        break;
+	                }
+
+	                if (attr.id != null && !attr.id.isEmpty()) {
+	                    // Get label if available, else fallback to ID
+	                    String label = labelMap.getOrDefault(attr.id, attr.id);
+	                    localizedAttributes.put(label, value);
+	                }
+	            }
+	        }
+
+	        if (variant.skuNumber != null && !variant.skuNumber.isEmpty()) {
+	            result.put(variant.skuNumber, localizedAttributes);
+	        }
+	    }
+
+	    return result;
 	}
 	
 	 public static Map<String, JSONObject> mapAttributesToLocale(List<Variant> variants, String locale) {

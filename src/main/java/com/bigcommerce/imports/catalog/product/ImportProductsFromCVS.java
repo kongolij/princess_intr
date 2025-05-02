@@ -15,7 +15,7 @@ import com.bigcommerce.imports.catalog.product.dto.Variant;
 import com.bigcommerce.imports.catalog.product.service.BigCommerceProductService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-@Component
+//@Component
 public class ImportProductsFromCVS implements CommandLineRunner {
 
 //	static int CATEGOU_TREE_ID=7;  // jimmy store
@@ -35,7 +35,12 @@ public class ImportProductsFromCVS implements CommandLineRunner {
 		long startTime = System.currentTimeMillis(); // Start timing
 
 		ObjectMapper mapper = new ObjectMapper();
-		InputStream inputStream = getClass().getClassLoader().getResourceAsStream("PAL_Product_20250324_csv2");
+//		InputStream inputStream = getClass().getClassLoader().getResourceAsStream("product-with-assets-single-line.txt");
+//		InputStream inputStream = getClass().getClassLoader().getResourceAsStream("product-variants-assets-product-level-verified.txt");
+//		InputStream inputStream = getClass().getClassLoader().getResourceAsStream("PAL_Product_20250324_csv2");
+		
+		InputStream inputStream = getClass().getClassLoader().getResourceAsStream("product-flat-line-PA0009322322.txt");
+		
 
 		if (inputStream == null) {
 			System.err.println("❌ CSV file not found in resources!");
@@ -46,6 +51,7 @@ public class ImportProductsFromCVS implements CommandLineRunner {
 			String line;
 			List<Product> products = new ArrayList<>();
 			while ((line = reader.readLine()) != null) {
+				line = line.trim(); // Remove leading/trailing spaces
 				Product product = mapper.readValue(line, Product.class);
 				products.add(product);
 				
@@ -53,14 +59,7 @@ public class ImportProductsFromCVS implements CommandLineRunner {
 				System.out.println("  📂 Category: " + String.join(", ", product.categories));
 				System.out.println("  🔧 Variants:");
 
-				for (Variant v : product.variants) {
-					System.out.printf("    • SKU: %-10s | Stroke: %-6s | Bore: %-6s | Weight: %.2f lbs%n", v.skuNumber,
-							v.option_values.stream().filter(o -> o.option_name.equals("Stroke Length")).findFirst()
-									.map(o -> o.value).orElse(""),
-							v.option_values.stream().filter(o -> o.option_name.equals("Bore")).findFirst()
-									.map(o -> o.value).orElse(""),
-							v.paWeight);
-				}
+				
 			}
 			
 			addProductToBigCommerce(products,"en");

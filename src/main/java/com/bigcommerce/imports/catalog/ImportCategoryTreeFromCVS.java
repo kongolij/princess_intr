@@ -20,7 +20,7 @@ import com.bigcommerce.imports.catalog.dto.CategoryNode;
 import com.bigcommerce.imports.catalog.service.BigCommerceService;
 import com.opencsv.CSVReader;
 
-//@Component
+@Component
 public class ImportCategoryTreeFromCVS implements CommandLineRunner {
 
 	private final BigCommerceService bigCommerceCategoryService;
@@ -85,7 +85,7 @@ public class ImportCategoryTreeFromCVS implements CommandLineRunner {
 			System.out.println("✅ Existing Category count IDS : " + categoriesForTheChannel1.size());
 			
 			printUnmatchedCategories( rootCategories, categoriesForTheChannel1, "en");
-//			bigCommerceCategoryService.importCategoryTreeInThreads(rootCategories, "en", CATEGOU_TREE_ID, categoriesForTheChannel1);
+			bigCommerceCategoryService.importCategoryTreeInThreads(rootCategories, "en", CATEGOU_TREE_ID, categoriesForTheChannel1);
 
 			int missingImageCount = countMissingImages(rootCategories);
 			System.out.println("🖼️ Categories missing imageFileName: " + missingImageCount);

@@ -1,0 +1,196 @@
+openapi: 3.0.3
+info:
+  title: Showcase Submission API
+  description: This API allows users to anonymously submit project showcases that will be stored in Contentful.
+  version: v1
+  contact:
+    name: EPAM
+    email: jimmy-kongoli@epam.com
+
+servers:
+  - url: 'https://devapic.princesauto.com/ecom/v1'
+    description: Dev environment
+  - url: 'https://testapic.princesauto.com/ecom/v1'
+    description: Test environment
+  - url: 'https://apic.princesauto.com/ecom/v1'
+    description: Production environment
+
+tags:
+  - name: Showcase
+    description: Operations related to project showcase submissions
+
+paths:
+  /showcases:
+    post:
+      summary: Submit a new project showcase to Contentful
+      operationId: submitShowcaseForm
+      tags:
+        - Showcase
+      parameters:
+        - $ref: '#/components/parameters/OcpApimSubscriptionKey'
+        - $ref: '#/components/parameters/Authorization'
+        - $ref: '#/components/parameters/Language'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ShowcaseSubmissionRequest'
+      responses:
+        '201':
+          description: Successfully submitted and created in Contentful
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                MissingFields:
+                  $ref: '#/components/examples/ShowcaseMissingFieldError'
+                DuplicateEntry:
+                  $ref: '#/components/examples/ShowcaseDuplicateEntryError'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                ForbiddenError:
+                  $ref: '#/components/examples/ForbiddenErrorExample'
+        '500':
+          description: Server-side processing error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                InternalServerError:
+                  $ref: '#/components/examples/InternalServerErrorExample'
+
+components:
+  parameters:
+    Language:
+      name: language
+      in: query
+      schema:
+        type: string
+        enum: [en, fr]
+      description: Language preference ("en" or "fr")
+    Authorization:
+      in: header
+      name: Authorization
+      required: false
+      description: JWT token
+      schema:
+        type: string
+    OcpApimSubscriptionKey:
+      in: header
+      name: Ocp-Apim-Subscription-Key
+      required: true
+      description: Azure APIM subscription key
+      schema:
+        type: string
+
+  schemas:
+    ShowcaseSubmissionRequest:
+      type: object
+      required:
+        - name
+        - subtitle
+        - media
+        - toolsAndMaterials
+        - questionsFront
+        - details
+        - submitterCountry
+        - submitterFirstName
+        - submitterState
+        - submitterTown
+        - summary
+      properties:
+        name:
+          type: string
+          example: Custom Propeller Copy Machine
+        subtitle:
+          type: string
+        media:
+          type: array
+          description: List of image paths or URLs uploaded by the user
+          items:
+            type: string
+            example: /general/Prop-Copier-1.jpg
+        toolsAndMaterials:
+          type: array
+          description: List of tools and materials 
+          items:
+            type: string
+          example: ["drill", "cylinder"]
+        questionsFront:
+          type: array
+          description: List of localized questions based on requested language
+          items:
+            type: string
+        details:
+          type: string
+          format: html
+        submitterCountry:
+          type: string
+        submitterFirstName:
+          type: string
+        submitterLastName:
+          type: string
+          nullable: true
+        submitterState:
+          type: string
+        submitterTown:
+          type: string
+        summary:
+          type: string
+          format: html
+
+    ErrorResponse:
+      type: object
+      required:
+        - error_code
+        - message
+        - type
+      properties:
+        error_code:
+          type: string
+        message:
+          type: string
+          description: Localized error message (language based on request)
+        type:
+          type: string
+
+  examples:
+    UnauthorizedErrorExample:
+      value:
+        error_code: UNAUTHORIZED
+        message: Authentication credentials are missing or invalid.
+        type: AuthenticationError
+
+    ForbiddenErrorExample:
+      value:
+        error_code: FORBIDDEN
+        message: You do not have permission to access this resource.
+        type: AuthorizationError
+
+    InternalServerErrorExample:
+      value:
+        error_code: INTERNAL_SERVER_ERROR
+        message: Service unavailable, please try again later.
+        type: General
+
+    ShowcaseMissingFieldError:
+      value:
+        error_code: SHOWCASE_001_INVALID_INPUT
+        type: ValidationError
+        message: Required fields are missing or invalid.
+
+    ShowcaseDuplicateEntryError:
+      value:
+        error_code: SHOWCASE_002_DUPLICATE_ENTRY
+        type: ValidationError
+        message: A showcase with this name or ID already exists.

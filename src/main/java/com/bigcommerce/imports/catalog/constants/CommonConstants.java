@@ -12,6 +12,8 @@ public class CommonConstants {
 	
 	public static final String CATEGORY_IMAGE_URL = "https://www.princessauto.com/file/collections/";
 
-	public static final String PRODUCT_IMAGE_URL = "https://www.princessauto.com/ccstore/v1/images/?source=/file/v8046819226995167231/products/8237869_A0CG_00_01.jpg";
+	public static final String PRODUCT_IMAGE_URL = "https://www.princessauto.com/ccstore/v1/images/?source=/file/v8046819226995167231/products/";
 	
+
+	public static final String VARIANT_MANUAL_URL = "https://www.princessauto.com/file/general/";
 }
