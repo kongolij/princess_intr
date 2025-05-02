@@ -127,9 +127,10 @@ paths:
          tags:
          - users
          summary: Retrieve user profile
+         security:
+           - bearerAuth: []
          parameters:
          -  $ref: '#/components/parameters/OcpApimSubscriptionKey'
-         -  $ref: '#/components/parameters/Authorization'
          -  $ref: '#/components/parameters/Language'
          - name: expand
            in: query
@@ -193,9 +194,10 @@ paths:
          tags:
          - users
          summary: Update user profile
+         security:
+           - bearerAuth: []
          parameters:
          -  $ref: '#/components/parameters/OcpApimSubscriptionKey'
-         -  $ref: '#/components/parameters/Authorization'
          -  $ref: '#/components/parameters/Language'
          requestBody:
             required: true
@@ -276,7 +278,7 @@ paths:
             - users
           summary: Request password reset email
           description: |
-                Triggers an email to the user with a password reset link.
+                Triggers an email to the user with a password reset link.    
           parameters:
             - $ref: '#/components/parameters/OcpApimSubscriptionKey'
             - $ref: '#/components/parameters/Language'
@@ -405,9 +407,10 @@ paths:
          tags:
          - address
          summary: Retrieve user addresses
+         security:
+           - bearerAuth: []
          parameters:
          -  $ref: '#/components/parameters/OcpApimSubscriptionKey'
-         -  $ref: '#/components/parameters/Authorization'
          -  $ref: '#/components/parameters/Language'
          responses:
             '200':
@@ -485,9 +488,10 @@ paths:
          tags:
          - address
          summary: Add a new address for the user
+         security:
+           - bearerAuth: []
          parameters:
          -  $ref: '#/components/parameters/OcpApimSubscriptionKey'
-         -  $ref: '#/components/parameters/Authorization'
          -  $ref: '#/components/parameters/Language'
          requestBody:
             required: true
@@ -597,9 +601,10 @@ paths:
          tags:
          - address
          summary: Update an existing address
+         security:
+           - bearerAuth: []
          parameters:
          -  $ref: '#/components/parameters/OcpApimSubscriptionKey'
-         -  $ref: '#/components/parameters/Authorization'
          -  $ref: '#/components/parameters/Language'
          -  name: addressId
             in: path
@@ -685,9 +690,10 @@ paths:
          tags:
          - address
          summary: Delete an address
+         security:
+           - bearerAuth: []
          parameters:
          -  $ref: '#/components/parameters/OcpApimSubscriptionKey'
-         -  $ref: '#/components/parameters/Authorization'
          -  $ref: '#/components/parameters/Language'
          -  name: addressId
             in: path
@@ -753,9 +759,10 @@ paths:
          tags:
          - preferences
          summary: Retrieve user preferences
+         security:
+           - bearerAuth: []
          parameters:
          -  $ref: '#/components/parameters/OcpApimSubscriptionKey'
-         -  $ref: '#/components/parameters/Authorization'
          -  $ref: '#/components/parameters/Language'
          responses:
             '200':
@@ -798,9 +805,10 @@ paths:
          tags:
          - preferences
          summary: Update user preferences
+         security:
+           - bearerAuth: []
          parameters:
          -  $ref: '#/components/parameters/OcpApimSubscriptionKey'
-         -  $ref: '#/components/parameters/Authorization'
          -  $ref: '#/components/parameters/Language'
          requestBody:
             required: true
@@ -860,6 +868,11 @@ paths:
                            $ref: '#/components/examples/InternalServerErrorExample'
 
 components:
+   securitySchemes:
+     bearerAuth:
+        type: http
+        scheme: bearer
+        bearerFormat: JWT
    parameters:
       Language:
          name: language
@@ -869,13 +882,7 @@ components:
             type: string
             enum: [en, fr ]
          description: Language preference ("en" or "fr")
-      Authorization:
-         in: header
-         name: Authorization
-         required: true
-         description: JWT token
-         schema:
-            type: string
+    
       OcpApimSubscriptionKey:
          in: header
          name: Ocp-Apim-Subscription-Key
@@ -1108,7 +1115,7 @@ components:
       UnauthorizedErrorExample:
          value:
             error_code: UNAUTHORIZED
-            message: Authentication credentials are missing or invalid.
+            message:  Email or password is incorrect.
             type: AuthenticationError
       ForbiddenErrorExample:
          value:
@@ -1119,7 +1126,12 @@ components:
          value:
             error_code: INTERNAL_SERVER_ERROR
             message: Service unavailable please try after some time
-            type: General  
+            type: General       
+      AuthorizationErrorExample: 
+        value:
+           error_code: FORBIDDEN
+           message: You do not have permission to access this resource.
+           type: AuthorizationError      
       ResourceNotFoundExample:
          value:
             error_code: RESOURCE_NOT_FOUND
