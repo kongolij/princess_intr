@@ -1,0 +1,12 @@
+[ {
+  "result" : {
+    "successCount" : 30,
+    "failureCount" : 0
+  },
+  "fileName" : "Promotions.json",
+  "format" : "json",
+  "id" : "Promotions",
+  "params" : {
+    "q" : "endDate gt \"2025-05-13T00:00:00.000Z\""
+  }
+} ]

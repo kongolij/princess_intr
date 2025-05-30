@@ -1,0 +1,327 @@
+{
+	"$schema": "http://json-schema.org/draft-07/schema#",
+	"type": "object",
+	"properties": {
+		"productNumber": {
+			"type": "string",
+			"description": "Unique identifier for the product"
+		},
+		"replaces": {
+			"type": "array",
+			"description": "List of products this product is intended to replace",
+			"items": {
+				"type": "object",
+				"properties": {
+					"productNumber": {
+						"type": "string",
+						"description": "Product number of the product being replaced"
+					}
+				},
+				"required": [
+					"productNumber"
+				]
+			}
+		},
+		"categories": {
+			"type": "array",
+			"items": {
+				"type": "string",
+				"description": "p360 category id"
+			}
+		},
+		"active": {
+			"type": "boolean",
+			"description": "Indicates whether the product is active"
+		},
+		"paCountryOfOrigin": {
+			"type": "string",
+			"description": "Country where the product is manufactured"
+		},
+		"paLevy": {
+			"type": "boolean",
+			"description": "Indicates whether the product is subject to an environmental levy"
+		},
+		"paAvailabilityCode": {
+			"type": "string",
+			"description": "Availability code for internal or external use"
+		},
+		"paProductClearance": {
+			"type": "boolean",
+			"description": "Indicates whether the product is flagged for clearance"
+		},
+		"paProductStatus": {
+			"type": "string",
+			"description": "Product lifecycle status code (e.g., A for Active, D for Discontinued)"
+		},
+		"videos": {
+			"type": "array",
+			"description": "List of videos with localized URLs and optional order",
+			"items": {
+				"type": "object",
+				"properties": {
+					"url_en": {
+						"type": "string",
+						"format": "uri",
+						"description": "English URL of the video"
+					},
+					"url_fr": {
+						"type": "string",
+						"format": "uri",
+						"description": "French Canadian URL of the video"
+					},
+					"order": {
+						"type": "integer",
+						"description": "Optional display order of the video"
+					}
+				},
+				"required": [
+					"url_en"
+				]
+			}
+		},
+		"attributes": {
+			"type": "array",
+			"description": "List of attributes related to the product, common to all variants.",
+			"items": {
+				"type": "object",
+				"properties": {
+					"id": {
+						"type": "string",
+						"description": "Attribute identifier"
+					},
+					"en": {
+						"type": "string",
+						"description": "English value of the attribute"
+					},
+					"fr_CA": {
+						"type": "string",
+						"description": "French Canadian value of the attribute"
+					}
+				},
+				"required": [
+					"id"
+				]
+			}
+		},
+		"assets": {
+			"type": "array",
+			"description": "List of assets such as images and manuals at product level",
+			"items": {
+				"type": "object",
+				"properties": {
+					"type": {
+						"type": "string",
+						"enum": [
+							"image",
+							"document"
+						],
+						"description": "Type of asset (image or manual)"
+					},
+					"paDocumentsFileName": {
+						"type": "string",
+						"format": "uri",
+						"description": "File asset name"
+					},
+					"description": {
+						"type": "string",
+						"description": "Description of the asset"
+					},
+					"documentId": {
+						"type": "string",
+						"description": "Documentid of the asset"
+					}
+				},
+				"required": [
+					"type",
+					"paDocumentsFileName"
+				]
+			}
+		},
+		"variants": {
+			"type": "array",
+			"description": "List of product variants",
+			"items": {
+				"type": "object",
+				"properties": {
+					"skuNumber": {
+						"type": "string",
+						"description": "SKU number of the variant"
+					},
+					"replaces": {
+						"type": "array",
+						"description": "List of variants this variant is intended to replace",
+						"items": {
+							"type": "object",
+							"properties": {
+								"skuNumber": {
+									"type": "string",
+									"description": "SKU number of the variant being replaced"
+								}
+							},
+							"required": [
+								"skuNumber"
+							]
+						}
+					},
+					"paSkuShippable": {
+						"type": "string",
+						"enum": [
+							"Y-Yes",
+							"N-No"
+						],
+						"description": "Indicates if the product is shippable"
+					},
+					"paSkuClearance": {
+						"type": "boolean",
+						"description": "Indicates if the SKU is on clearance"
+					},
+					"paVendorNumber": {
+						"type": "string",
+						"description": "Vendor identifier"
+					},
+					"paVendorPartNumber": {
+						"type": "string",
+						"description": "Vendor's part number"
+					},
+					"paUPC": {
+						"type": "string",
+						"description": "Universal Product Code (UPC) of the variant"
+					},
+					"paHeight": {
+						"type": "number",
+						"description": "Height of the variant in inches"
+					},
+					"paLength": {
+						"type": "number",
+						"description": "Length of the variant in inches"
+					},
+					"paWidth": {
+						"type": "number",
+						"description": "Width of the variant in inches"
+					},
+					"paWeight": {
+						"type": "number",
+						"description": "Weight of the variant in pounds"
+					},
+					"videos": {
+						"type": "array",
+						"description": "List of videos with localized URLs and optional order",
+						"items": {
+							"type": "object",
+							"properties": {
+								"url_en": {
+									"type": "string",
+									"format": "uri",
+									"description": "English URL of the video"
+								},
+								"url_fr": {
+									"type": "string",
+									"format": "uri",
+									"description": "French Canadian URL of the video"
+								},
+								"order": {
+									"type": "integer",
+									"description": "Optional display order of the video"
+								}
+							},
+							"required": [
+								"url_en"
+							]
+						}
+					},
+					"attributes": {
+						"type": "array",
+						"description": "List of attributes related to the variant",
+						"items": {
+							"type": "object",
+							"properties": {
+								"id": {
+									"type": "string",
+									"description": "Attribute identifier"
+								},
+								"en": {
+									"type": "string",
+									"description": "English value of the attribute"
+								},
+								"fr_CA": {
+									"type": "string",
+									"description": "French Canadian value of the attribute"
+								}
+							},
+							"required": [
+								"id"
+							]
+						}
+					},
+					"option_values": {
+						"type": "array",
+						"description": "List of option values for the variant",
+						"items": {
+							"type": "object",
+							"properties": {
+								"option_name": {
+									"type": "string",
+									"description": "Name of the option"
+								},
+								"value": {
+									"type": "string",
+									"description": "Value of the option"
+								},
+								"option_name_fr_CA": {
+									"type": "string",
+									"description": "French Canadian translation of the option name"
+								},
+								"value_fr_CA": {
+									"type": "string",
+									"description": "French Canadian translation of the option value"
+								}
+							},
+							"required": [
+								"option_name"
+							]
+						}
+					},
+					"assets": {
+						"type": "array",
+						"description": "List of assets such as images and manuals at variant level",
+						"items": {
+							"type": "object",
+							"properties": {
+								"type": {
+									"type": "string",
+									"enum": [
+										"image",
+										"manual"
+									],
+									"description": "Type of asset (image or manual)"
+								},
+								"paDocumentsFileName": {
+									"type": "string",
+									"format": "uri",
+									"description": "File asset name"
+								},
+								"description": {
+									"type": "string",
+									"description": "Description of the asset"
+								}
+							},
+							"required": [
+								"type",
+								"paDocumentsFileName"
+							]
+						}
+					}
+				},
+				"required": [
+					"skuNumber"
+				]
+			}
+		}
+	},
+	"required": [
+		"productNumber",
+		"categories",
+		"active",
+		"variants"
+	]
+}

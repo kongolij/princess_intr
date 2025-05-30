@@ -1,0 +1,97 @@
+query GetProduct {
+  site {
+    product(entityId: 274) {
+      entityId
+      name
+      prices {
+        price {
+          currencyCode
+          value
+        }
+        salePrice {
+          currencyCode
+          value
+        }
+      }
+      images {
+        edges {
+          node {
+            urlOriginal
+          }
+        }
+      }
+      customFields {
+        edges {
+          node {
+            entityId
+            name
+            value
+          }
+        }
+      }
+      variants {
+        edges {
+          node {
+            sku
+            isPurchasable
+            height { value unit }
+            width { value unit }
+            weight { value unit }
+            prices {
+              price { currencyCode value }
+              salePrice { currencyCode value }
+            }
+            defaultImage {
+              urlOriginal
+            }
+            inventory {
+              isInStock
+              aggregated {
+                availableToSell
+                warningLevel
+              }
+              byLocation {
+                edges {
+                  node {
+                    locationEntityId
+                    locationEntityTypeId
+                    isInStock
+                    availableToSell
+                  }
+                }
+              }
+            }
+            options {
+              edges {
+                node {
+                  entityId
+                  displayName
+                  values {
+                    edges {
+                      node {
+                        entityId
+                        label
+                      }
+                    }
+                  }
+                }
+              }
+            }
+            metafields(namespace: "variant_attributes") {
+              edges {
+                node {
+                  entityId
+                  key
+                  value
+                }
+              }
+            }
+          }
+        }
+      }
+      inventory {
+        hasVariantInventory
+      }
+    }
+  }
+}

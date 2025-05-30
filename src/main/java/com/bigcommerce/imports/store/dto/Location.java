@@ -13,10 +13,9 @@ public class Location {
 	private boolean enabled;
 	private Map<String, DayHours> operating_hours; // derived from workingDays
 	private String time_zone;
-	
+
 	private boolean managed_by_external_source;
-	
-	
+
 	private Address address;
 	private boolean storefront_visibility;
 
@@ -176,5 +175,4 @@ public class Location {
 		this.managed_by_external_source = managed_by_external_source;
 	}
 
-	
 }

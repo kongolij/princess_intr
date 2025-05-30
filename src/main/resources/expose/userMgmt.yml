@@ -2,7 +2,9 @@ openapi: 3.0.3
 info:
    title: User Management API
    version: 1.0.0
-   description: API for managing user registration, profiles, addresses, and preferences.
+   description: |
+     API for managing user-related data, including registration, authentication, profile details, addresses, language and marketing preferences, saved credit cards, and dashboard aggregation.
+     This API supports full CRUD operations for user profiles and addresses, secure password reset workflows, and token-based authentication for protected endpoints.
 
 servers:
 -  url: https://devapic.princesauto.com/ecom/v1
@@ -15,11 +17,15 @@ servers:
 tags:
 -  name: users
    description: User registration and profile management
--  name: address
+-  name: addresses
    description: Manage user shipping and billing addresses
 -  name: preferences
    description: Manage user marketing and language preferences
-
+-  name: credit-cards
+   description: Manage user credit card vault
+-  name: dashboard
+   description: Retrieve aggregated user dashboard view
+   
 paths:
    /users/register:
       post:
@@ -87,6 +93,8 @@ paths:
                            $ref: '#/components/examples/PasswordMissingExample'   
                         PasswordValidationFailed:
                            $ref: '#/components/examples/PasswordValidationFailedExample'
+                        CaptchaValidationFailed:
+                           $ref: '#/components/examples/CaptchaValidationFailedExample'
 
             '409':
                description: Conflict - The email address is already in use.
@@ -102,13 +110,13 @@ paths:
                               message: The provided email address is already associated with an existing account.
                               type: ConflictError
             '403':
-               description: Insufficient priviledges.
+               description: Insufficient privileges.
                content:
                   application/json:
                      schema:
                         $ref: '#/components/schemas/ErrorResponse'
                      examples:
-                        Token has insufficent privileges:
+                        Token has insufficient privileges:
                            value:
                               error_code: Forbidden
                               message: You do not have permission to access this resource.
@@ -127,9 +135,10 @@ paths:
          tags:
          - users
          summary: Retrieve user profile
+         security:
+           - bearerAuth: []
          parameters:
          -  $ref: '#/components/parameters/OcpApimSubscriptionKey'
-         -  $ref: '#/components/parameters/Authorization'
          -  $ref: '#/components/parameters/Language'
          - name: expand
            in: query
@@ -169,7 +178,7 @@ paths:
                          $ref: '#/components/examples/ResourceNotFoundExample'
                        
             '403':
-               description: Insufficient priviledges.
+               description: Insufficient privileges.
                content:
                   application/json:
                      schema:
@@ -193,9 +202,10 @@ paths:
          tags:
          - users
          summary: Update user profile
+         security:
+           - bearerAuth: []
          parameters:
          -  $ref: '#/components/parameters/OcpApimSubscriptionKey'
-         -  $ref: '#/components/parameters/Authorization'
          -  $ref: '#/components/parameters/Language'
          requestBody:
             required: true
@@ -249,7 +259,7 @@ paths:
                         LastNameValidationFailed:
                            $ref: '#/components/examples/LastNameValidationFailedExample'
             '403':
-               description: Insufficient priviledges.
+               description: Insufficient privileges.
                content:
                   application/json:
                      schema:
@@ -276,7 +286,7 @@ paths:
             - users
           summary: Request password reset email
           description: |
-                Triggers an email to the user with a password reset link.
+                Triggers an email to the user with a password reset link.    
           parameters:
             - $ref: '#/components/parameters/OcpApimSubscriptionKey'
             - $ref: '#/components/parameters/Language'
@@ -403,12 +413,21 @@ paths:
    /users/me/addresses:
       get:
          tags:
-         - address
+         - addresses
          summary: Retrieve user addresses
+         security:
+           - bearerAuth: []
          parameters:
          -  $ref: '#/components/parameters/OcpApimSubscriptionKey'
-         -  $ref: '#/components/parameters/Authorization'
          -  $ref: '#/components/parameters/Language'
+         - name: defaultOnly
+           in: query
+           required: false
+           description: |
+               If true, returns only the default address.
+           schema:
+             type: boolean
+           example: true
          responses:
             '200':
                description: List of user addresses retrieved successfully.
@@ -424,6 +443,7 @@ paths:
                            value:
                              - id: 928
                                nickname: Home
+                               default: true
                                address1: 123 Main St
                                address2: Apt 4B
                                city: Winnipeg
@@ -434,6 +454,7 @@ paths:
                                addresstype: residential
                              - id: 929
                                nickname: Work
+                               default: false
                                address1: 456 Commerce Ave
                                city: Winnipeg
                                province: MB
@@ -461,7 +482,7 @@ paths:
                        ResourceNotFound:
                          $ref: '#/components/examples/ResourceNotFoundExample'        
             '403':
-               description: Insufficient priviledges.
+               description: Insufficient privileges.
                content:
                   application/json:
                      schema:
@@ -483,11 +504,12 @@ paths:
                            $ref: '#/components/examples/InternalServerErrorExample'
       post:
          tags:
-         - address
+         - addresses
          summary: Add a new address for the user
+         security:
+           - bearerAuth: []
          parameters:
          -  $ref: '#/components/parameters/OcpApimSubscriptionKey'
-         -  $ref: '#/components/parameters/Authorization'
          -  $ref: '#/components/parameters/Language'
          requestBody:
             required: true
@@ -547,7 +569,7 @@ paths:
                         Unauthorized:
                            $ref: '#/components/examples/UnauthorizedErrorExample'
             '403':
-               description: Insufficient priviledges.
+               description: Insufficient privileges.
                content:
                   application/json:
                      schema:
@@ -595,11 +617,12 @@ paths:
    /users/me/addresses/{addressId}:
       put:
          tags:
-         - address
+         - addresses
          summary: Update an existing address
+         security:
+           - bearerAuth: []
          parameters:
          -  $ref: '#/components/parameters/OcpApimSubscriptionKey'
-         -  $ref: '#/components/parameters/Authorization'
          -  $ref: '#/components/parameters/Language'
          -  name: addressId
             in: path
@@ -629,7 +652,7 @@ paths:
                         Unauthorized:
                            $ref: '#/components/examples/UnauthorizedErrorExample'
             '403':
-               description: Insufficient priviledges.
+               description: Insufficient privileges.
                content:
                   application/json:
                      schema:
@@ -683,11 +706,12 @@ paths:
                            $ref: '#/components/examples/InternalServerErrorExample'
       delete:
          tags:
-         - address
+         - addresses
          summary: Delete an address
+         security:
+           - bearerAuth: []
          parameters:
          -  $ref: '#/components/parameters/OcpApimSubscriptionKey'
-         -  $ref: '#/components/parameters/Authorization'
          -  $ref: '#/components/parameters/Language'
          -  name: addressId
             in: path
@@ -704,11 +728,12 @@ paths:
                      schema:
                         $ref: '#/components/schemas/ErrorResponse'
                      examples:
-                        Required parameter account number is missing:
+                        AddressIdMissingExample:
+                           summary: Required addressId is missing
                            value:
-                              error_code: user_adress_99999
-                              message: Required parameter address id is missing
-                              type: general
+                             error_code: ADDRESS_001_MISSING_ID
+                             message: Required parameter 'addressId' is missing or invalid.
+                             type: ValidationError
             '401':
                description: Unauthorized
                content:
@@ -719,7 +744,7 @@ paths:
                         Unauthorized:
                            $ref: '#/components/examples/UnauthorizedErrorExample'
             '403':
-               description: Insufficient priviledges.
+               description: Insufficient privileges.
                content:
                   application/json:
                      schema:
@@ -753,9 +778,10 @@ paths:
          tags:
          - preferences
          summary: Retrieve user preferences
+         security:
+           - bearerAuth: []
          parameters:
          -  $ref: '#/components/parameters/OcpApimSubscriptionKey'
-         -  $ref: '#/components/parameters/Authorization'
          -  $ref: '#/components/parameters/Language'
          responses:
             '200':
@@ -774,7 +800,7 @@ paths:
                         Unauthorized:
                            $ref: '#/components/examples/UnauthorizedErrorExample'
             '403':
-               description: Insufficient priviledges.
+               description: Insufficient privileges.
                content:
                   application/json:
                      schema:
@@ -798,9 +824,10 @@ paths:
          tags:
          - preferences
          summary: Update user preferences
+         security:
+           - bearerAuth: []
          parameters:
          -  $ref: '#/components/parameters/OcpApimSubscriptionKey'
-         -  $ref: '#/components/parameters/Authorization'
          -  $ref: '#/components/parameters/Language'
          requestBody:
             required: true
@@ -825,7 +852,7 @@ paths:
                         Unauthorized:
                            $ref: '#/components/examples/UnauthorizedErrorExample'
             '403':
-               description: Insufficient priviledges.
+               description: Insufficient privileges.
                content:
                   application/json:
                      schema:
@@ -858,8 +885,205 @@ paths:
                      examples:
                         InternalServerError:
                            $ref: '#/components/examples/InternalServerErrorExample'
+                           
+                           
+   /users/me/dashboard:
+      get:
+         tags:
+           - dashboard
+         summary: Retrieve aggregated user dashboard
+         description: |
+             Returns a unified view of the logged-in user's account information by aggregating
+             multiple downstream services such as customer profile, addresses, payment methods,
+             orders, gift cards, and wishlists.
+             This endpoint is intended for rendering the user dashboard view after login.
+         security:
+            - bearerAuth: []
+         parameters:
+         - $ref: '#/components/parameters/OcpApimSubscriptionKey'
+         - $ref: '#/components/parameters/Language'
+         responses:
+            '200':
+               description: Aggregated dashboard data
+               content:
+                  application/json:
+                     schema:
+                       $ref: '#/components/schemas/UserDashboardOutput'
+            '401':
+               description: Unauthorized - Missing or invalid token
+               content:
+                  application/json:
+                     schema:
+                        $ref: '#/components/schemas/ErrorResponse'
+                     examples:
+                        Unauthorized:
+                           $ref: '#/components/examples/UnauthorizedErrorExample'
+            '500':
+               description: Internal Server Error
+               content:
+                  application/json:
+                     schema:
+                        $ref: '#/components/schemas/ErrorResponse'
+                     examples:
+                        InternalServerError:
+                           $ref: '#/components/examples/InternalServerErrorExample'
+                           
+
+   /users/me/cards:
+      get:
+         tags:
+           - credit-cards
+         summary: Retrieve user's saved credit cards
+         security:
+           - bearerAuth: []
+         parameters:
+           - $ref: '#/components/parameters/OcpApimSubscriptionKey'
+           - $ref: '#/components/parameters/Language'
+         responses:
+            '200':
+               description: List of saved credit cards
+               content:
+                  application/json:
+                    schema:
+                      type: array
+                      items:
+                          $ref: '#/components/schemas/CreditCard'
+            '401':
+               description: Unauthorized
+               content:
+                  application/json:
+                    schema:
+                       $ref: '#/components/schemas/ErrorResponse'
+            '500':
+               description: Internal Server Error
+               content:
+                   application/json:
+                      schema:
+                         $ref: '#/components/schemas/ErrorResponse'
+
+      post:
+          tags:
+            - credit-cards
+          summary: Save a new credit card
+          security:
+            - bearerAuth: []
+          parameters:
+            - $ref: '#/components/parameters/OcpApimSubscriptionKey'
+            - $ref: '#/components/parameters/Language'
+          requestBody:
+             required: true
+             content:
+                 application/json:
+                    schema:
+                      $ref: '#/components/schemas/CreditCardInput'
+                                                
+          responses:
+           '201':
+              description: Credit card saved successfully
+              content:
+                application/json:
+                  schema:
+                     $ref: '#/components/schemas/CreditCard'
+           '400':
+              description: Invalid input or missing token
+              content:
+                 application/json:
+                    schema:
+                      $ref: '#/components/schemas/ErrorResponse'
+           '500':
+              description: Internal Server Error
+              content:
+                 application/json:
+                    schema:
+                       $ref: '#/components/schemas/ErrorResponse'
+
+   /users/me/cards/{id}:
+      get:
+        tags:
+          - credit-cards
+        summary: Get details of a specific saved credit card
+        security:
+          - bearerAuth: []
+        parameters:
+          - $ref: '#/components/parameters/OcpApimSubscriptionKey'
+          - $ref: '#/components/parameters/Language'
+          - name: id
+            in: path
+            required: true
+            schema:
+               type: string
+               format: uuid
+               description: UUID of the saved credit card
+        responses:
+          '200':
+              description: Credit card details
+              content:
+                 application/json:
+                   schema:
+                     $ref: '#/components/schemas/CreditCard'
+          '404':
+              description: Card not found
+              content:
+                 application/json:
+                   schema:
+                     $ref: '#/components/schemas/ErrorResponse'           
+          '401':
+              description: Unauthorized
+              content:
+                 application/json:
+                   schema:
+                     $ref: '#/components/schemas/ErrorResponse'
+          '500':
+              description: Internal Server Error
+              content:
+                 application/json:
+                   schema:
+                     $ref: '#/components/schemas/ErrorResponse'
+
+      delete:
+        tags:
+          - credit-cards
+        summary: Delete a saved credit card
+        security:
+           - bearerAuth: []
+        parameters:
+          - $ref: '#/components/parameters/OcpApimSubscriptionKey'
+          - $ref: '#/components/parameters/Language'
+          - name: id
+            in: path
+            required: true
+            schema:
+               type: string
+               format: uuid
+               description: UUID of the credit card to delete
+        responses:
+         '204':
+             description: Card deleted successfully
+         '404':
+             description: Card not found
+             content:
+                application/json:
+                  schema:
+                    $ref: '#/components/schemas/ErrorResponse'
+         '401':
+             description: Unauthorized
+             content:
+                application/json:
+                  schema:
+                    $ref: '#/components/schemas/ErrorResponse'
+         '500':
+             description: Internal Server Error
+             content:
+                application/json:
+                  schema:
+                    $ref: '#/components/schemas/ErrorResponse'
 
 components:
+   securitySchemes:
+     bearerAuth:
+        type: http
+        scheme: bearer
+        bearerFormat: JWT
    parameters:
       Language:
          name: language
@@ -869,13 +1093,7 @@ components:
             type: string
             enum: [en, fr ]
          description: Language preference ("en" or "fr")
-      Authorization:
-         in: header
-         name: Authorization
-         required: true
-         description: JWT token
-         schema:
-            type: string
+    
       OcpApimSubscriptionKey:
          in: header
          name: Ocp-Apim-Subscription-Key
@@ -986,6 +1204,37 @@ components:
               description: >
                     The new password to set. Must include at least 1 uppercase letter, 1 digit, and 1 special character.
       
+      
+      CreditCardInput:
+        type: object
+        properties:
+          token:
+            type: string
+            description: Vaulted token from payment provider
+          brand:
+            type: string
+            description: Card brand (e.g., Visa, Mastercard)
+          last4:
+            type: string
+            description: Last 4 digits of the card for display only
+          expMonth:
+            type: string
+            pattern: '^(0[1-9]|1[0-2])$'
+            description: Card expiration month in MM format (01–12)
+            example: "08"
+          expYear:
+            type: string
+            pattern: '^\d{4}$'
+            description: Card expiration year in YYYY format (e.g., 2027)
+            example: "2027"
+          createdAt:
+            type: string
+            format: date-time
+            description: ISO 8601 UTC timestamp when the card was saved
+        required:
+            - token
+            
+      
       UserProfileOutput:
          type: object
          required:
@@ -1033,6 +1282,127 @@ components:
             description: Password has been updated
       
       
+      CreditCard:
+        type: object
+        properties:
+          id:
+            type: string
+            format: uuid
+            description: UUID generated at the time of save
+          token:
+            type: string
+            description: Vaulted token from payment provider
+          brand:
+            type: string
+            description: Card brand (e.g., Visa, Mastercard)
+          last4:
+            type: string
+            description: Last 4 digits of the card for display only
+          expMonth:
+            type: string
+            pattern: '^(0[1-9]|1[0-2])$'
+            description: Card expiration month in MM format (01–12)
+            example: "08"
+          expYear:
+            type: string
+            pattern: '^\d{4}$'
+            description: Card expiration year in YYYY format (e.g., 2027)
+            example: "2027"
+          createdAt:
+            type: string
+            format: date-time
+            description: ISO 8601 UTC timestamp when the card was saved
+        required:
+            - id
+            - token
+   
+      UserDashboardOutput:
+        type: object
+        properties:
+          profile:
+            type: object
+            properties:
+               firstName:
+                  type: string
+               lastName:
+                  type: string
+               email:
+                  type: string
+                  format: email
+               language:
+                  type: string
+          addresses:
+            type: array
+            items:
+               $ref: '#/components/schemas/Address'
+          paymentMethods:
+            type: array
+            items:
+               type: object
+               properties:
+                  brand:
+                   type: string
+                  last4:
+                    type: string
+                  expMonth:
+                    type: string
+                  expYear:
+                    type: string
+          giftCards:
+            type: array
+            items:
+              type: object
+              properties:
+                code:
+                  type: string
+                balance:
+                  type: number
+                  format: float
+                currency:
+                  type: string
+          orders:
+            type: array
+            items:
+              type: object
+              properties:
+                orderId:
+                  type: integer
+                orderNumber:
+                  type: string
+                date:
+                  type: string
+                  format: date-time
+                total:
+                  type: number
+                  format: float
+                status:
+                  type: string
+                delivery:
+                  type: string
+          wishlists:
+            type: array
+            items:
+              type: object
+              properties:
+                name:
+                  type: string
+                items:
+                  type: integer
+                lastUpdated:
+                  type: string
+                  format: date-time
+          store:
+            type: object
+            properties:
+              name:
+                type: string
+              address:
+                type: string
+              phone:
+                type: string
+              hours:
+                type: string
+                
       Preferences:
          type: object
          properties:
@@ -1070,7 +1440,6 @@ components:
             nickname:
                type: string
             address1:
-
                type: string
             address2:
                type: string
@@ -1089,7 +1458,11 @@ components:
             phone:
                type: string
                pattern: '^\d{3}-\d{3}-\d{4}$'
-               example: 204-555-1234  
+               example: 204-555-1234
+            default:
+               type: boolean
+               description: Indicates whether this is the default address for the user
+               example: true     
       
       ErrorResponse:
          type: object
@@ -1108,7 +1481,7 @@ components:
       UnauthorizedErrorExample:
          value:
             error_code: UNAUTHORIZED
-            message: Authentication credentials are missing or invalid.
+            message: Token missing or expired.
             type: AuthenticationError
       ForbiddenErrorExample:
          value:
@@ -1119,7 +1492,12 @@ components:
          value:
             error_code: INTERNAL_SERVER_ERROR
             message: Service unavailable please try after some time
-            type: General  
+            type: General       
+      AuthorizationErrorExample: 
+        value:
+           error_code: FORBIDDEN
+           message: You do not have permission to access this resource.
+           type: AuthorizationError      
       ResourceNotFoundExample:
          value:
             error_code: RESOURCE_NOT_FOUND
@@ -1223,5 +1601,10 @@ components:
            error_code: USER_108_INVALID_PHONE
            message: Phone number format is invalid.
            type: ValidationError
-            
+           
+      CaptchaValidationFailedExample:
+        value:
+          error_code: USER_CAPTCHA_FAILED
+          message: Captcha score is less than threshold value.
+          type: ValidationError             
              

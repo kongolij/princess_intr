@@ -1,0 +1,2612 @@
+{
+	"promotion": [
+		{
+			"template": "/item/getItemDiscountSortBy.pmdt",
+			"filterForQualifierZeroPrices": null,
+			"endDate": null,
+			"displayName": "teamMember20",
+			"templateValues": {
+				"no_of_items_to_discount": "-1",
+				"discount_value": "20",
+				"sort_by": "priceInfo.listPrice",
+				"PSC_value": {
+					"includedRuleSet": {},
+					"includedSkus": [],
+					"includedCategories": [],
+					"includedProducts": [],
+					"excludedSkus": [
+						"9999991"
+					],
+					"excludedRuleSet": {},
+					"excludedProducts": [
+						"GiftCard"
+					],
+					"excludedCategories": []
+				},
+				"discount_type_value": "percentOff",
+				"sort_order": "ascending"
+			},
+			"description": "<p>Team Member Discount-20% off Order<\/p>",
+			"global": true,
+			"sites": [],
+			"maxUsesPerAccount": -1,
+			"filterForQualifierDiscountedByCurrent": null,
+			"type": 0,
+			"enabled": true,
+			"filterForQualifierNegativePrices": null,
+			"cardIINRanges": [],
+			"parentFolder": {
+				"id": "promoFold500001"
+			},
+			"filterForQualifierOnSale": null,
+			"priceListGroups": [
+				{
+					"id": "princessAutoDefaultPriceGroup"
+				}
+			],
+			"filterForTargetNegativePrices": null,
+			"translations": {
+				"items": [
+					{
+						"displayName": "teamMember20",
+						"description": "<p>Team Member Discount-20% off Order<\/p>",
+						"lang": "en"
+					}
+				]
+			},
+			"audiences": [
+				{
+					"deleted": false,
+					"displayName": "Retirees Discounts",
+					"id": "RetireesDiscounts",
+					"enabled": true
+				},
+				{
+					"deleted": false,
+					"displayName": "Sponsorships",
+					"id": "Sponsorships",
+					"enabled": true
+				},
+				{
+					"deleted": false,
+					"displayName": "Princess Auto employee",
+					"id": "PrincessAutoEmployee",
+					"enabled": true
+				}
+			],
+			"id": "promo130001",
+			"filterForQualifierActedAsQualifier": null,
+			"giveToAnonymousProfiles": true,
+			"closenessQualifiers": [],
+			"shippingMethods": [],
+			"filterForTargetDiscountedByCurrent": null,
+			"filterForTargetDiscountedByAny": null,
+			"filterForTargetActedAsQualifier": null,
+			"targetAmount": null,
+			"priority": 2,
+			"filterForQualifierDiscountedByAny": null,
+			"filterForTargetOnSale": null,
+			"excludedPromotions": [],
+			"templatePath": "item",
+			"maxUsesPerUser": -1,
+			"unqualifiedMessages": [],
+			"filterForTargetZeroPrices": null,
+			"allowMultiple": true,
+			"templateName": "getItemDiscountSortBy",
+			"qualifiedMessages": [],
+			"filterForTargetPriceLTOETPromoPrice": null,
+			"uses": 1,
+			"stackingRule": {
+				"maxPromotions": -1,
+				"displayName": "Test",
+				"id": "100001"
+			},
+			"maxUsesPerOrder": -1,
+			"startDate": null,
+			"targetQuantity": null
+		},
+		{
+			"template": "/order/buyXGetOrderDiscount.pmdt",
+			"filterForQualifierZeroPrices": null,
+			"endDate": null,
+			"displayName": "Free Catalogue with order",
+			"templateValues": {
+				"discount_value": "0.01",
+				"PSC_value": {
+					"includedRuleSet": {},
+					"includedSkus": [
+						"8735672",
+						"1110001"
+					],
+					"includedCategories": [],
+					"includedProducts": [],
+					"excludedSkus": [],
+					"excludedRuleSet": {},
+					"excludedProducts": [],
+					"excludedCategories": []
+				},
+				"discount_type_value": "amountOff",
+				"no_of_items_to_buy": "1"
+			},
+			"description": null,
+			"global": true,
+			"sites": [],
+			"maxUsesPerAccount": -1,
+			"type": 9,
+			"enabled": false,
+			"filterForQualifierNegativePrices": null,
+			"cardIINRanges": [],
+			"parentFolder": null,
+			"filterForQualifierOnSale": null,
+			"priceListGroups": [
+				{
+					"id": "princessAutoDefaultPriceGroup"
+				}
+			],
+			"translations": {
+				"items": [
+					{
+						"displayName": "Free Catalogue with order",
+						"description": null,
+						"lang": "en"
+					}
+				]
+			},
+			"audiences": [],
+			"id": "promo150026",
+			"filterForQualifierActedAsQualifier": null,
+			"giveToAnonymousProfiles": true,
+			"closenessQualifiers": [],
+			"shippingMethods": [],
+			"targetAmount": null,
+			"priority": 1,
+			"filterForQualifierDiscountedByAny": null,
+			"excludedPromotions": [],
+			"templatePath": "order",
+			"maxUsesPerUser": -1,
+			"unqualifiedMessages": [],
+			"allowMultiple": true,
+			"templateName": "buyXGetOrderDiscount",
+			"qualifiedMessages": [],
+			"uses": 1,
+			"stackingRule": null,
+			"maxUsesPerOrder": -1,
+			"startDate": null,
+			"targetQuantity": 1
+		},
+		{
+			"template": "/order/buyXGetOrderDiscount.pmdt",
+			"filterForQualifierZeroPrices": null,
+			"endDate": null,
+			"displayName": "10%offselectskus",
+			"templateValues": {
+				"discount_value": "10",
+				"PSC_value": {
+					"includedRuleSet": {},
+					"includedSkus": [],
+					"includedCategories": [],
+					"includedProducts": [
+						"PA0008245177",
+						"PA0008833915",
+						"PA0008945867",
+						"PA0008815243",
+						"PA0002929594",
+						"PA0008856767",
+						"PA0008962920",
+						"PA0008025308",
+						"PA0008832701",
+						"PA0008868184",
+						"PA0008632366",
+						"PA0008347676",
+						"PA0008868259"
+					],
+					"excludedSkus": [],
+					"excludedRuleSet": {},
+					"excludedProducts": [
+						"GiftCard"
+					],
+					"excludedCategories": []
+				},
+				"discount_type_value": "percentOff",
+				"no_of_items_to_buy": "1"
+			},
+			"description": null,
+			"global": false,
+			"sites": [],
+			"maxUsesPerAccount": -1,
+			"type": 9,
+			"enabled": false,
+			"filterForQualifierNegativePrices": null,
+			"cardIINRanges": [],
+			"parentFolder": null,
+			"filterForQualifierOnSale": null,
+			"priceListGroups": [
+				{
+					"id": "princessAutoDefaultPriceGroup"
+				}
+			],
+			"translations": {
+				"items": [
+					{
+						"displayName": "10%offselectskus",
+						"description": null,
+						"lang": "en"
+					}
+				]
+			},
+			"audiences": [],
+			"id": "promo200001",
+			"filterForQualifierActedAsQualifier": null,
+			"giveToAnonymousProfiles": true,
+			"closenessQualifiers": [],
+			"shippingMethods": [],
+			"targetAmount": null,
+			"priority": 1,
+			"filterForQualifierDiscountedByAny": null,
+			"excludedPromotions": [],
+			"templatePath": "order",
+			"maxUsesPerUser": -1,
+			"unqualifiedMessages": [],
+			"allowMultiple": true,
+			"templateName": "buyXGetOrderDiscount",
+			"qualifiedMessages": [],
+			"uses": 1,
+			"stackingRule": null,
+			"maxUsesPerOrder": -1,
+			"startDate": null,
+			"targetQuantity": 1
+		},
+		{
+			"template": "/shipping/getShippingDiscount.pmdt",
+			"filterForQualifierZeroPrices": null,
+			"endDate": null,
+			"displayName": "PER479Test",
+			"templateValues": {
+				"discount_value": "100",
+				"discount_type_value": "percentOff"
+			},
+			"description": "<p>Free shipping for testing purposes.<\/p>",
+			"global": false,
+			"sites": [],
+			"maxUsesPerAccount": -1,
+			"type": 5,
+			"enabled": false,
+			"filterForQualifierNegativePrices": null,
+			"cardIINRanges": [],
+			"parentFolder": null,
+			"filterForQualifierOnSale": null,
+			"priceListGroups": [
+				{
+					"id": "princessAutoDefaultPriceGroup"
+				}
+			],
+			"translations": {
+				"items": [
+					{
+						"displayName": "PER479Test",
+						"description": "<p>Free shipping for testing purposes.<\/p>",
+						"lang": "en"
+					}
+				]
+			},
+			"oneUsePerOrder": false,
+			"audiences": [],
+			"id": "promo410001",
+			"filterForQualifierActedAsQualifier": null,
+			"giveToAnonymousProfiles": true,
+			"closenessQualifiers": [],
+			"shippingMethods": [
+				"100009",
+				"200001",
+				"100003",
+				"100004",
+				"100005",
+				"100006",
+				"100008"
+			],
+			"targetAmount": null,
+			"priority": 1,
+			"filterForQualifierDiscountedByAny": null,
+			"excludedPromotions": [],
+			"templatePath": "shipping",
+			"maxUsesPerUser": -1,
+			"unqualifiedMessages": [],
+			"allowMultiple": true,
+			"templateName": "getShippingDiscount",
+			"qualifiedMessages": [],
+			"uses": 1,
+			"stackingRule": null,
+			"maxUsesPerOrder": -1,
+			"startDate": null,
+			"targetQuantity": null
+		},
+		{
+			"template": "/shipping/getShippingDiscount.pmdt",
+			"filterForQualifierZeroPrices": null,
+			"endDate": null,
+			"displayName": "Royal Service Free Shipping - Batch 01",
+			"templateValues": {
+				"discount_value": "100",
+				"discount_type_value": "percentOff"
+			},
+			"description": "<p>Free shipping for PER 479<\/p>",
+			"global": false,
+			"sites": [],
+			"maxUsesPerAccount": -1,
+			"type": 5,
+			"enabled": true,
+			"filterForQualifierNegativePrices": null,
+			"cardIINRanges": [],
+			"parentFolder": {
+				"id": "promoFold900001"
+			},
+			"filterForQualifierOnSale": null,
+			"priceListGroups": [
+				{
+					"id": "princessAutoDefaultPriceGroup"
+				}
+			],
+			"translations": {
+				"items": [
+					{
+						"displayName": "Royal Service Free Shipping - Batch 01",
+						"description": "<p>Free shipping for PER 479<\/p>",
+						"lang": "en"
+					}
+				]
+			},
+			"oneUsePerOrder": false,
+			"audiences": [],
+			"id": "promo450005",
+			"filterForQualifierActedAsQualifier": null,
+			"giveToAnonymousProfiles": true,
+			"closenessQualifiers": [],
+			"shippingMethods": [
+				"100009",
+				"200001",
+				"100003",
+				"100004",
+				"100005",
+				"100006",
+				"100008"
+			],
+			"targetAmount": null,
+			"priority": 1,
+			"filterForQualifierDiscountedByAny": null,
+			"excludedPromotions": [],
+			"templatePath": "shipping",
+			"maxUsesPerUser": -1,
+			"unqualifiedMessages": [],
+			"allowMultiple": true,
+			"templateName": "getShippingDiscount",
+			"qualifiedMessages": [],
+			"uses": 1,
+			"stackingRule": null,
+			"maxUsesPerOrder": 1,
+			"startDate": null,
+			"targetQuantity": null
+		},
+		{
+			"template": "/shipping/spendYGetShippingDiscount.pmdt",
+			"filterForQualifierZeroPrices": null,
+			"endDate": null,
+			"displayName": "FSATest",
+			"templateValues": {
+				"spend_value": "50",
+				"discount_value": "1",
+				"discount_type_value": "amountOff"
+			},
+			"description": null,
+			"global": true,
+			"sites": [],
+			"maxUsesPerAccount": -1,
+			"type": 5,
+			"enabled": false,
+			"filterForQualifierNegativePrices": null,
+			"cardIINRanges": [],
+			"parentFolder": null,
+			"filterForQualifierOnSale": null,
+			"priceListGroups": [
+				{
+					"id": "princessAutoDefaultPriceGroup"
+				}
+			],
+			"translations": {
+				"items": [
+					{
+						"displayName": "FSATest",
+						"description": null,
+						"lang": "en"
+					}
+				]
+			},
+			"oneUsePerOrder": false,
+			"audiences": [
+				{
+					"deleted": false,
+					"displayName": "FSATest",
+					"id": "FSATest",
+					"enabled": true
+				}
+			],
+			"id": "promo460002",
+			"filterForQualifierActedAsQualifier": null,
+			"giveToAnonymousProfiles": true,
+			"closenessQualifiers": [],
+			"shippingMethods": [
+				"100003"
+			],
+			"targetAmount": 50,
+			"priority": 1,
+			"filterForQualifierDiscountedByAny": null,
+			"excludedPromotions": [],
+			"templatePath": "shipping",
+			"maxUsesPerUser": -1,
+			"unqualifiedMessages": [],
+			"allowMultiple": true,
+			"templateName": "spendYGetShippingDiscount",
+			"qualifiedMessages": [],
+			"uses": 1,
+			"stackingRule": null,
+			"maxUsesPerOrder": -1,
+			"startDate": null,
+			"targetQuantity": null
+		},
+		{
+			"template": "/shipping/spendYGetShippingDiscount.pmdt",
+			"filterForQualifierZeroPrices": null,
+			"endDate": null,
+			"displayName": "FSATest",
+			"templateValues": {
+				"spend_value": "50",
+				"discount_value": "1",
+				"discount_type_value": "amountOff"
+			},
+			"description": null,
+			"global": true,
+			"sites": [],
+			"maxUsesPerAccount": -1,
+			"type": 5,
+			"enabled": false,
+			"filterForQualifierNegativePrices": null,
+			"cardIINRanges": [],
+			"parentFolder": null,
+			"filterForQualifierOnSale": null,
+			"priceListGroups": [
+				{
+					"id": "princessAutoDefaultPriceGroup"
+				}
+			],
+			"translations": {
+				"items": [
+					{
+						"displayName": "FSATest",
+						"description": null,
+						"lang": "en"
+					}
+				]
+			},
+			"oneUsePerOrder": false,
+			"audiences": [
+				{
+					"deleted": false,
+					"displayName": "FSATest",
+					"id": "FSATest",
+					"enabled": true
+				}
+			],
+			"id": "promo460003",
+			"filterForQualifierActedAsQualifier": null,
+			"giveToAnonymousProfiles": true,
+			"closenessQualifiers": [],
+			"shippingMethods": [
+				"100003"
+			],
+			"targetAmount": 50,
+			"priority": 1,
+			"filterForQualifierDiscountedByAny": null,
+			"excludedPromotions": [],
+			"templatePath": "shipping",
+			"maxUsesPerUser": -1,
+			"unqualifiedMessages": [],
+			"allowMultiple": true,
+			"templateName": "spendYGetShippingDiscount",
+			"qualifiedMessages": [],
+			"uses": 1,
+			"stackingRule": null,
+			"maxUsesPerOrder": -1,
+			"startDate": null,
+			"targetQuantity": null
+		},
+		{
+			"template": "/shipping/getShippingDiscount.pmdt",
+			"filterForQualifierZeroPrices": null,
+			"endDate": null,
+			"displayName": "Royal Service Free Shipping - Batch 02",
+			"templateValues": {
+				"discount_value": "100",
+				"discount_type_value": "percentOff"
+			},
+			"description": "<p>Free shipping for PER 479<\/p>",
+			"global": false,
+			"sites": [],
+			"maxUsesPerAccount": -1,
+			"type": 5,
+			"enabled": true,
+			"filterForQualifierNegativePrices": null,
+			"cardIINRanges": [],
+			"parentFolder": {
+				"id": "promoFold900001"
+			},
+			"filterForQualifierOnSale": null,
+			"priceListGroups": [
+				{
+					"id": "princessAutoDefaultPriceGroup"
+				}
+			],
+			"translations": {
+				"items": [
+					{
+						"displayName": "Royal Service Free Shipping - Batch 02",
+						"description": "<p>Free shipping for PER 479<\/p>",
+						"lang": "en"
+					}
+				]
+			},
+			"oneUsePerOrder": false,
+			"audiences": [],
+			"id": "promo470001",
+			"filterForQualifierActedAsQualifier": null,
+			"giveToAnonymousProfiles": true,
+			"closenessQualifiers": [],
+			"shippingMethods": [
+				"100009",
+				"200001",
+				"100003",
+				"100004",
+				"100005",
+				"100006",
+				"100008"
+			],
+			"targetAmount": null,
+			"priority": 1,
+			"filterForQualifierDiscountedByAny": null,
+			"excludedPromotions": [],
+			"templatePath": "shipping",
+			"maxUsesPerUser": -1,
+			"unqualifiedMessages": [],
+			"allowMultiple": true,
+			"templateName": "getShippingDiscount",
+			"qualifiedMessages": [],
+			"uses": 1,
+			"stackingRule": null,
+			"maxUsesPerOrder": 1,
+			"startDate": null,
+			"targetQuantity": null
+		},
+		{
+			"template": "/shipping/getShippingDiscount.pmdt",
+			"filterForQualifierZeroPrices": null,
+			"endDate": null,
+			"displayName": "Royal Service Free Shipping - Batch 03",
+			"templateValues": {
+				"discount_value": "100",
+				"discount_type_value": "percentOff"
+			},
+			"description": "<p>Free shipping for PER 479<\/p>\n\n<p>&nbsp;<\/p>\n\n<p>For Listrak<\/p>",
+			"global": false,
+			"sites": [],
+			"maxUsesPerAccount": -1,
+			"type": 5,
+			"enabled": true,
+			"filterForQualifierNegativePrices": null,
+			"cardIINRanges": [],
+			"parentFolder": {
+				"id": "promoFold900001"
+			},
+			"filterForQualifierOnSale": null,
+			"priceListGroups": [
+				{
+					"id": "princessAutoDefaultPriceGroup"
+				}
+			],
+			"translations": {
+				"items": [
+					{
+						"displayName": "Royal Service Free Shipping - Batch 03",
+						"description": "<p>Free shipping for PER 479<\/p>\n\n<p>&nbsp;<\/p>\n\n<p>For Listrak<\/p>",
+						"lang": "en"
+					}
+				]
+			},
+			"oneUsePerOrder": false,
+			"audiences": [],
+			"id": "promo480001",
+			"filterForQualifierActedAsQualifier": null,
+			"giveToAnonymousProfiles": true,
+			"closenessQualifiers": [],
+			"shippingMethods": [
+				"100009",
+				"200001",
+				"100003",
+				"100004",
+				"100005",
+				"100006",
+				"100008"
+			],
+			"targetAmount": null,
+			"priority": 1,
+			"filterForQualifierDiscountedByAny": null,
+			"excludedPromotions": [],
+			"templatePath": "shipping",
+			"maxUsesPerUser": -1,
+			"unqualifiedMessages": [],
+			"allowMultiple": true,
+			"templateName": "getShippingDiscount",
+			"qualifiedMessages": [],
+			"uses": 1,
+			"stackingRule": null,
+			"maxUsesPerOrder": 1,
+			"startDate": null,
+			"targetQuantity": null
+		},
+		{
+			"template": "/shipping/getShippingDiscount.pmdt",
+			"filterForQualifierZeroPrices": null,
+			"endDate": null,
+			"displayName": "Royal Service Free Shipping - Batch 03 FR",
+			"templateValues": {
+				"discount_value": "100",
+				"discount_type_value": "percentOff"
+			},
+			"description": "<p>Free shipping for PER 479<\/p>\n\n<p>&nbsp;<\/p>\n\n<p>For Listrak<\/p>",
+			"global": false,
+			"sites": [],
+			"maxUsesPerAccount": -1,
+			"type": 5,
+			"enabled": true,
+			"filterForQualifierNegativePrices": null,
+			"cardIINRanges": [],
+			"parentFolder": {
+				"id": "promoFold900001"
+			},
+			"filterForQualifierOnSale": null,
+			"priceListGroups": [
+				{
+					"id": "princessAutoDefaultPriceGroup"
+				}
+			],
+			"translations": {
+				"items": [
+					{
+						"displayName": "Royal Service Free Shipping - Batch 03 FR",
+						"description": "<p>Free shipping for PER 479<\/p>\n\n<p>&nbsp;<\/p>\n\n<p>For Listrak<\/p>",
+						"lang": "en"
+					}
+				]
+			},
+			"oneUsePerOrder": false,
+			"audiences": [],
+			"id": "promo480002",
+			"filterForQualifierActedAsQualifier": null,
+			"giveToAnonymousProfiles": true,
+			"closenessQualifiers": [],
+			"shippingMethods": [
+				"100009",
+				"200001",
+				"100003",
+				"100004",
+				"100005",
+				"100006",
+				"100008"
+			],
+			"targetAmount": null,
+			"priority": 1,
+			"filterForQualifierDiscountedByAny": null,
+			"excludedPromotions": [],
+			"templatePath": "shipping",
+			"maxUsesPerUser": -1,
+			"unqualifiedMessages": [],
+			"allowMultiple": true,
+			"templateName": "getShippingDiscount",
+			"qualifiedMessages": [],
+			"uses": 1,
+			"stackingRule": null,
+			"maxUsesPerOrder": 1,
+			"startDate": null,
+			"targetQuantity": null
+		},
+		{
+			"template": "/shipping/getShippingDiscount.pmdt",
+			"filterForQualifierZeroPrices": null,
+			"endDate": null,
+			"displayName": "Royal Service Free Shipping - Batch 04",
+			"templateValues": {
+				"discount_value": "100",
+				"discount_type_value": "percentOff"
+			},
+			"description": "<p>Free shipping for PER 479<\/p>",
+			"global": false,
+			"sites": [],
+			"maxUsesPerAccount": -1,
+			"type": 5,
+			"enabled": true,
+			"filterForQualifierNegativePrices": null,
+			"cardIINRanges": [],
+			"parentFolder": {
+				"id": "promoFold900001"
+			},
+			"filterForQualifierOnSale": null,
+			"priceListGroups": [
+				{
+					"id": "princessAutoDefaultPriceGroup"
+				}
+			],
+			"translations": {
+				"items": [
+					{
+						"displayName": "Royal Service Free Shipping - Batch 04",
+						"description": "<p>Free shipping for PER 479<\/p>",
+						"lang": "en"
+					}
+				]
+			},
+			"oneUsePerOrder": false,
+			"audiences": [],
+			"id": "promo490001",
+			"filterForQualifierActedAsQualifier": null,
+			"giveToAnonymousProfiles": true,
+			"closenessQualifiers": [],
+			"shippingMethods": [
+				"100009",
+				"200001",
+				"100003",
+				"100004",
+				"100005",
+				"100006",
+				"100008"
+			],
+			"targetAmount": null,
+			"priority": 1,
+			"filterForQualifierDiscountedByAny": null,
+			"excludedPromotions": [],
+			"templatePath": "shipping",
+			"maxUsesPerUser": -1,
+			"unqualifiedMessages": [],
+			"allowMultiple": true,
+			"templateName": "getShippingDiscount",
+			"qualifiedMessages": [],
+			"uses": 1,
+			"stackingRule": null,
+			"maxUsesPerOrder": 1,
+			"startDate": null,
+			"targetQuantity": null
+		},
+		{
+			"template": "/shipping/getShippingDiscount.pmdt",
+			"filterForQualifierZeroPrices": null,
+			"endDate": null,
+			"displayName": "Royal Service Free Shipping - Batch 05",
+			"templateValues": {
+				"discount_value": "100",
+				"discount_type_value": "percentOff"
+			},
+			"description": "<p>Free shipping for PER 479<\/p>",
+			"global": false,
+			"sites": [],
+			"maxUsesPerAccount": -1,
+			"type": 5,
+			"enabled": true,
+			"filterForQualifierNegativePrices": null,
+			"cardIINRanges": [],
+			"parentFolder": {
+				"id": "promoFold900001"
+			},
+			"filterForQualifierOnSale": null,
+			"priceListGroups": [
+				{
+					"id": "princessAutoDefaultPriceGroup"
+				}
+			],
+			"translations": {
+				"items": [
+					{
+						"displayName": "Royal Service Free Shipping - Batch 05",
+						"description": "<p>Free shipping for PER 479<\/p>",
+						"lang": "en"
+					}
+				]
+			},
+			"oneUsePerOrder": false,
+			"audiences": [],
+			"id": "promo490002",
+			"filterForQualifierActedAsQualifier": null,
+			"giveToAnonymousProfiles": true,
+			"closenessQualifiers": [],
+			"shippingMethods": [
+				"100009",
+				"200001",
+				"100003",
+				"100004",
+				"100005",
+				"100006",
+				"100008"
+			],
+			"targetAmount": null,
+			"priority": 1,
+			"filterForQualifierDiscountedByAny": null,
+			"excludedPromotions": [],
+			"templatePath": "shipping",
+			"maxUsesPerUser": -1,
+			"unqualifiedMessages": [],
+			"allowMultiple": true,
+			"templateName": "getShippingDiscount",
+			"qualifiedMessages": [],
+			"uses": 1,
+			"stackingRule": null,
+			"maxUsesPerOrder": 1,
+			"startDate": null,
+			"targetQuantity": null
+		},
+		{
+			"template": "/shipping/getShippingDiscount.pmdt",
+			"filterForQualifierZeroPrices": null,
+			"endDate": null,
+			"displayName": "Royal Service Free Shipping - Batch 06",
+			"templateValues": {
+				"discount_value": "100",
+				"discount_type_value": "percentOff"
+			},
+			"description": "<p>Free shipping for PER 479<\/p>",
+			"global": false,
+			"sites": [],
+			"maxUsesPerAccount": -1,
+			"type": 5,
+			"enabled": true,
+			"filterForQualifierNegativePrices": null,
+			"cardIINRanges": [],
+			"parentFolder": {
+				"id": "promoFold900001"
+			},
+			"filterForQualifierOnSale": null,
+			"priceListGroups": [
+				{
+					"id": "princessAutoDefaultPriceGroup"
+				}
+			],
+			"translations": {
+				"items": [
+					{
+						"displayName": "Royal Service Free Shipping - Batch 06",
+						"description": "<p>Free shipping for PER 479<\/p>",
+						"lang": "en"
+					}
+				]
+			},
+			"oneUsePerOrder": false,
+			"audiences": [],
+			"id": "promo490003",
+			"filterForQualifierActedAsQualifier": null,
+			"giveToAnonymousProfiles": true,
+			"closenessQualifiers": [],
+			"shippingMethods": [
+				"100009",
+				"200001",
+				"100003",
+				"100004",
+				"100005",
+				"100006",
+				"100008"
+			],
+			"targetAmount": null,
+			"priority": 1,
+			"filterForQualifierDiscountedByAny": null,
+			"excludedPromotions": [],
+			"templatePath": "shipping",
+			"maxUsesPerUser": -1,
+			"unqualifiedMessages": [],
+			"allowMultiple": true,
+			"templateName": "getShippingDiscount",
+			"qualifiedMessages": [],
+			"uses": 1,
+			"stackingRule": null,
+			"maxUsesPerOrder": 1,
+			"startDate": null,
+			"targetQuantity": null
+		},
+		{
+			"template": "/shipping/getShippingDiscount.pmdt",
+			"filterForQualifierZeroPrices": null,
+			"endDate": null,
+			"displayName": "Royal Service Free Shipping - Batch 07",
+			"templateValues": {
+				"discount_value": "100",
+				"discount_type_value": "percentOff"
+			},
+			"description": "<p>Free shipping for PER 479<\/p>",
+			"global": false,
+			"sites": [],
+			"maxUsesPerAccount": -1,
+			"type": 5,
+			"enabled": true,
+			"filterForQualifierNegativePrices": null,
+			"cardIINRanges": [],
+			"parentFolder": {
+				"id": "promoFold900001"
+			},
+			"filterForQualifierOnSale": null,
+			"priceListGroups": [
+				{
+					"id": "princessAutoDefaultPriceGroup"
+				}
+			],
+			"translations": {
+				"items": [
+					{
+						"displayName": "Royal Service Free Shipping - Batch 07",
+						"description": "<p>Free shipping for PER 479<\/p>",
+						"lang": "en"
+					}
+				]
+			},
+			"oneUsePerOrder": false,
+			"audiences": [],
+			"id": "promo490004",
+			"filterForQualifierActedAsQualifier": null,
+			"giveToAnonymousProfiles": true,
+			"closenessQualifiers": [],
+			"shippingMethods": [
+				"100009",
+				"200001",
+				"100003",
+				"100004",
+				"100005",
+				"100006",
+				"100008"
+			],
+			"targetAmount": null,
+			"priority": 1,
+			"filterForQualifierDiscountedByAny": null,
+			"excludedPromotions": [],
+			"templatePath": "shipping",
+			"maxUsesPerUser": -1,
+			"unqualifiedMessages": [],
+			"allowMultiple": true,
+			"templateName": "getShippingDiscount",
+			"qualifiedMessages": [],
+			"uses": 1,
+			"stackingRule": null,
+			"maxUsesPerOrder": 1,
+			"startDate": null,
+			"targetQuantity": null
+		},
+		{
+			"template": "/shipping/getShippingDiscount.pmdt",
+			"filterForQualifierZeroPrices": null,
+			"endDate": null,
+			"displayName": "Royal Service Free Shipping - Batch 08",
+			"templateValues": {
+				"discount_value": "100",
+				"discount_type_value": "percentOff"
+			},
+			"description": "<p>Free shipping for PER 479<\/p>",
+			"global": false,
+			"sites": [],
+			"maxUsesPerAccount": -1,
+			"type": 5,
+			"enabled": true,
+			"filterForQualifierNegativePrices": null,
+			"cardIINRanges": [],
+			"parentFolder": {
+				"id": "promoFold900001"
+			},
+			"filterForQualifierOnSale": null,
+			"priceListGroups": [
+				{
+					"id": "princessAutoDefaultPriceGroup"
+				}
+			],
+			"translations": {
+				"items": [
+					{
+						"displayName": "Royal Service Free Shipping - Batch 08",
+						"description": "<p>Free shipping for PER 479<\/p>",
+						"lang": "en"
+					}
+				]
+			},
+			"oneUsePerOrder": false,
+			"audiences": [],
+			"id": "promo490005",
+			"filterForQualifierActedAsQualifier": null,
+			"giveToAnonymousProfiles": true,
+			"closenessQualifiers": [],
+			"shippingMethods": [
+				"100009",
+				"200001",
+				"100003",
+				"100004",
+				"100005",
+				"100006",
+				"100008"
+			],
+			"targetAmount": null,
+			"priority": 1,
+			"filterForQualifierDiscountedByAny": null,
+			"excludedPromotions": [],
+			"templatePath": "shipping",
+			"maxUsesPerUser": -1,
+			"unqualifiedMessages": [],
+			"allowMultiple": true,
+			"templateName": "getShippingDiscount",
+			"qualifiedMessages": [],
+			"uses": 1,
+			"stackingRule": null,
+			"maxUsesPerOrder": 1,
+			"startDate": null,
+			"targetQuantity": null
+		},
+		{
+			"template": "/shipping/getShippingDiscount.pmdt",
+			"filterForQualifierZeroPrices": null,
+			"endDate": null,
+			"displayName": "Royal Service Free Shipping - Batch 09",
+			"templateValues": {
+				"discount_value": "100",
+				"discount_type_value": "percentOff"
+			},
+			"description": "<p>Free shipping for PER 479<\/p>",
+			"global": false,
+			"sites": [],
+			"maxUsesPerAccount": -1,
+			"type": 5,
+			"enabled": true,
+			"filterForQualifierNegativePrices": null,
+			"cardIINRanges": [],
+			"parentFolder": {
+				"id": "promoFold900001"
+			},
+			"filterForQualifierOnSale": null,
+			"priceListGroups": [
+				{
+					"id": "princessAutoDefaultPriceGroup"
+				}
+			],
+			"translations": {
+				"items": [
+					{
+						"displayName": "Royal Service Free Shipping - Batch 09",
+						"description": "<p>Free shipping for PER 479<\/p>",
+						"lang": "en"
+					}
+				]
+			},
+			"oneUsePerOrder": false,
+			"audiences": [],
+			"id": "promo490006",
+			"filterForQualifierActedAsQualifier": null,
+			"giveToAnonymousProfiles": true,
+			"closenessQualifiers": [],
+			"shippingMethods": [
+				"100009",
+				"200001",
+				"100003",
+				"100004",
+				"100005",
+				"100006",
+				"100008"
+			],
+			"targetAmount": null,
+			"priority": 1,
+			"filterForQualifierDiscountedByAny": null,
+			"excludedPromotions": [],
+			"templatePath": "shipping",
+			"maxUsesPerUser": -1,
+			"unqualifiedMessages": [],
+			"allowMultiple": true,
+			"templateName": "getShippingDiscount",
+			"qualifiedMessages": [],
+			"uses": 1,
+			"stackingRule": null,
+			"maxUsesPerOrder": 1,
+			"startDate": null,
+			"targetQuantity": null
+		},
+		{
+			"template": "/shipping/getShippingDiscount.pmdt",
+			"filterForQualifierZeroPrices": null,
+			"endDate": null,
+			"displayName": "Royal Service Free Shipping - Batch 10",
+			"templateValues": {
+				"discount_value": "100",
+				"discount_type_value": "percentOff"
+			},
+			"description": "<p>Free shipping for PER 479<\/p>",
+			"global": false,
+			"sites": [],
+			"maxUsesPerAccount": -1,
+			"type": 5,
+			"enabled": true,
+			"filterForQualifierNegativePrices": null,
+			"cardIINRanges": [],
+			"parentFolder": {
+				"id": "promoFold900001"
+			},
+			"filterForQualifierOnSale": null,
+			"priceListGroups": [
+				{
+					"id": "princessAutoDefaultPriceGroup"
+				}
+			],
+			"translations": {
+				"items": [
+					{
+						"displayName": "Royal Service Free Shipping - Batch 10",
+						"description": "<p>Free shipping for PER 479<\/p>",
+						"lang": "en"
+					}
+				]
+			},
+			"oneUsePerOrder": false,
+			"audiences": [],
+			"id": "promo490007",
+			"filterForQualifierActedAsQualifier": null,
+			"giveToAnonymousProfiles": true,
+			"closenessQualifiers": [],
+			"shippingMethods": [
+				"100009",
+				"200001",
+				"100003",
+				"100004",
+				"100005",
+				"100006",
+				"100008"
+			],
+			"targetAmount": null,
+			"priority": 1,
+			"filterForQualifierDiscountedByAny": null,
+			"excludedPromotions": [],
+			"templatePath": "shipping",
+			"maxUsesPerUser": -1,
+			"unqualifiedMessages": [],
+			"allowMultiple": true,
+			"templateName": "getShippingDiscount",
+			"qualifiedMessages": [],
+			"uses": 1,
+			"stackingRule": null,
+			"maxUsesPerOrder": 1,
+			"startDate": null,
+			"targetQuantity": null
+		},
+		{
+			"template": "/shipping/getShippingDiscount.pmdt",
+			"filterForQualifierZeroPrices": null,
+			"endDate": null,
+			"displayName": "Royal Service Free Shipping - Batch 11",
+			"templateValues": {
+				"discount_value": "100",
+				"discount_type_value": "percentOff"
+			},
+			"description": "<p>Free shipping for PER 479<\/p>",
+			"global": false,
+			"sites": [],
+			"maxUsesPerAccount": -1,
+			"type": 5,
+			"enabled": true,
+			"filterForQualifierNegativePrices": null,
+			"cardIINRanges": [],
+			"parentFolder": {
+				"id": "promoFold900001"
+			},
+			"filterForQualifierOnSale": null,
+			"priceListGroups": [
+				{
+					"id": "princessAutoDefaultPriceGroup"
+				}
+			],
+			"translations": {
+				"items": [
+					{
+						"displayName": "Royal Service Free Shipping - Batch 11",
+						"description": "<p>Free shipping for PER 479<\/p>",
+						"lang": "en"
+					}
+				]
+			},
+			"oneUsePerOrder": false,
+			"audiences": [],
+			"id": "promo490008",
+			"filterForQualifierActedAsQualifier": null,
+			"giveToAnonymousProfiles": true,
+			"closenessQualifiers": [],
+			"shippingMethods": [
+				"100009",
+				"200001",
+				"100003",
+				"100004",
+				"100005",
+				"100006",
+				"100008"
+			],
+			"targetAmount": null,
+			"priority": 1,
+			"filterForQualifierDiscountedByAny": null,
+			"excludedPromotions": [],
+			"templatePath": "shipping",
+			"maxUsesPerUser": -1,
+			"unqualifiedMessages": [],
+			"allowMultiple": true,
+			"templateName": "getShippingDiscount",
+			"qualifiedMessages": [],
+			"uses": 1,
+			"stackingRule": null,
+			"maxUsesPerOrder": 1,
+			"startDate": null,
+			"targetQuantity": null
+		},
+		{
+			"template": "/shipping/getShippingDiscount.pmdt",
+			"filterForQualifierZeroPrices": null,
+			"endDate": null,
+			"displayName": "Royal Service Free Shipping - Batch 12",
+			"templateValues": {
+				"discount_value": "100",
+				"discount_type_value": "percentOff"
+			},
+			"description": "<p>Free shipping for PER 479<\/p>",
+			"global": false,
+			"sites": [],
+			"maxUsesPerAccount": -1,
+			"type": 5,
+			"enabled": true,
+			"filterForQualifierNegativePrices": null,
+			"cardIINRanges": [],
+			"parentFolder": {
+				"id": "promoFold900001"
+			},
+			"filterForQualifierOnSale": null,
+			"priceListGroups": [
+				{
+					"id": "princessAutoDefaultPriceGroup"
+				}
+			],
+			"translations": {
+				"items": [
+					{
+						"displayName": "Royal Service Free Shipping - Batch 12",
+						"description": "<p>Free shipping for PER 479<\/p>",
+						"lang": "en"
+					}
+				]
+			},
+			"oneUsePerOrder": false,
+			"audiences": [],
+			"id": "promo490009",
+			"filterForQualifierActedAsQualifier": null,
+			"giveToAnonymousProfiles": true,
+			"closenessQualifiers": [],
+			"shippingMethods": [
+				"100009",
+				"200001",
+				"100003",
+				"100004",
+				"100005",
+				"100006",
+				"100008"
+			],
+			"targetAmount": null,
+			"priority": 1,
+			"filterForQualifierDiscountedByAny": null,
+			"excludedPromotions": [],
+			"templatePath": "shipping",
+			"maxUsesPerUser": -1,
+			"unqualifiedMessages": [],
+			"allowMultiple": true,
+			"templateName": "getShippingDiscount",
+			"qualifiedMessages": [],
+			"uses": 1,
+			"stackingRule": null,
+			"maxUsesPerOrder": 1,
+			"startDate": null,
+			"targetQuantity": null
+		},
+		{
+			"template": "/shipping/getShippingDiscount.pmdt",
+			"filterForQualifierZeroPrices": null,
+			"endDate": null,
+			"displayName": "Royal Service Free Shipping - Batch 13",
+			"templateValues": {
+				"discount_value": "100",
+				"discount_type_value": "percentOff"
+			},
+			"description": "<p>Free shipping for PER 479<\/p>",
+			"global": false,
+			"sites": [],
+			"maxUsesPerAccount": -1,
+			"type": 5,
+			"enabled": true,
+			"filterForQualifierNegativePrices": null,
+			"cardIINRanges": [],
+			"parentFolder": {
+				"id": "promoFold900001"
+			},
+			"filterForQualifierOnSale": null,
+			"priceListGroups": [
+				{
+					"id": "princessAutoDefaultPriceGroup"
+				}
+			],
+			"translations": {
+				"items": [
+					{
+						"displayName": "Royal Service Free Shipping - Batch 13",
+						"description": "<p>Free shipping for PER 479<\/p>",
+						"lang": "en"
+					}
+				]
+			},
+			"oneUsePerOrder": false,
+			"audiences": [],
+			"id": "promo490010",
+			"filterForQualifierActedAsQualifier": null,
+			"giveToAnonymousProfiles": true,
+			"closenessQualifiers": [],
+			"shippingMethods": [
+				"100009",
+				"200001",
+				"100003",
+				"100004",
+				"100005",
+				"100006",
+				"100008"
+			],
+			"targetAmount": null,
+			"priority": 1,
+			"filterForQualifierDiscountedByAny": null,
+			"excludedPromotions": [],
+			"templatePath": "shipping",
+			"maxUsesPerUser": -1,
+			"unqualifiedMessages": [],
+			"allowMultiple": true,
+			"templateName": "getShippingDiscount",
+			"qualifiedMessages": [],
+			"uses": 1,
+			"stackingRule": null,
+			"maxUsesPerOrder": 1,
+			"startDate": null,
+			"targetQuantity": null
+		},
+		{
+			"template": "/order/tieredOrderDiscount.pmdt",
+			"filterForQualifierZeroPrices": null,
+			"endDate": null,
+			"displayName": "DRUMMONDVILLE-GO",
+			"templateValues": {
+				"discountStructure": {
+					"discount_details": [
+						{
+							"spend_value": "0",
+							"discount_value": "10"
+						}
+					],
+					"discount_type_value": "amountOff"
+				}
+			},
+			"description": "<p>$10 off for Drummondville grand opening. Customers sign up to our mailing list to get a unique promo code.&nbsp;<\/p>",
+			"global": false,
+			"sites": [],
+			"maxUsesPerAccount": -1,
+			"type": 9,
+			"enabled": true,
+			"filterForQualifierNegativePrices": null,
+			"cardIINRanges": [],
+			"parentFolder": {
+				"id": "promoFold400003"
+			},
+			"filterForQualifierOnSale": null,
+			"priceListGroups": [
+				{
+					"id": "princessAutoDefaultPriceGroup"
+				}
+			],
+			"translations": {
+				"items": [
+					{
+						"displayName": "DRUMMONDVILLE-GO",
+						"description": "<p>$10 off for Drummondville grand opening. Customers sign up to our mailing list to get a unique promo code.&nbsp;<\/p>",
+						"lang": "en"
+					}
+				]
+			},
+			"audiences": [],
+			"id": "promo490014",
+			"filterForQualifierActedAsQualifier": null,
+			"giveToAnonymousProfiles": true,
+			"closenessQualifiers": [],
+			"shippingMethods": [],
+			"targetAmount": null,
+			"priority": 1,
+			"filterForQualifierDiscountedByAny": null,
+			"excludedPromotions": [],
+			"templatePath": "order",
+			"maxUsesPerUser": -1,
+			"unqualifiedMessages": [],
+			"allowMultiple": true,
+			"templateName": "tieredOrderDiscount",
+			"qualifiedMessages": [],
+			"uses": 1,
+			"stackingRule": null,
+			"maxUsesPerOrder": 1,
+			"startDate": null,
+			"targetQuantity": null
+		},
+		{
+			"template": "/order/tieredOrderDiscount.pmdt",
+			"filterForQualifierZeroPrices": null,
+			"endDate": null,
+			"displayName": "Spend75Save15",
+			"templateValues": {
+				"discountStructure": {
+					"discount_details": [
+						{
+							"spend_value": "75",
+							"discount_value": "15"
+						}
+					],
+					"discount_type_value": "amountOff"
+				}
+			},
+			"description": "<p>Winter 2024<\/p>",
+			"global": false,
+			"sites": [],
+			"maxUsesPerAccount": -1,
+			"type": 9,
+			"enabled": false,
+			"filterForQualifierNegativePrices": null,
+			"cardIINRanges": [],
+			"parentFolder": {
+				"id": "promoFold1000001"
+			},
+			"filterForQualifierOnSale": null,
+			"priceListGroups": [
+				{
+					"id": "princessAutoDefaultPriceGroup"
+				}
+			],
+			"translations": {
+				"items": [
+					{
+						"displayName": "Spend75Save15",
+						"description": "<p>Winter 2024<\/p>",
+						"lang": "en"
+					}
+				]
+			},
+			"audiences": [],
+			"id": "promo510030",
+			"filterForQualifierActedAsQualifier": null,
+			"giveToAnonymousProfiles": true,
+			"closenessQualifiers": [],
+			"shippingMethods": [],
+			"targetAmount": null,
+			"priority": 1,
+			"filterForQualifierDiscountedByAny": null,
+			"excludedPromotions": [],
+			"templatePath": "order",
+			"maxUsesPerUser": -1,
+			"unqualifiedMessages": [],
+			"allowMultiple": true,
+			"templateName": "tieredOrderDiscount",
+			"qualifiedMessages": [],
+			"uses": 1,
+			"stackingRule": null,
+			"maxUsesPerOrder": -1,
+			"startDate": null,
+			"targetQuantity": null
+		},
+		{
+			"template": "/order/tieredOrderDiscount.pmdt",
+			"filterForQualifierZeroPrices": null,
+			"endDate": null,
+			"displayName": "Dépenser75Épargner 15",
+			"templateValues": {
+				"discountStructure": {
+					"discount_details": [
+						{
+							"spend_value": "75",
+							"discount_value": "15"
+						}
+					],
+					"discount_type_value": "amountOff"
+				}
+			},
+			"description": "<p>Winter 2024<\/p>",
+			"global": false,
+			"sites": [],
+			"maxUsesPerAccount": -1,
+			"type": 9,
+			"enabled": false,
+			"filterForQualifierNegativePrices": null,
+			"cardIINRanges": [],
+			"parentFolder": {
+				"id": "promoFold1000001"
+			},
+			"filterForQualifierOnSale": null,
+			"priceListGroups": [
+				{
+					"id": "princessAutoDefaultPriceGroup"
+				}
+			],
+			"translations": {
+				"items": [
+					{
+						"displayName": "Dépenser75Épargner 15",
+						"description": "<p>Winter 2024<\/p>",
+						"lang": "en"
+					}
+				]
+			},
+			"audiences": [],
+			"id": "promo510031",
+			"filterForQualifierActedAsQualifier": null,
+			"giveToAnonymousProfiles": true,
+			"closenessQualifiers": [],
+			"shippingMethods": [],
+			"targetAmount": null,
+			"priority": 1,
+			"filterForQualifierDiscountedByAny": null,
+			"excludedPromotions": [],
+			"templatePath": "order",
+			"maxUsesPerUser": -1,
+			"unqualifiedMessages": [],
+			"allowMultiple": true,
+			"templateName": "tieredOrderDiscount",
+			"qualifiedMessages": [],
+			"uses": 1,
+			"stackingRule": null,
+			"maxUsesPerOrder": -1,
+			"startDate": null,
+			"targetQuantity": null
+		},
+		{
+			"template": "/shipping/getShippingDiscount.pmdt",
+			"filterForQualifierZeroPrices": null,
+			"endDate": null,
+			"displayName": "Royal Service Free Shipping - Batch 14",
+			"templateValues": {
+				"discount_value": "100",
+				"discount_type_value": "percentOff"
+			},
+			"description": "<p>Free shipping for PER 479<\/p>",
+			"global": false,
+			"sites": [],
+			"maxUsesPerAccount": -1,
+			"type": 5,
+			"enabled": true,
+			"filterForQualifierNegativePrices": null,
+			"cardIINRanges": [],
+			"parentFolder": {
+				"id": "promoFold900001"
+			},
+			"filterForQualifierOnSale": null,
+			"priceListGroups": [
+				{
+					"id": "princessAutoDefaultPriceGroup"
+				}
+			],
+			"translations": {
+				"items": [
+					{
+						"displayName": "Royal Service Free Shipping - Batch 14",
+						"description": "<p>Free shipping for PER 479<\/p>",
+						"lang": "en"
+					}
+				]
+			},
+			"oneUsePerOrder": false,
+			"audiences": [],
+			"id": "promo510032",
+			"filterForQualifierActedAsQualifier": null,
+			"giveToAnonymousProfiles": true,
+			"closenessQualifiers": [],
+			"shippingMethods": [
+				"100009",
+				"200001",
+				"100003",
+				"100004",
+				"100005",
+				"100006",
+				"100008"
+			],
+			"targetAmount": null,
+			"priority": 1,
+			"filterForQualifierDiscountedByAny": null,
+			"excludedPromotions": [],
+			"templatePath": "shipping",
+			"maxUsesPerUser": -1,
+			"unqualifiedMessages": [],
+			"allowMultiple": true,
+			"templateName": "getShippingDiscount",
+			"qualifiedMessages": [],
+			"uses": 1,
+			"stackingRule": null,
+			"maxUsesPerOrder": 1,
+			"startDate": null,
+			"targetQuantity": null
+		},
+		{
+			"template": "/shipping/getShippingDiscount.pmdt",
+			"filterForQualifierZeroPrices": null,
+			"endDate": null,
+			"displayName": "Royal Service Free Shipping - Batch 15",
+			"templateValues": {
+				"discount_value": "100",
+				"discount_type_value": "percentOff"
+			},
+			"description": "<p>Free shipping for PER 479<\/p>",
+			"global": false,
+			"sites": [],
+			"maxUsesPerAccount": -1,
+			"type": 5,
+			"enabled": true,
+			"filterForQualifierNegativePrices": null,
+			"cardIINRanges": [],
+			"parentFolder": {
+				"id": "promoFold900001"
+			},
+			"filterForQualifierOnSale": null,
+			"priceListGroups": [
+				{
+					"id": "princessAutoDefaultPriceGroup"
+				}
+			],
+			"translations": {
+				"items": [
+					{
+						"displayName": "Royal Service Free Shipping - Batch 15",
+						"description": "<p>Free shipping for PER 479<\/p>",
+						"lang": "en"
+					}
+				]
+			},
+			"oneUsePerOrder": false,
+			"audiences": [],
+			"id": "promo510033",
+			"filterForQualifierActedAsQualifier": null,
+			"giveToAnonymousProfiles": true,
+			"closenessQualifiers": [],
+			"shippingMethods": [
+				"100009",
+				"200001",
+				"100003",
+				"100004",
+				"100005",
+				"100006",
+				"100008"
+			],
+			"targetAmount": null,
+			"priority": 1,
+			"filterForQualifierDiscountedByAny": null,
+			"excludedPromotions": [],
+			"templatePath": "shipping",
+			"maxUsesPerUser": -1,
+			"unqualifiedMessages": [],
+			"allowMultiple": true,
+			"templateName": "getShippingDiscount",
+			"qualifiedMessages": [],
+			"uses": 1,
+			"stackingRule": null,
+			"maxUsesPerOrder": 1,
+			"startDate": null,
+			"targetQuantity": null
+		},
+		{
+			"template": "/shipping/getShippingDiscount.pmdt",
+			"filterForQualifierZeroPrices": null,
+			"endDate": null,
+			"displayName": "Royal Service Free Shipping - Batch 16",
+			"templateValues": {
+				"discount_value": "100",
+				"discount_type_value": "percentOff"
+			},
+			"description": "<p>Free shipping for PER 479<\/p>",
+			"global": false,
+			"sites": [],
+			"maxUsesPerAccount": -1,
+			"type": 5,
+			"enabled": true,
+			"filterForQualifierNegativePrices": null,
+			"cardIINRanges": [],
+			"parentFolder": {
+				"id": "promoFold900001"
+			},
+			"filterForQualifierOnSale": null,
+			"priceListGroups": [
+				{
+					"id": "princessAutoDefaultPriceGroup"
+				}
+			],
+			"translations": {
+				"items": [
+					{
+						"displayName": "Royal Service Free Shipping - Batch 16",
+						"description": "<p>Free shipping for PER 479<\/p>",
+						"lang": "en"
+					}
+				]
+			},
+			"oneUsePerOrder": false,
+			"audiences": [],
+			"id": "promo510034",
+			"filterForQualifierActedAsQualifier": null,
+			"giveToAnonymousProfiles": true,
+			"closenessQualifiers": [],
+			"shippingMethods": [
+				"100009",
+				"200001",
+				"100003",
+				"100004",
+				"100005",
+				"100006",
+				"100008"
+			],
+			"targetAmount": null,
+			"priority": 1,
+			"filterForQualifierDiscountedByAny": null,
+			"excludedPromotions": [],
+			"templatePath": "shipping",
+			"maxUsesPerUser": -1,
+			"unqualifiedMessages": [],
+			"allowMultiple": true,
+			"templateName": "getShippingDiscount",
+			"qualifiedMessages": [],
+			"uses": 1,
+			"stackingRule": null,
+			"maxUsesPerOrder": 1,
+			"startDate": null,
+			"targetQuantity": null
+		},
+		{
+			"template": "/shipping/getShippingDiscount.pmdt",
+			"filterForQualifierZeroPrices": null,
+			"endDate": null,
+			"displayName": "Royal Service Free Shipping - Batch 17",
+			"templateValues": {
+				"discount_value": "100",
+				"discount_type_value": "percentOff"
+			},
+			"description": "<p>Free shipping for PER 479<\/p>",
+			"global": false,
+			"sites": [],
+			"maxUsesPerAccount": -1,
+			"type": 5,
+			"enabled": true,
+			"filterForQualifierNegativePrices": null,
+			"cardIINRanges": [],
+			"parentFolder": {
+				"id": "promoFold900001"
+			},
+			"filterForQualifierOnSale": null,
+			"priceListGroups": [
+				{
+					"id": "princessAutoDefaultPriceGroup"
+				}
+			],
+			"translations": {
+				"items": [
+					{
+						"displayName": "Royal Service Free Shipping - Batch 17",
+						"description": "<p>Free shipping for PER 479<\/p>",
+						"lang": "en"
+					}
+				]
+			},
+			"oneUsePerOrder": false,
+			"audiences": [],
+			"id": "promo510035",
+			"filterForQualifierActedAsQualifier": null,
+			"giveToAnonymousProfiles": true,
+			"closenessQualifiers": [],
+			"shippingMethods": [
+				"100009",
+				"200001",
+				"100003",
+				"100004",
+				"100005",
+				"100006",
+				"100008"
+			],
+			"targetAmount": null,
+			"priority": 1,
+			"filterForQualifierDiscountedByAny": null,
+			"excludedPromotions": [],
+			"templatePath": "shipping",
+			"maxUsesPerUser": -1,
+			"unqualifiedMessages": [],
+			"allowMultiple": true,
+			"templateName": "getShippingDiscount",
+			"qualifiedMessages": [],
+			"uses": 1,
+			"stackingRule": null,
+			"maxUsesPerOrder": 1,
+			"startDate": null,
+			"targetQuantity": null
+		},
+		{
+			"template": "/shipping/getShippingDiscount.pmdt",
+			"filterForQualifierZeroPrices": null,
+			"endDate": null,
+			"displayName": "Royal Service Free Shipping - Batch 18",
+			"templateValues": {
+				"discount_value": "100",
+				"discount_type_value": "percentOff"
+			},
+			"description": "<p>Free shipping for PER 479<\/p>",
+			"global": false,
+			"sites": [],
+			"maxUsesPerAccount": -1,
+			"type": 5,
+			"enabled": true,
+			"filterForQualifierNegativePrices": null,
+			"cardIINRanges": [],
+			"parentFolder": {
+				"id": "promoFold900001"
+			},
+			"filterForQualifierOnSale": null,
+			"priceListGroups": [
+				{
+					"id": "princessAutoDefaultPriceGroup"
+				}
+			],
+			"translations": {
+				"items": [
+					{
+						"displayName": "Royal Service Free Shipping - Batch 18",
+						"description": "<p>Free shipping for PER 479<\/p>",
+						"lang": "en"
+					}
+				]
+			},
+			"oneUsePerOrder": false,
+			"audiences": [],
+			"id": "promo510036",
+			"filterForQualifierActedAsQualifier": null,
+			"giveToAnonymousProfiles": true,
+			"closenessQualifiers": [],
+			"shippingMethods": [
+				"100009",
+				"200001",
+				"100003",
+				"100004",
+				"100005",
+				"100006",
+				"100008"
+			],
+			"targetAmount": null,
+			"priority": 1,
+			"filterForQualifierDiscountedByAny": null,
+			"excludedPromotions": [],
+			"templatePath": "shipping",
+			"maxUsesPerUser": -1,
+			"unqualifiedMessages": [],
+			"allowMultiple": true,
+			"templateName": "getShippingDiscount",
+			"qualifiedMessages": [],
+			"uses": 1,
+			"stackingRule": null,
+			"maxUsesPerOrder": 1,
+			"startDate": null,
+			"targetQuantity": null
+		},
+		{
+			"template": "/shipping/getShippingDiscount.pmdt",
+			"filterForQualifierZeroPrices": null,
+			"endDate": null,
+			"displayName": "Royal Service Free Shipping - Batch 19",
+			"templateValues": {
+				"discount_value": "100",
+				"discount_type_value": "percentOff"
+			},
+			"description": "<p>Free shipping for PER 479<\/p>",
+			"global": false,
+			"sites": [],
+			"maxUsesPerAccount": -1,
+			"type": 5,
+			"enabled": true,
+			"filterForQualifierNegativePrices": null,
+			"cardIINRanges": [],
+			"parentFolder": {
+				"id": "promoFold900001"
+			},
+			"filterForQualifierOnSale": null,
+			"priceListGroups": [
+				{
+					"id": "princessAutoDefaultPriceGroup"
+				}
+			],
+			"translations": {
+				"items": [
+					{
+						"displayName": "Royal Service Free Shipping - Batch 19",
+						"description": "<p>Free shipping for PER 479<\/p>",
+						"lang": "en"
+					}
+				]
+			},
+			"oneUsePerOrder": false,
+			"audiences": [],
+			"id": "promo510037",
+			"filterForQualifierActedAsQualifier": null,
+			"giveToAnonymousProfiles": true,
+			"closenessQualifiers": [],
+			"shippingMethods": [
+				"100009",
+				"200001",
+				"100003",
+				"100004",
+				"100005",
+				"100006",
+				"100008"
+			],
+			"targetAmount": null,
+			"priority": 1,
+			"filterForQualifierDiscountedByAny": null,
+			"excludedPromotions": [],
+			"templatePath": "shipping",
+			"maxUsesPerUser": -1,
+			"unqualifiedMessages": [],
+			"allowMultiple": true,
+			"templateName": "getShippingDiscount",
+			"qualifiedMessages": [],
+			"uses": 1,
+			"stackingRule": null,
+			"maxUsesPerOrder": 1,
+			"startDate": null,
+			"targetQuantity": null
+		},
+		{
+			"template": "/order/tieredOrderDiscount.pmdt",
+			"filterForQualifierZeroPrices": null,
+			"endDate": null,
+			"displayName": "LevyTest",
+			"templateValues": {
+				"discountStructure": {
+					"discount_details": [
+						{
+							"spend_value": "10",
+							"discount_value": "15"
+						}
+					],
+					"discount_type_value": "percentOff"
+				}
+			},
+			"description": null,
+			"global": false,
+			"sites": [],
+			"maxUsesPerAccount": -1,
+			"type": 9,
+			"enabled": false,
+			"filterForQualifierNegativePrices": null,
+			"cardIINRanges": [],
+			"parentFolder": null,
+			"filterForQualifierOnSale": null,
+			"priceListGroups": [
+				{
+					"id": "princessAutoDefaultPriceGroup"
+				}
+			],
+			"translations": {
+				"items": [
+					{
+						"displayName": "LevyTest",
+						"description": null,
+						"lang": "en"
+					}
+				]
+			},
+			"audiences": [],
+			"id": "promo550001",
+			"filterForQualifierActedAsQualifier": null,
+			"giveToAnonymousProfiles": true,
+			"closenessQualifiers": [],
+			"shippingMethods": [],
+			"targetAmount": null,
+			"priority": 1,
+			"filterForQualifierDiscountedByAny": null,
+			"excludedPromotions": [],
+			"templatePath": "order",
+			"maxUsesPerUser": -1,
+			"unqualifiedMessages": [],
+			"allowMultiple": true,
+			"templateName": "tieredOrderDiscount",
+			"qualifiedMessages": [],
+			"uses": 1,
+			"stackingRule": null,
+			"maxUsesPerOrder": -1,
+			"startDate": null,
+			"targetQuantity": null
+		},
+		{
+			"template": "/shipping/getShippingDiscount.pmdt",
+			"filterForQualifierZeroPrices": null,
+			"endDate": null,
+			"displayName": "Royal Service Free Shipping - Batch 20",
+			"templateValues": {
+				"discount_value": "100",
+				"discount_type_value": "percentOff"
+			},
+			"description": "<p>Free shipping for PER 479<\/p>",
+			"global": false,
+			"sites": [],
+			"maxUsesPerAccount": -1,
+			"type": 5,
+			"enabled": true,
+			"filterForQualifierNegativePrices": null,
+			"cardIINRanges": [],
+			"parentFolder": {
+				"id": "promoFold900001"
+			},
+			"filterForQualifierOnSale": null,
+			"priceListGroups": [
+				{
+					"id": "princessAutoDefaultPriceGroup"
+				}
+			],
+			"translations": {
+				"items": [
+					{
+						"displayName": "Royal Service Free Shipping - Batch 20",
+						"description": "<p>Free shipping for PER 479<\/p>",
+						"lang": "en"
+					}
+				]
+			},
+			"oneUsePerOrder": false,
+			"audiences": [],
+			"id": "promo550002",
+			"filterForQualifierActedAsQualifier": null,
+			"giveToAnonymousProfiles": true,
+			"closenessQualifiers": [],
+			"shippingMethods": [
+				"100009",
+				"100003",
+				"200001",
+				"100008"
+			],
+			"targetAmount": null,
+			"priority": 1,
+			"filterForQualifierDiscountedByAny": null,
+			"excludedPromotions": [],
+			"templatePath": "shipping",
+			"maxUsesPerUser": -1,
+			"unqualifiedMessages": [],
+			"allowMultiple": true,
+			"templateName": "getShippingDiscount",
+			"qualifiedMessages": [],
+			"uses": 1,
+			"stackingRule": null,
+			"maxUsesPerOrder": 1,
+			"startDate": null,
+			"targetQuantity": null
+		},
+		{
+			"template": "/shipping/getShippingDiscount.pmdt",
+			"filterForQualifierZeroPrices": null,
+			"endDate": null,
+			"displayName": "Royal Service Free Shipping - Batch 21",
+			"templateValues": {
+				"discount_value": "100",
+				"discount_type_value": "percentOff"
+			},
+			"description": "<p>Free shipping for PER 479<\/p>",
+			"global": false,
+			"sites": [],
+			"maxUsesPerAccount": -1,
+			"type": 5,
+			"enabled": true,
+			"filterForQualifierNegativePrices": null,
+			"cardIINRanges": [],
+			"parentFolder": {
+				"id": "promoFold900001"
+			},
+			"filterForQualifierOnSale": null,
+			"priceListGroups": [
+				{
+					"id": "princessAutoDefaultPriceGroup"
+				}
+			],
+			"translations": {
+				"items": [
+					{
+						"displayName": "Royal Service Free Shipping - Batch 21",
+						"description": "<p>Free shipping for PER 479<\/p>",
+						"lang": "en"
+					}
+				]
+			},
+			"oneUsePerOrder": false,
+			"audiences": [],
+			"id": "promo550003",
+			"filterForQualifierActedAsQualifier": null,
+			"giveToAnonymousProfiles": true,
+			"closenessQualifiers": [],
+			"shippingMethods": [
+				"100009",
+				"200001",
+				"100003"
+			],
+			"targetAmount": null,
+			"priority": 1,
+			"filterForQualifierDiscountedByAny": null,
+			"excludedPromotions": [],
+			"templatePath": "shipping",
+			"maxUsesPerUser": -1,
+			"unqualifiedMessages": [],
+			"allowMultiple": true,
+			"templateName": "getShippingDiscount",
+			"qualifiedMessages": [],
+			"uses": 1,
+			"stackingRule": null,
+			"maxUsesPerOrder": 1,
+			"startDate": null,
+			"targetQuantity": null
+		},
+		{
+			"template": "/order/tieredOrderDiscount.pmdt",
+			"filterForQualifierZeroPrices": null,
+			"endDate": null,
+			"displayName": "JOLIETTE-GO",
+			"templateValues": {
+				"discountStructure": {
+					"discount_details": [
+						{
+							"spend_value": "0",
+							"discount_value": "10"
+						}
+					],
+					"discount_type_value": "amountOff"
+				}
+			},
+			"description": "<p>$10 off for Joliette grand opening. Customers sign up to our mailing list to get a unique promo code.&nbsp;<\/p>",
+			"global": false,
+			"sites": [],
+			"maxUsesPerAccount": -1,
+			"type": 9,
+			"enabled": true,
+			"filterForQualifierNegativePrices": null,
+			"cardIINRanges": [],
+			"parentFolder": {
+				"id": "promoFold400003"
+			},
+			"filterForQualifierOnSale": null,
+			"priceListGroups": [
+				{
+					"id": "princessAutoDefaultPriceGroup"
+				}
+			],
+			"translations": {
+				"items": [
+					{
+						"displayName": "JOLIETTE-GO",
+						"description": "<p>$10 off for Joliette grand opening. Customers sign up to our mailing list to get a unique promo code.&nbsp;<\/p>",
+						"lang": "en"
+					}
+				]
+			},
+			"audiences": [],
+			"id": "promo580003",
+			"filterForQualifierActedAsQualifier": null,
+			"giveToAnonymousProfiles": true,
+			"closenessQualifiers": [],
+			"shippingMethods": [],
+			"targetAmount": null,
+			"priority": 1,
+			"filterForQualifierDiscountedByAny": null,
+			"excludedPromotions": [],
+			"templatePath": "order",
+			"maxUsesPerUser": -1,
+			"unqualifiedMessages": [],
+			"allowMultiple": true,
+			"templateName": "tieredOrderDiscount",
+			"qualifiedMessages": [],
+			"uses": 1,
+			"stackingRule": null,
+			"maxUsesPerOrder": 1,
+			"startDate": null,
+			"targetQuantity": null
+		},
+		{
+			"template": "/order/tieredOrderDiscount.pmdt",
+			"filterForQualifierZeroPrices": null,
+			"endDate": null,
+			"displayName": "Testing - Spend Y Code",
+			"templateValues": {
+				"discountStructure": {
+					"discount_details": [
+						{
+							"spend_value": "10",
+							"discount_value": "2"
+						}
+					],
+					"discount_type_value": "amountOff"
+				}
+			},
+			"description": null,
+			"global": false,
+			"sites": [],
+			"maxUsesPerAccount": -1,
+			"type": 9,
+			"enabled": true,
+			"filterForQualifierNegativePrices": null,
+			"cardIINRanges": [],
+			"parentFolder": null,
+			"filterForQualifierOnSale": null,
+			"priceListGroups": [
+				{
+					"id": "princessAutoDefaultPriceGroup"
+				}
+			],
+			"translations": {
+				"items": [
+					{
+						"displayName": "Testing - Spend Y Code",
+						"description": null,
+						"lang": "en"
+					}
+				]
+			},
+			"audiences": [],
+			"id": "promo580004",
+			"filterForQualifierActedAsQualifier": null,
+			"giveToAnonymousProfiles": true,
+			"closenessQualifiers": [],
+			"shippingMethods": [],
+			"targetAmount": null,
+			"priority": 1,
+			"filterForQualifierDiscountedByAny": null,
+			"excludedPromotions": [],
+			"templatePath": "order",
+			"maxUsesPerUser": -1,
+			"unqualifiedMessages": [],
+			"allowMultiple": true,
+			"templateName": "tieredOrderDiscount",
+			"qualifiedMessages": [],
+			"uses": 1,
+			"stackingRule": null,
+			"maxUsesPerOrder": -1,
+			"startDate": null,
+			"targetQuantity": null
+		},
+		{
+			"template": "/order/tieredOrderDiscount.pmdt",
+			"filterForQualifierZeroPrices": null,
+			"endDate": null,
+			"displayName": "Spend 75, Save15",
+			"templateValues": {
+				"discountStructure": {
+					"discount_details": [
+						{
+							"spend_value": "75",
+							"discount_value": "15"
+						}
+					],
+					"discount_type_value": "amountOff"
+				}
+			},
+			"description": "<p>Fall 2024-Winter 2025<\/p>",
+			"global": false,
+			"sites": [],
+			"maxUsesPerAccount": -1,
+			"type": 9,
+			"enabled": true,
+			"filterForQualifierNegativePrices": null,
+			"cardIINRanges": [],
+			"parentFolder": {
+				"id": "promoFold1000001"
+			},
+			"filterForQualifierOnSale": null,
+			"priceListGroups": [
+				{
+					"id": "princessAutoDefaultPriceGroup"
+				}
+			],
+			"translations": {
+				"items": [
+					{
+						"displayName": "Spend 75, Save15",
+						"description": "<p>Fall 2024-Winter 2025<\/p>",
+						"lang": "en"
+					}
+				]
+			},
+			"audiences": [],
+			"id": "promo600002",
+			"filterForQualifierActedAsQualifier": null,
+			"giveToAnonymousProfiles": true,
+			"closenessQualifiers": [],
+			"shippingMethods": [],
+			"targetAmount": null,
+			"priority": 1,
+			"filterForQualifierDiscountedByAny": null,
+			"excludedPromotions": [],
+			"templatePath": "order",
+			"maxUsesPerUser": -1,
+			"unqualifiedMessages": [],
+			"allowMultiple": true,
+			"templateName": "tieredOrderDiscount",
+			"qualifiedMessages": [],
+			"uses": 1,
+			"stackingRule": null,
+			"maxUsesPerOrder": 1,
+			"startDate": null,
+			"targetQuantity": null
+		},
+		{
+			"template": "/order/tieredOrderDiscount.pmdt",
+			"filterForQualifierZeroPrices": null,
+			"endDate": null,
+			"displayName": "Dépenser 75, Épargner 15",
+			"templateValues": {
+				"discountStructure": {
+					"discount_details": [
+						{
+							"spend_value": "75",
+							"discount_value": "15"
+						}
+					],
+					"discount_type_value": "amountOff"
+				}
+			},
+			"description": "<p>Fall 2024-Winter 2025<\/p>",
+			"global": false,
+			"sites": [],
+			"maxUsesPerAccount": -1,
+			"type": 9,
+			"enabled": true,
+			"filterForQualifierNegativePrices": null,
+			"cardIINRanges": [],
+			"parentFolder": {
+				"id": "promoFold1000001"
+			},
+			"filterForQualifierOnSale": null,
+			"priceListGroups": [
+				{
+					"id": "princessAutoDefaultPriceGroup"
+				}
+			],
+			"translations": {
+				"items": [
+					{
+						"displayName": "Dépenser 75, Épargner 15",
+						"description": "<p>Fall 2024-Winter 2025<\/p>",
+						"lang": "en"
+					}
+				]
+			},
+			"audiences": [],
+			"id": "promo600003",
+			"filterForQualifierActedAsQualifier": null,
+			"giveToAnonymousProfiles": true,
+			"closenessQualifiers": [],
+			"shippingMethods": [],
+			"targetAmount": null,
+			"priority": 1,
+			"filterForQualifierDiscountedByAny": null,
+			"excludedPromotions": [],
+			"templatePath": "order",
+			"maxUsesPerUser": -1,
+			"unqualifiedMessages": [],
+			"allowMultiple": true,
+			"templateName": "tieredOrderDiscount",
+			"qualifiedMessages": [],
+			"uses": 1,
+			"stackingRule": null,
+			"maxUsesPerOrder": 1,
+			"startDate": null,
+			"targetQuantity": null
+		},
+		{
+			"template": "/order/buyXGetOrderDiscount.pmdt",
+			"filterForQualifierZeroPrices": null,
+			"endDate": null,
+			"displayName": "Save $15 On Your Order",
+			"templateValues": {
+				"discount_value": "15",
+				"PSC_value": {
+					"includedRuleSet": {},
+					"includedSkus": [],
+					"includedCategories": [],
+					"includedProducts": [],
+					"excludedSkus": [
+						"9999991"
+					],
+					"excludedRuleSet": {},
+					"excludedProducts": [
+						"GiftCard"
+					],
+					"excludedCategories": []
+				},
+				"discount_type_value": "amountOff",
+				"no_of_items_to_buy": "1"
+			},
+			"description": "<p>$15 off order for the NCC.<\/p>",
+			"global": false,
+			"sites": [],
+			"maxUsesPerAccount": -1,
+			"type": 9,
+			"enabled": true,
+			"filterForQualifierNegativePrices": null,
+			"cardIINRanges": [],
+			"parentFolder": {
+				"id": "promoFold400002"
+			},
+			"filterForQualifierOnSale": null,
+			"priceListGroups": [
+				{
+					"id": "princessAutoDefaultPriceGroup"
+				}
+			],
+			"translations": {
+				"items": [
+					{
+						"displayName": "Save $15 On Your Order",
+						"description": "<p>$15 off order for the NCC.<\/p>",
+						"lang": "en"
+					},
+					{
+						"displayName": "Épargnez 15 $ sur votre commande",
+						"description": null,
+						"lang": "fr_CA"
+					}
+				]
+			},
+			"audiences": [],
+			"id": "promo610024",
+			"filterForQualifierActedAsQualifier": null,
+			"giveToAnonymousProfiles": true,
+			"closenessQualifiers": [],
+			"shippingMethods": [],
+			"targetAmount": null,
+			"priority": 1,
+			"filterForQualifierDiscountedByAny": null,
+			"excludedPromotions": [],
+			"templatePath": "order",
+			"maxUsesPerUser": -1,
+			"unqualifiedMessages": [],
+			"allowMultiple": true,
+			"templateName": "buyXGetOrderDiscount",
+			"qualifiedMessages": [],
+			"uses": 1,
+			"stackingRule": null,
+			"maxUsesPerOrder": -1,
+			"startDate": null,
+			"targetQuantity": 1
+		},
+		{
+			"template": "/order/tieredOrderDiscount.pmdt",
+			"filterForQualifierZeroPrices": null,
+			"endDate": null,
+			"displayName": "TROIS-RIVIERES-GO",
+			"templateValues": {
+				"discountStructure": {
+					"discount_details": [
+						{
+							"spend_value": "0",
+							"discount_value": "10"
+						}
+					],
+					"discount_type_value": "amountOff"
+				}
+			},
+			"description": "<p>$10 off for Trois Rivieres grand opening. Customers sign up to our mailing list to get a unique promo code.&nbsp;<\/p>",
+			"global": false,
+			"sites": [],
+			"maxUsesPerAccount": -1,
+			"type": 9,
+			"enabled": true,
+			"filterForQualifierNegativePrices": null,
+			"cardIINRanges": [],
+			"parentFolder": {
+				"id": "promoFold400003"
+			},
+			"filterForQualifierOnSale": null,
+			"priceListGroups": [
+				{
+					"id": "princessAutoDefaultPriceGroup"
+				}
+			],
+			"translations": {
+				"items": [
+					{
+						"displayName": "TROIS-RIVIERES-GO",
+						"description": "<p>$10 off for Trois Rivieres grand opening. Customers sign up to our mailing list to get a unique promo code.&nbsp;<\/p>",
+						"lang": "en"
+					}
+				]
+			},
+			"audiences": [],
+			"id": "promo630004",
+			"filterForQualifierActedAsQualifier": null,
+			"giveToAnonymousProfiles": true,
+			"closenessQualifiers": [],
+			"shippingMethods": [],
+			"targetAmount": null,
+			"priority": 1,
+			"filterForQualifierDiscountedByAny": null,
+			"excludedPromotions": [],
+			"templatePath": "order",
+			"maxUsesPerUser": -1,
+			"unqualifiedMessages": [],
+			"allowMultiple": true,
+			"templateName": "tieredOrderDiscount",
+			"qualifiedMessages": [],
+			"uses": 1,
+			"stackingRule": null,
+			"maxUsesPerOrder": 1,
+			"startDate": null,
+			"targetQuantity": null
+		},
+		{
+			"template": "/shipping/getShippingDiscount.pmdt",
+			"filterForQualifierZeroPrices": null,
+			"endDate": null,
+			"displayName": "Royal Service Free Shipping - Batch 22",
+			"templateValues": {
+				"discount_value": "100",
+				"discount_type_value": "percentOff"
+			},
+			"description": null,
+			"global": false,
+			"sites": [],
+			"maxUsesPerAccount": -1,
+			"type": 5,
+			"enabled": true,
+			"filterForQualifierNegativePrices": null,
+			"cardIINRanges": [],
+			"parentFolder": {
+				"id": "promoFold900001"
+			},
+			"filterForQualifierOnSale": null,
+			"priceListGroups": [
+				{
+					"id": "princessAutoDefaultPriceGroup"
+				}
+			],
+			"translations": {
+				"items": [
+					{
+						"displayName": "Royal Service Free Shipping - Batch 22",
+						"description": null,
+						"lang": "en"
+					}
+				]
+			},
+			"oneUsePerOrder": false,
+			"audiences": [],
+			"id": "promo640002",
+			"filterForQualifierActedAsQualifier": null,
+			"giveToAnonymousProfiles": true,
+			"closenessQualifiers": [],
+			"shippingMethods": [
+				"100009",
+				"200001",
+				"100003"
+			],
+			"targetAmount": null,
+			"priority": 1,
+			"filterForQualifierDiscountedByAny": null,
+			"excludedPromotions": [],
+			"templatePath": "shipping",
+			"maxUsesPerUser": -1,
+			"unqualifiedMessages": [],
+			"allowMultiple": true,
+			"templateName": "getShippingDiscount",
+			"qualifiedMessages": [],
+			"uses": 1,
+			"stackingRule": null,
+			"maxUsesPerOrder": 1,
+			"startDate": null,
+			"targetQuantity": null
+		}
+	]
+}

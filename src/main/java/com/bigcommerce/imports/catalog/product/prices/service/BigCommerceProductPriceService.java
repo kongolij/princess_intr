@@ -32,33 +32,37 @@ public class BigCommerceProductPriceService {
 			Map<String, Pair<Integer, Integer>> skuToIdsMap = new HashMap<>();
 			for (int i = 0; i < skus.size(); i += 50) {
 				List<String> chunk = skus.subList(i, Math.min(i + 50, skus.size()));
-				Map<String, Pair<Integer, Integer>> chunkMap = bigCommerceRepository.getVariantProductAndIdsBySkus(chunk);
+				Map<String, Pair<Integer, Integer>> chunkMap = bigCommerceRepository
+						.getVariantProductAndIdsBySkus(chunk);
 				skuToIdsMap.putAll(chunkMap);
 			}
 
 			// 3. Update prices per variant
 			for (VariantPrice vp : variantPrices) {
-	            Pair<Integer, Integer> ids = skuToIdsMap.get(vp.getSkuBr());
+				Pair<Integer, Integer> ids = skuToIdsMap.get(vp.getSkuBr());
 
-	            if (ids == null) {
-	                System.err.printf("❌ SKU not found in BC: %s%n", vp.getSkuBr());
-	                continue;
-	            }
+				if (ids == null) {
+//	                System.err.printf("❌ SKU not found in BC: %s%n", vp.getSkuBr());
+					continue;
+				} else {
+					System.out.println(" SKU  found in BC" + vp.getSkuBr());
+				}
 
-	            int productId = ids.getLeft();
-	            int variantId = ids.getRight();
+				int productId = ids.getLeft();
+				int variantId = ids.getRight();
 
-	            boolean success = bigCommerceRepository.updateVariantPrice(productId, variantId, vp.getListPrice(), vp.getSalePrice());
+				boolean success = bigCommerceRepository.updateVariantPrice(productId, variantId, vp.getListPrice(),
+						vp.getSalePrice());
 
-	            if (success) {
-	                System.out.printf("✅ Updated: SKU=%s | ProductID=%d | VariantID=%d | List=%.2f | Sale=%s%n",
-	                        vp.getSkuBr(), productId, variantId, vp.getListPrice(),
-	                        vp.getSalePrice() != null ? vp.getSalePrice() : "N/A");
-	            } else {
-	                System.err.printf("❌ Failed update: SKU=%s | ProductID=%d | VariantID=%d%n",
-	                        vp.getSkuBr(), productId, variantId);
-	            }
-	        }
+				if (success) {
+					System.out.printf("✅ Updated: SKU=%s | ProductID=%d | VariantID=%d | List=%.2f | Sale=%s%n",
+							vp.getSkuBr(), productId, variantId, vp.getListPrice(),
+							vp.getSalePrice() != null ? vp.getSalePrice() : "N/A");
+				} else {
+					System.err.printf("❌ Failed update: SKU=%s | ProductID=%d | VariantID=%d%n", vp.getSkuBr(),
+							productId, variantId);
+				}
+			}
 
 		} catch (Exception e) {
 			System.err.println("💥 Exception while updating variant prices: " + e.getMessage());

@@ -14,22 +14,17 @@ import java.util.stream.Collectors;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
+import com.bigcommerce.imports.catalog.constants.BigCommerceStoreConfig;
 import com.bigcommerce.imports.catalog.constants.CategoryFeedHeaders;
 import com.bigcommerce.imports.catalog.constants.LocaleConstants;
 import com.bigcommerce.imports.catalog.dto.CategoryNode;
 import com.bigcommerce.imports.catalog.service.BigCommerceService;
 import com.opencsv.CSVReader;
 
-@Component
+//@Component
 public class ImportCategoryTreeFromCVS implements CommandLineRunner {
 
 	private final BigCommerceService bigCommerceCategoryService;
-	
-//	static int CATEGOU_TREE_ID=7;  // jimmy store
-//    static int CATEGOU_TREE_ID=2;  // PAL store
-    public static int CATEGOU_TREE_ID=2;  // EPAM-PAL-DE store
-//    static int CATEGOU_TREE_ID=2;  // PAL store
-	
 
 	public ImportCategoryTreeFromCVS(BigCommerceService bigCommerceCategoryService) {
 
@@ -41,7 +36,7 @@ public class ImportCategoryTreeFromCVS implements CommandLineRunner {
 
 		long startTime = System.currentTimeMillis(); // Start timing
 
-		InputStream inputStream = getClass().getClassLoader().getResourceAsStream("Collections_20250324194123.csv");
+		InputStream inputStream = getClass().getClassLoader().getResourceAsStream("Collections_20250519195150.csv");
 
 		if (inputStream == null) {
 			System.err.println("❌ CSV file not found in resources!");
@@ -58,11 +53,15 @@ public class ImportCategoryTreeFromCVS implements CommandLineRunner {
 
 			String[] headers = rows.get(0); // first row is header
 			List<CategoryNode> rootCategories = buildCategoryTree(rows, headers);
-			
-			
 
 			System.out.println("✅ Root categories: " + rootCategories.size());
-			// printCategoryTree(rootCategories, 0);
+//			printCategoryTree(rootCategories, 0);
+
+//			if (root != null) {
+//			    printCategoryTreeWithChildren(root);
+//			} else {
+//			    System.out.println("❌ Root category not found.");
+//			}
 
 			int totalCount = countTotalNodes(rootCategories);
 			int longEnCount = countLongNames(rootCategories, "en");
@@ -77,15 +76,19 @@ public class ImportCategoryTreeFromCVS implements CommandLineRunner {
 			truncateLongEnglishNames(rootCategories, 50);
 
 //			Map<String, Integer> categoriesForTheChannel = bigCommerceCategoryService.getFlattenedCategoryNameToIdMap("en",7);
+
 			Map<String, Integer> categoriesForTheChannel1 = bigCommerceCategoryService
 					.getBCExternalToInternalCategoryMap("en");
+
+//			Map<String, Integer> categoriesForTheChannel1 = new HashMap<>();
 //			checkDuplicateNames(rootCategories);
 
 //			System.out.println("✅ Existing Category count : " + categoriesForTheChannel.size());
 			System.out.println("✅ Existing Category count IDS : " + categoriesForTheChannel1.size());
-			
-			printUnmatchedCategories( rootCategories, categoriesForTheChannel1, "en");
-			bigCommerceCategoryService.importCategoryTreeInThreads(rootCategories, "en", CATEGOU_TREE_ID, categoriesForTheChannel1);
+
+//			printUnmatchedCategories(rootCategories, categoriesForTheChannel1, "en");
+			bigCommerceCategoryService.importCategoryTreeInThreads(rootCategories, "en",
+					BigCommerceStoreConfig.CATEGORY_TREE_ID, categoriesForTheChannel1);
 
 			int missingImageCount = countMissingImages(rootCategories);
 			System.out.println("🖼️ Categories missing imageFileName: " + missingImageCount);
@@ -94,7 +97,7 @@ public class ImportCategoryTreeFromCVS implements CommandLineRunner {
 			long durationMillis = endTime - startTime;
 			double durationMinutes = durationMillis / 1000.0 / 60.0;
 
-			System.out.println("✅ Done! runnig time in min " + durationMinutes); 
+			System.out.println("✅ Done! runnig time in min " + durationMinutes);
 			System.exit(0);
 
 		} catch (Exception e) {
@@ -110,7 +113,6 @@ public class ImportCategoryTreeFromCVS implements CommandLineRunner {
 		for (int i = 1; i < rows.size(); i++) {
 			String[] row = rows.get(i);
 
-		
 			String id = getValue(headers, row, CategoryFeedHeaders.ID);
 			String name = getValue(headers, row, CategoryFeedHeaders.DISPLAY_NAME_EN);
 			if (name != null && name.length() > 50) {
@@ -121,25 +123,19 @@ public class ImportCategoryTreeFromCVS implements CommandLineRunner {
 			String description = getValue(headers, row, CategoryFeedHeaders.DESCRIPTION_EN);
 			String frDescription = getValue(headers, row, CategoryFeedHeaders.DISPLAY_NAME_FR);
 			String slug = getValue(headers, row, CategoryFeedHeaders.SEO_URL_SLUG);
-			
+
 			String isActive = getValue(headers, row, CategoryFeedHeaders.ACTIVE);
 			boolean isActiveAsBoolean = "TRUE".equalsIgnoreCase(isActive);
 
-	
 			String rawImageFileNames = getValue(headers, row, CategoryFeedHeaders.IMAGE_FILE_NAMES);
 			// we will pick up one first filename
 			String imageFileName = (rawImageFileNames != null && !rawImageFileNames.isBlank())
-			        ? rawImageFileNames.split(",")[0].trim()
-			        : null;
-			
-			
-			CategoryNode node = new CategoryNode(id, 
-					name, Map.of(LocaleConstants.EN, name, LocaleConstants.FR, frName), 
-					null, 
-					description,Map.of(LocaleConstants.EN, description, LocaleConstants.FR, frDescription), 
-					slug, 
-					new ArrayList<>()
-					);
+					? rawImageFileNames.split(",")[0].trim()
+					: null;
+
+			CategoryNode node = new CategoryNode(id, name, Map.of(LocaleConstants.EN, name, LocaleConstants.FR, frName),
+					null, description, Map.of(LocaleConstants.EN, description, LocaleConstants.FR, frDescription), slug,
+					new ArrayList<>());
 
 			node.setActive(isActiveAsBoolean);
 			node.setImageFileName(imageFileName);
@@ -174,7 +170,40 @@ public class ImportCategoryTreeFromCVS implements CommandLineRunner {
 	private static void printCategoryTree(List<CategoryNode> nodes, int level) {
 		for (CategoryNode node : nodes) {
 			System.out.println("  ".repeat(level) + node.getId() + " " + node.getSlug());
+//			"320-000-000-000"
+
 			printCategoryTree(node.getChildren(), level + 1);
+		}
+	}
+
+	private static CategoryNode findCategoryNodeById(List<CategoryNode> nodes, String targetId) {
+		for (CategoryNode node : nodes) {
+			if (targetId.equals(node.getId())) {
+				return node;
+			}
+			CategoryNode found = findCategoryNodeById(node.getChildren(), targetId);
+			if (found != null) {
+				return found;
+			}
+		}
+		return null;
+	}
+
+	private static void printCategoryTreeWithChildren(CategoryNode node) {
+		System.out.println("Category: " + node.getName() + " (" + node.getId() + ")");
+
+		List<CategoryNode> children = node.getChildren();
+		if (children == null || children.isEmpty()) {
+			System.out.println("Children: []");
+		} else {
+			List<String> childIds = children.stream().map(CategoryNode::getId).toList();
+			System.out.println("Children: " + childIds);
+		}
+
+		System.out.println(); // extra line for readability
+
+		for (CategoryNode child : children) {
+			printCategoryTreeWithChildren(child);
 		}
 	}
 
@@ -300,55 +329,54 @@ public class ImportCategoryTreeFromCVS implements CommandLineRunner {
 			collectNamesRecursive(node.getChildren(), nameToIds);
 		}
 	}
-	
-	
-	private void printUnmatchedCategories(List<CategoryNode> rootCategories, Map<String, Integer> existingCategoryMap, String locale) {
-	    List<String> unmatchedDetails = new ArrayList<>();
-	    collectUnmatchedCategoryExternalIds(rootCategories, existingCategoryMap, locale, unmatchedDetails);
 
-	    if (unmatchedDetails.isEmpty()) {
-	        System.out.println("✅ All external IDs from CSV matched existing BigCommerce categories.");
-	    } else {
-	        System.out.println("❌ Categories with external IDs not found in BigCommerce:");
-	        unmatchedDetails.forEach(System.out::println);
-	        System.out.println("❌ Total unmatched: " + unmatchedDetails.size());
-	    }
+	private void printUnmatchedCategories(List<CategoryNode> rootCategories, Map<String, Integer> existingCategoryMap,
+			String locale) {
+		List<String> unmatchedDetails = new ArrayList<>();
+		collectUnmatchedCategoryExternalIds(rootCategories, existingCategoryMap, locale, unmatchedDetails);
+
+		if (unmatchedDetails.isEmpty()) {
+			System.out.println("✅ All external IDs from CSV matched existing BigCommerce categories.");
+		} else {
+			System.out.println("❌ Categories with external IDs not found in BigCommerce:");
+			unmatchedDetails.forEach(System.out::println);
+			System.out.println("❌ Total unmatched: " + unmatchedDetails.size());
+		}
 	}
 
-	private void collectUnmatchedCategoryExternalIds(List<CategoryNode> nodes, Map<String, Integer> existingCategoryMap, String locale, List<String> unmatchedDetails) {
-	    for (CategoryNode node : nodes) {
-	        String externalId = node.getId(); // or getId(), depending on your model
-	        String displayName = node.getName();
+	private void collectUnmatchedCategoryExternalIds(List<CategoryNode> nodes, Map<String, Integer> existingCategoryMap,
+			String locale, List<String> unmatchedDetails) {
+		for (CategoryNode node : nodes) {
+			String externalId = node.getId(); // or getId(), depending on your model
+			String displayName = node.getName();
 
-	        if (externalId != null && !existingCategoryMap.containsKey(externalId)) {
-	            unmatchedDetails.add("ID: " + externalId + ", Name: " + displayName);
-	        }
+			if (externalId != null && !existingCategoryMap.containsKey(externalId)) {
+				unmatchedDetails.add("ID: " + externalId + ", Name: " + displayName);
+			}
 
-	        if (node.getChildren() != null && !node.getChildren().isEmpty()) {
-	            collectUnmatchedCategoryExternalIds(node.getChildren(), existingCategoryMap, locale, unmatchedDetails);
-	        }
-	    }
+			if (node.getChildren() != null && !node.getChildren().isEmpty()) {
+				collectUnmatchedCategoryExternalIds(node.getChildren(), existingCategoryMap, locale, unmatchedDetails);
+			}
+		}
 	}
 
 	private int countMissingImages(List<CategoryNode> nodes) {
-	    int[] count = {0};
-	    for (CategoryNode node : nodes) {
-	        countMissingImagesRecursive(node, count);
-	    }
-	    return count[0];
+		int[] count = { 0 };
+		for (CategoryNode node : nodes) {
+			countMissingImagesRecursive(node, count);
+		}
+		return count[0];
 	}
 
 	private void countMissingImagesRecursive(CategoryNode node, int[] count) {
-	    String imageFileName = node.getImageFileName();
-	    if (imageFileName == null || imageFileName.isBlank()) {
-	        count[0]++;
-	    }
+		String imageFileName = node.getImageFileName();
+		if (imageFileName == null || imageFileName.isBlank()) {
+			count[0]++;
+		}
 
-	    for (CategoryNode child : node.getChildren()) {
-	        countMissingImagesRecursive(child, count);
-	    }
+		for (CategoryNode child : node.getChildren()) {
+			countMissingImagesRecursive(child, count);
+		}
 	}
-	
-	
 
 }

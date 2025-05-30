@@ -16,8 +16,6 @@ servers:
 tags:
 -  name: Shopping Lists
    description: Operations related to shopping lists
-security:
--  bearerAuth: []
 paths:
    /shopping-lists:
       get:
@@ -26,9 +24,10 @@ paths:
          operationId: queryShoppingLists
          tags:
          - Shopping Lists
+         security:
+         -  bearerAuth: []
          parameters:
          -  $ref: '#/components/parameters/OcpApimSubscriptionKey'
-         -  $ref: '#/components/parameters/Authorization'
          -  $ref: '#/components/parameters/MyStoreId'
          -  $ref: '#/components/parameters/Language'
          -  in: query
@@ -60,7 +59,7 @@ paths:
                content:
                   application/json:
                      schema:
-                        $ref: '#/components/schemas/PagedShoppingListsResponse'
+                        $ref: '#/components/schemas/ShoppingListPageOutput'
             400:
                description: Bad Request
                content:
@@ -70,7 +69,7 @@ paths:
                      examples:
                         InvalidQueryParameterExample:
                            value:
-                              error_code: SHOPPING_LIST_007_INVALID_REQUEST
+                              error_code: SHOPPING_LIST_009_INVALID_REQUEST
                               message: Invalid query parameters (limit must be between 0 and 50).
                               type: ValidationError
             '401':
@@ -99,9 +98,10 @@ paths:
          operationId: createShoppingList
          tags:
          - Shopping Lists
+         security:
+         -  bearerAuth: []
          parameters:
          -  $ref: '#/components/parameters/OcpApimSubscriptionKey'
-         -  $ref: '#/components/parameters/Authorization'
          -  $ref: '#/components/parameters/MyStoreId'
          -  $ref: '#/components/parameters/Language'
          -  in: query
@@ -115,14 +115,14 @@ paths:
             content:
                application/json:
                   schema:
-                     $ref: '#/components/schemas/CreateShoppingListRequest'
+                     $ref: '#/components/schemas/ShoppingListCreateInput'
          responses:
             '201':
                description: Shopping list successfully created.
                content:
                   application/json:
                      schema:
-                        $ref: '#/components/schemas/ShoppingListCreateResponse'
+                        $ref: '#/components/schemas/ShoppingListCreateOutput'
             '400':
                description: Bad Request
                content:
@@ -130,11 +130,13 @@ paths:
                      schema:
                         $ref: '#/components/schemas/ErrorResponse'
                      examples:
-                        Token has insufficent privileges:
-                           value:
-                              error_code: SHOPPING_LIST_002_DUPLICATE_NAME
-                              message: Shopping list with the same name already exists..
-                              type: ValidationError
+                        NameMissingValidation:
+                           $ref: '#/components/examples/NameMissingValidationExample'
+                        DescriptionMissingValidatio:
+                           $ref: '#/components/examples/DescriptionMissingValidationExample'
+                        DuplicateNameValidation:
+                           $ref: '#/components/examples/DuplicateNameValidationExample'    
+                               
             '401':
                description: Unauthorized
                content:
@@ -161,9 +163,10 @@ paths:
          operationId: getShoppingListById
          tags:
          - Shopping Lists
+         security:
+         -  bearerAuth: [] 
          parameters:
          -  $ref: '#/components/parameters/OcpApimSubscriptionKey'
-         -  $ref: '#/components/parameters/Authorization'
          -  $ref: '#/components/parameters/MyStoreId'
          -  $ref: '#/components/parameters/Language'
          -  in: path
@@ -178,7 +181,7 @@ paths:
                content:
                   application/json:
                      schema:
-                        $ref: '#/components/schemas/ShoppingListFull'
+                        $ref: '#/components/schemas/ShoppingListOutput'
             '404':
                description: Shopping list not found
                content:
@@ -189,7 +192,7 @@ paths:
                         NotFound:
                            summary: Shopping list not found
                            value:
-                              error_code: SHOPPING_LIST_008_NOT_FOUND
+                              error_code: SHOPPING_LIST_010_NOT_FOUND
                               type: NotFoundError
                               message: The requested shopping list could not be found.
             '401':
@@ -210,16 +213,15 @@ paths:
                      examples:
                         InternalServerError:
                            $ref: '#/components/examples/InternalServerErrorExample'
-      patch:
+      put:
          summary: Update shopping list
-         description: Partially updates the shopping list. You may update the name, description, or modify/add items without
+         description:  Updates the shopping list. You may update the name, description, or modify/add items without
             replacing the entire list. Items with an `id` will be updated; items without an `id` will be added.
          operationId: patchShoppingList
          tags:
          - Shopping Lists
          parameters:
          -  $ref: '#/components/parameters/OcpApimSubscriptionKey'
-         -  $ref: '#/components/parameters/Authorization'
          -  in: path
             name: id
             required: true
@@ -231,14 +233,14 @@ paths:
             content:
                application/json:
                   schema:
-                     $ref: '#/components/schemas/UpdateShoppingListRequest'
+                     $ref: '#/components/schemas/ShoppingListUpdateInput'
          responses:
             '200':
                description: OK
                content:
                   application/json:
                      schema:
-                        $ref: '#/components/schemas/ShoppingListSummary'
+                        $ref: '#/components/schemas/ShoppingListOutput'
             '400':
                description: Bad Request
                content:
@@ -251,6 +253,13 @@ paths:
                               error_code: SHOPPING_LIST_001_INVALID_INPUT
                               type: ValidationError
                               message: Provided data for patching is invalid or incomplete.
+                              
+                        NameMissingValidation:
+                           $ref: '#/components/examples/NameMissingValidationExample'
+                        DescriptionMissingValidatio:
+                           $ref: '#/components/examples/DescriptionMissingValidationExample'
+                        DuplicateNameValidation:
+                           $ref: '#/components/examples/DuplicateNameValidationExample'                
 
             '404':
                description: Shopping list not found
@@ -290,7 +299,6 @@ paths:
          - Shopping Lists
          parameters:
          -  $ref: '#/components/parameters/OcpApimSubscriptionKey'
-         -  $ref: '#/components/parameters/Authorization'
          -  in: path
             name: id
             required: true
@@ -301,17 +309,18 @@ paths:
             '204':
                description: No Content
             '400':
-               description: Bad Request
+               description: Invalid input – the shopping list ID is missing or malformed.
                content:
-                  application/json:
-                     schema:
-                        $ref: '#/components/schemas/ErrorResponse'
-                     examples:
-                        InvalidId:
-                           value:
-                              error_code: SHOPPING_LIST_001_INVALID_INPUT
-                              type: ValidationError
-                              message: Invalid shopping list ID format
+                 application/json:
+                    schema:
+                       $ref: '#/components/schemas/ErrorResponse'
+                    examples:
+                      InvalidShoppingListIdExample:
+                        summary: ID must be a valid integer greater than zero
+                        value:
+                          error_code: SHOPPING_LIST_001_INVALID_INPUT
+                          type: ValidationError
+                          message: The provided shopping list ID is invalid. It must be a positive integer.
             '404':
                description: Shopping list not found
                content:
@@ -321,7 +330,7 @@ paths:
                      examples:
                         NotFound:
                            value:
-                              error_code: SHOPPING_LIST_008_NOT_FOUND
+                              error_code: SHOPPING_LIST_010_NOT_FOUND
                               type: NotFoundError
                               message: The requested shopping list could not be found.
             '401':
@@ -352,7 +361,6 @@ paths:
          - Shopping List Items
          parameters:
          -  $ref: '#/components/parameters/OcpApimSubscriptionKey'
-         -  $ref: '#/components/parameters/Authorization'
          -  $ref: '#/components/parameters/Language'
          -  $ref: '#/components/parameters/MyStoreId'
          -  name: id
@@ -372,7 +380,7 @@ paths:
                            items:
                               type: array
                               items:
-                                 $ref: '#/components/schemas/ShoppingListLineItemExtended'
+                                 $ref: '#/components/schemas/ShoppingListItemOutput'
             '400':
                description: Invalid input
                content:
@@ -394,7 +402,7 @@ paths:
                     examples:
                       NotFound:
                          value:
-                           error_code: SHOPPING_LIST_008_NOT_FOUND
+                           error_code: SHOPPING_LIST_010_NOT_FOUND
                            type: NotFoundError
                            message: The requested shopping list could not be found.
             '401':
@@ -423,7 +431,6 @@ paths:
          - Shopping List Items
          parameters:
          -  $ref: '#/components/parameters/OcpApimSubscriptionKey'
-         -  $ref: '#/components/parameters/Authorization'
          -  name: id
             in: path
             required: true
@@ -440,14 +447,36 @@ paths:
                         items:
                            type: array
                            items:
-                              $ref: '#/components/schemas/CreateShoppingListLineItemRequest'
+                              $ref: '#/components/schemas/ShoppingListItemCreateInput'
          responses:
             '200':
                description: Items added successfully
+               content:
+                 application/json:
+                   schema:
+                      $ref: '#/components/schemas/ShoppingListOutput'
             '400':
                description: Invalid input
+               content:
+                 application/json:
+                     schema:
+                        $ref: '#/components/schemas/ErrorResponse'
+                     examples:  
+                        InvalidLineItem:
+                          $ref: '#/components/examples/InvalidLineItemExample' 
             '404':
                description: Shopping list not found
+               content:
+                  application/json: 
+                    schema:
+                     $ref: '#/components/schemas/ErrorResponse'
+                    examples:
+                      NotFound:
+                         value:
+                           error_code: SHOPPING_LIST_010_NOT_FOUND
+                           type: NotFoundError
+                           message: The requested shopping list could not be found.
+               
             '401':
                description: Unauthorized
                content:
@@ -476,7 +505,6 @@ paths:
          - Shopping List Items
          parameters:
          -  $ref: '#/components/parameters/OcpApimSubscriptionKey'
-         -  $ref: '#/components/parameters/Authorization'
          -  name: id
             in: path
             required: true
@@ -511,8 +539,19 @@ paths:
          responses:
             '200':
                description: Item updated successfully
+               content:
+                 application/json:
+                    schema:
+                      $ref: '#/components/schemas/ShoppingListItemOutput'          
             '400':
                description: Invalid input
+               content:
+                 application/json:
+                     schema:
+                        $ref: '#/components/schemas/ErrorResponse'
+                     examples:  
+                        InvalidLineItem:
+                          $ref: '#/components/examples/InvalidLineItemExample' 
             '404':
                description: Shopping list or item not found
             '401':
@@ -542,7 +581,6 @@ paths:
          - Shopping List Items
          parameters:
          -  $ref: '#/components/parameters/OcpApimSubscriptionKey'
-         -  $ref: '#/components/parameters/Authorization'
          -  name: id
             in: path
             required: true
@@ -593,13 +631,7 @@ components:
             - en
             - fr
          description: Language preference ("en" or "fr")
-      Authorization:
-         in: header
-         name: Authorization
-         required: true
-         description: JWT token
-         schema:
-            type: string
+     
       OcpApimSubscriptionKey:
          in: header
          name: Ocp-Apim-Subscription-Key
@@ -691,11 +723,21 @@ components:
                      type: integer
                      description: Available quantity at store
          required:
-
          - online
-      ShoppingListLineItem:
+         
+      ShoppingListItemBase:
          type: object
          properties:
+            id:
+               type: integer
+               description: Internal Shopping List Item ID (used for updates or deletions)
+               example: 123
+            sku:
+               type: string   
+            updatedAt:
+               type: integer
+               format: int64
+               description: Unix timestamp when the item was last updated    
             productId:
                type: integer
                description: Internal BigCommerce Product ID
@@ -713,21 +755,48 @@ components:
                type: string
                description: Public URL to the variant image if available; falls back to the product image otherwise
          required:
+         - sku
          - productId
          - variantId
          - productName
          - quantity
          
-      ShoppingListLineItemExtended:
+      ShoppingListUpdateInput:
+         type: object
+         description: Input payload for updating a shopping list (name, description, and line items).
+         properties:
+           name:
+             type: string
+             description: New name of the shopping list (optional)
+             pattern: ^(?!\s)[\x00-\x7F]{1,40}(?<!\s)$
+           description:
+             type: string
+             description: Updated description of the shopping list (optional)
+           items:
+             type: array
+             description: Optional list of items to update or add. Items with an `id` will be updated; items without will be added.
+             items:
+               $ref: '#/components/schemas/ShoppingListItemInput'
+         example:
+           name: "My shopping list Name"
+           description: "description"
+           items:
+            - productId: 140
+              variantId: 2049
+              quantity: 2
+            - productId: 132
+              variantId: 1935
+              quantity: 1
+         required: 
+           -name
+           -description
+         
+      
+      ShoppingListItemOutput:
          allOf:
-         -  $ref: '#/components/schemas/ShoppingListLineItem'
+         -  $ref: '#/components/schemas/ShoppingListItemBase'
          -  type: object
-
             properties:
-               updatedAt:
-                  type: string
-                  format: date-time
-                  description: When the item was added to the wishlist
                options:
                   type: array
                   description: List of selected options for the variant (localized based on requested language)
@@ -752,8 +821,14 @@ components:
                   - price
                availability:
                   $ref: '#/components/schemas/Availability'
+               hotBuy:
+                  type: boolean
+                  description: Indicates if the item is currently on Hot Buy promotion
+               clearance:
+                  type: boolean
+                  description: Indicates if the item is marked as a clearance item   
            
-      ShoppingListSummary:
+      ShoppingListSummaryOutput:
          type: object
          properties:
             id:
@@ -765,49 +840,58 @@ components:
             numberOfLines:
                type: integer
                description: Total number of items (line entries) in the wishlist
-            lastUpdatedDate:
-               type: string
-               format: date-time
-               description: ISO8601 timestamp (UTC) when the shopping list was last updated
+            updatedAt:
+               type: integer
+               format: int64
+               description: Unix timestamp when the item was last updated   
             items:
                type: array
                items:
-                  $ref: '#/components/schemas/ShoppingListLineItem'
+                  $ref: '#/components/schemas/ShoppingListItemBase'
          example:
             id: 12
             name: My shopping list
             numberOfLines: 2
-            lastUpdatedDate: '2025-06-15T04:01:26Z'
+            updatedAt: 1746297412
             items:
-            -  productId: 132
+            -  id: 12
+               sku: abs2000
+               productId: 132
                variantId: 1935
                productName: Threaded Head Utility Cylinders
                quantity: 1
                imageUrl: https://cdn.site.com/images/P001.jpg
-            -  productId: 140
+               updatedAt: 1746297412
+            -  id: 14
+               productId: 140
                variantId: 2049
                productName: KLEIN TOOLS Combustible Gas Leak Detector
                quantity: 1
                imageUrl: https://cdn11.bigcommerce.com/s-u2rpux9vkx/products/140/images/385/9322322_A0CG_00_01__84988.1745258504.386.513.jpg
-         required:
-         - id
-         - name
-         - numberOfLines
-
-         - items
-      ShoppingListFull:
+               updatedAt: 1746297412
+       
+      ShoppingListOutput:
          type: object
          properties:
             id:
                type: integer
+               description: Internal BigCommerce wishlist ID (entityId)
             name:
                type: string
+               description: Name of the shopping list
+            description:
+               type: string
+               description: Optional description of the shopping list provided by the user
+            updatedAt:
+               type: integer
+               format: int64
+               description: Unix timestamp (seconds) when the list was last updated    
             numberOfLines:
                type: integer
             items:
                type: array
                items:
-                  $ref: '#/components/schemas/ShoppingListLineItemExtended'
+                  $ref: '#/components/schemas/ShoppingListItemOutput'
          required:
          - id
          - name
@@ -816,14 +900,17 @@ components:
          example:
             id: 12345
             name: My Summer Wishlist
+            updatedAt: 1746297412
             numberOfLines: 2
             items:
-            -  productId: 5678
+            -  id: 12
+               sku: q1234
+               productId: 5678
                variantId: 9012
                productName: Portable BBQ Grill
                quantity: 1
                imageUrl: https://cdn.site.com/images/portable-bbq.jpg
-               addedDate: '2025-05-25T13:30:00Z'
+               updatedAt: 1746297412
                options:
                -  label: Color
                   value: Red
@@ -838,12 +925,14 @@ components:
                      currency: USD
                      centAmount: 9999
                      fractionDigits: 2
-            -  productId: 6789
+            -  id: 13
+               sku: qw324
+               productId: 6789
                variantId: 3456
                productName: Camping Tent
                quantity: 2
                imageUrl: https://cdn.site.com/images/camping-tent.jpg
-               addedDate: '2025-05-24T15:00:00Z'
+               updatedAt: 1746297412
                options: []
                prices:
                   price:
@@ -861,7 +950,8 @@ components:
                      isInStock: true
 
                      availableQuantity: 5
-      CreateShoppingListRequest:
+      
+      ShoppingListCreateInput:
          type: object
          properties:
             name:
@@ -875,32 +965,13 @@ components:
                type: array
                description: Initial list of line items
                items:
-                  $ref: '#/components/schemas/CreateShoppingListLineItemRequest'
+                  $ref: '#/components/schemas/ShoppingListItemCreateInput'
          required:
          - name
-
          - description
-      UpdateShoppingListRequest:
-         type: object
-         description: Input object for partially updating a shopping list. Supports changing name, description, and modifying
-            or adding items. Existing items are updated by `id`, new ones are created if `id` is omitted
-         properties:
-            name:
-               type: string
-               description: Name of the wishlist
-               pattern: ^(?!\s)[\x00-\x7F]{1,40}(?<!\s)$
-            description:
-               type: string
-               description: Optional description of the shopping list
-            items:
-               type: array
-               description: List of line items to replace the current contents of the list
-               items:
-                  $ref: '#/components/schemas/ShoppingListItemInput'
-         required:
-         - name
+     
 
-      PagedShoppingListsResponse:
+      ShoppingListPageOutput:
          type: object
          properties:
             limit:
@@ -914,7 +985,7 @@ components:
             results:
                type: array
                items:
-                  $ref: '#/components/schemas/ShoppingListSummary'
+                  $ref: '#/components/schemas/ShoppingListSummaryOutput'
          example:
             limit: 1
             offset: 0
@@ -926,12 +997,16 @@ components:
                numberOfLines: 2
                lastUpdatedDate: '2025-06-15T04:01:26Z'
                items:
-               -  productId: 132
+               -  id: 12
+                  sku: 1w3344
+                  productId: 132
                   variantId: 1935
                   productName: Threaded Head Utility Cylinders
                   quantity: 1
                   imageUrl: https://cdn.site.com/images/P001.jpg
-               -  productId: 140
+               -  id : 14
+                  sku: 23Wwwe
+                  productId: 140
                   variantId: 2049
                   quantity: 1
                   productName: KLEIN TOOLS Combustible Gas Leak Detector
@@ -966,7 +1041,8 @@ components:
          required:
          - productId
          - variantId
-      CreateShoppingListLineItemRequest:
+         
+      ShoppingListItemCreateInput:
          type: object
 
          properties:
@@ -984,7 +1060,7 @@ components:
          required:
          - productId
          - variantId
-      ShoppingListCreateResponse:
+      ShoppingListCreateOutput:
          type: object
          properties:
             id:
@@ -1027,3 +1103,64 @@ components:
             error_code: INTERNAL_SERVER_ERROR
             message: Service unavailable please try after some time
             type: General
+      InvalidInputExample:
+       value:
+        error_code: SHOPPING_LIST_001_INVALID_INPUT
+        type: ValidationError
+        message: Required fields missing or invalid.
+
+      NameMissingValidationExample:
+       value:
+        error_code: SHOPPING_LIST_002_NAME_MISSING
+        type: ValidationError
+        message: Shopping list name must not be empty
+
+      DescriptionMissingValidationExample:
+       value:
+        error_code: SHOPPING_LIST_003_DESCRIPTION_MISSING
+        type: ValidationError
+        message: Description must not be empty.   
+
+
+      DuplicateNameValidationExample:
+       value:
+        error_code: SHOPPING_LIST_004_DUPLICATE_NAME
+        type: ValidationError
+        message: Shopping list with the same name already exists.
+
+      InvalidLineItemExample:
+       value:
+        error_code: SHOPPING_LIST_005_INVALID_LINE_ITEM
+        type: ValidationError
+        message: One or more line items are invalid.
+
+      InvalidOptionsExample:
+       value:
+        error_code: SHOPPING_LIST_006_INVALID_OPTIONS
+        type: ValidationError
+        message: Invalid or missing product options.
+
+      TooManyItemsExample:
+       value:
+        error_code: SHOPPING_LIST_007_TOO_MANY_ITEMS
+        type: ValidationError
+        message: Exceeded maximum allowed items.
+
+      InvalidFormatExample:
+       value:
+        error_code: SHOPPING_LIST_008_INVALID_FORMAT
+        type: ValidationError
+        message: Request payload format is invalid.
+
+      InvalidRequestExample:
+       value:
+        error_code: SHOPPING_LIST_009_INVALID_REQUEST
+        type: ValidationError
+        message: Invalid or malformed request.
+
+      NotFoundExample:
+       value:
+        error_code: SHOPPING_LIST_010_NOT_FOUND
+        type: NotFoundError
+        message: The requested shopping list could not be found.
+            

@@ -7,8 +7,8 @@ import com.bigcommerce.imports.catalog.dto.CategoryNode;
 
 public class BigCommerceCategoryMapper {
 
-	public static JSONArray mapCategoryToBigCommerce(CategoryNode categoryNode, int parentCatId, String parentPath, int level, int treeId
-			) {
+	public static JSONArray mapCategoryToBigCommerce(CategoryNode categoryNode, int parentCatId, String parentPath,
+			int level, int treeId) {
 
 		JSONArray categoriesArray = new JSONArray();
 		JSONObject categoryJson = new JSONObject();
@@ -17,7 +17,7 @@ public class BigCommerceCategoryMapper {
 		categoryJson.put("name", categoryNode.getName());
 //		categoryJson.put("category_uuid", categoryNode.getId());
 		categoryJson.put("parent_id", parentCatId);
-		
+
 		categoryJson.put("tree_id", treeId);
 
 		// Set views and sort_order as specified
@@ -32,16 +32,13 @@ public class BigCommerceCategoryMapper {
 		// Visibility
 		categoryJson.put("is_visible", categoryNode.isActive());
 
-	
 		categoriesArray.put(categoryJson);
 
-		return categoriesArray; 
+		return categoriesArray;
 	}
-	
-	
 
-	public static JSONArray mapCategoryToBigCommerceMetaData(CategoryNode categoryNode, int parentCatId, String parentPath, int treeId,
-			int level) {
+	public static JSONArray mapCategoryToBigCommerceMetaData(CategoryNode categoryNode, int parentCatId,
+			String parentPath, int treeId, int level) {
 
 		JSONArray categoriesArray = new JSONArray();
 		JSONObject categoryJson = new JSONObject();
@@ -69,10 +66,9 @@ public class BigCommerceCategoryMapper {
 		// Visibility
 		categoryJson.put("is_visible", true);
 
-	
 		categoriesArray.put(categoryJson);
 
-		return categoriesArray; 
+		return categoriesArray;
 	}
 
 }

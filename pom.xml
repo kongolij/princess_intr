@@ -12,7 +12,8 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>3.1.3</version> <!-- Use the latest compatible Spring Boot version -->
+		<version>3.1.3</version> <!-- Use the latest compatible Spring Boot
+		version -->
 		<relativePath />
 	</parent>
 
@@ -95,6 +96,18 @@
 			<artifactId>opencsv</artifactId>
 			<version>5.8</version>
 		</dependency>
+
+		<dependency>
+			<groupId>com.azure</groupId>
+			<artifactId>azure-cosmos</artifactId>
+			<version>4.55.0</version> <!-- Or latest -->
+		</dependency>
+
+
+		<dependency>
+			<groupId>jakarta.validation</groupId>
+			<artifactId>jakarta.validation-api</artifactId>
+			</dependency>
 
 	</dependencies>
 

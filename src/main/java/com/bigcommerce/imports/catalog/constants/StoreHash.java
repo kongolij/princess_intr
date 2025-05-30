@@ -9,7 +9,7 @@ public enum StoreHash {
 	EN("en", "u2rpux9vkx"), // Store hash for English locale: PAL store
 // EAPM QA	
 //	EN("fr", "kpz3wrpdrb"); // Store hash for French locale (replace with actual hash)
-	
+
 	FR("fr", "kpz3wrpdrb");
 
 	private final String locale;

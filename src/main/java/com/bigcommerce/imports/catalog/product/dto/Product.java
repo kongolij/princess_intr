@@ -5,12 +5,19 @@ import java.util.List;
 public class Product {
 
 	public String productNumber;
-	public List<String> categories;
+	public List<Category> categories;
+
 	public boolean active;
-	public boolean paClearance;
 	public boolean paLevy;
+	public String paAvailabilityCode;
+	public boolean paProductClearance;
 	public String paProductStatus;
-	public String paCountryOfOrigin;
+//	public String paCountryOfOrigin;
+
+	public String brand;
+	public List<Replace> replaces;
+	public List<ProductRefernce> references;
+
 	public List<Attribute> attributes;
 	public List<Variant> variants;
 	public List<Asset> assets;
@@ -23,14 +30,6 @@ public class Product {
 		this.productNumber = productNumber;
 	}
 
-	public List<String> getCategories() {
-		return categories;
-	}
-
-	public void setCategories(List<String> categories) {
-		this.categories = categories;
-	}
-
 	public boolean isActive() {
 		return active;
 	}
@@ -39,13 +38,21 @@ public class Product {
 		this.active = active;
 	}
 
-	public String getPaCountryOfOrigin() {
-		return paCountryOfOrigin;
+	public List<Category> getCategories() {
+		return categories;
 	}
 
-	public void setPaCountryOfOrigin(String paCountryOfOrigin) {
-		this.paCountryOfOrigin = paCountryOfOrigin;
+	public void setCategories(List<Category> categories) {
+		this.categories = categories;
 	}
+
+//	public String getPaCountryOfOrigin() {
+//		return paCountryOfOrigin;
+//	}
+//
+//	public void setPaCountryOfOrigin(String paCountryOfOrigin) {
+//		this.paCountryOfOrigin = paCountryOfOrigin;
+//	}
 
 	public List<Attribute> getAttributes() {
 		return attributes;
@@ -69,6 +76,62 @@ public class Product {
 
 	public void setAssets(List<Asset> assets) {
 		this.assets = assets;
+	}
+
+	public boolean isPaLevy() {
+		return paLevy;
+	}
+
+	public void setPaLevy(boolean paLevy) {
+		this.paLevy = paLevy;
+	}
+
+	public String getPaAvailabilityCode() {
+		return paAvailabilityCode;
+	}
+
+	public void setPaAvailabilityCode(String paAvailabilityCode) {
+		this.paAvailabilityCode = paAvailabilityCode;
+	}
+
+	public boolean isPaProductClearance() {
+		return paProductClearance;
+	}
+
+	public void setPaProductClearance(boolean paProductClearance) {
+		this.paProductClearance = paProductClearance;
+	}
+
+	public String getPaProductStatus() {
+		return paProductStatus;
+	}
+
+	public void setPaProductStatus(String paProductStatus) {
+		this.paProductStatus = paProductStatus;
+	}
+
+	public String getBrand() {
+		return brand;
+	}
+
+	public void setBrand(String brand) {
+		this.brand = brand;
+	}
+
+	public List<Replace> getReplaces() {
+		return replaces;
+	}
+
+	public void setReplaces(List<Replace> replaces) {
+		this.replaces = replaces;
+	}
+
+	public List<ProductRefernce> getReferences() {
+		return references;
+	}
+
+	public void setReferences(List<ProductRefernce> references) {
+		this.references = references;
 	}
 
 }

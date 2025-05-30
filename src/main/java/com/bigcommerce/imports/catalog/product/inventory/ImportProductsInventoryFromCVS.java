@@ -33,50 +33,52 @@ public class ImportProductsInventoryFromCVS implements CommandLineRunner {
 
 		ObjectMapper mapper = new ObjectMapper();
 //		InputStream inputStream = getClass().getClassLoader().getResourceAsStream("final_sku_inventory_by_store.csv");
-		InputStream inputStream = getClass().getClassLoader().getResourceAsStream("final_sku_inventory_single_sku.csv");
+//		InputStream inputStream = getClass().getClassLoader().getResourceAsStream("final_sku_inventory_single_sku.csv");
+		InputStream inputStream = getClass().getClassLoader().getResourceAsStream("F-PAL_Inventory_20250504130141.csv");
 
 		if (inputStream == null) {
 			System.err.println("❌ CSV file not found in resources!");
 			return;
 		}
 
-		 try (BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream))) {
-	            String line;
-	            List<InventoryRecord> inventoryRecords = new ArrayList<>();
+		try (BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream))) {
+			String line;
+			List<InventoryRecord> inventoryRecords = new ArrayList<>();
 
-	            // Skip header
-	            reader.readLine();
+			// Skip header
+			reader.readLine();
 
-	            while ((line = reader.readLine()) != null) {
-	                line = line.trim();
-	                if (line.isEmpty()) continue;
+			while ((line = reader.readLine()) != null) {
+				line = line.trim();
+				if (line.isEmpty())
+					continue;
 
-	                String[] tokens = line.split(",");
-	                if (tokens.length != 3) continue;
+				String[] tokens = line.split(",");
+				if (tokens.length != 3)
+					continue;
 
-	                String sku = tokens[0];
-	                int storeId = Integer.parseInt(tokens[1]);
-	                int qty = Integer.parseInt(tokens[2]);
+				String sku = tokens[0];
+				int storeId = Integer.parseInt(tokens[1]);
+				int qty = Integer.parseInt(tokens[2]);
 
-	                InventoryRecord record = new InventoryRecord(sku, storeId, qty);
-	                inventoryRecords.add(record);
-	            }
-	           
-	            bigCommerceProductInventoryService.updateVariantInventory(inventoryRecords);
-	            System.out.printf("✅ Parsed %d inventory records.%n", inventoryRecords.size());
-	            for (InventoryRecord record : inventoryRecords) {
-	                System.out.printf("SKU: %s | Store: %d | Qty: %d%n", record.getSku(), record.getStoreId(), record.getAvailableQty());
-	            }
-	        } catch (IOException e) {
-	            System.err.println("❌ Error reading inventory CSV: " + e.getMessage());
-	            e.printStackTrace();
-	        }
+				InventoryRecord record = new InventoryRecord(sku, storeId, qty);
+				inventoryRecords.add(record);
+			}
 
-		 long totalTime = System.currentTimeMillis() - startTime;
-	        System.out.println("✅ Done! Run time in seconds: " + (System.currentTimeMillis() - startTime) / 1000.0);
-	        System.exit(0);
-	    }
-	
-	
+			bigCommerceProductInventoryService.updateVariantInventory(inventoryRecords);
+			System.out.printf("✅ Parsed %d inventory records.%n", inventoryRecords.size());
+			for (InventoryRecord record : inventoryRecords) {
+				System.out.printf("SKU: %s | Store: %d | Qty: %d%n", record.getSku(), record.getStoreId(),
+						record.getAvailableQty());
+			}
+		} catch (IOException e) {
+			System.err.println("❌ Error reading inventory CSV: " + e.getMessage());
+			e.printStackTrace();
+		}
+
+		long totalTime = System.currentTimeMillis() - startTime;
+		System.out.println("✅ Done! Run time in seconds: " + (System.currentTimeMillis() - startTime) / 1000.0);
+		System.exit(0);
+	}
 
 }

@@ -30,7 +30,8 @@ public class ImportProductsPricesFromCVS implements CommandLineRunner {
 		long startTime = System.currentTimeMillis(); // Start timing
 
 		ObjectMapper mapper = new ObjectMapper();
-		InputStream inputStream = getClass().getClassLoader().getResourceAsStream("variant-prices-adjusted.csv");
+//		InputStream inputStream = getClass().getClassLoader().getResourceAsStream("variant-prices-adjusted.csv");
+		InputStream inputStream = getClass().getClassLoader().getResourceAsStream("Price_20250503220824.csv");
 
 		if (inputStream == null) {
 			System.err.println("❌ CSV file not found in resources!");
@@ -40,7 +41,8 @@ public class ImportProductsPricesFromCVS implements CommandLineRunner {
 		try (BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream))) {
 			String line;
 			List<VariantPrice> variantPrices = new ArrayList<>();
-			// skip line
+			// Skip first two lines (e.g., headers or metadata)
+			reader.readLine();
 			reader.readLine();
 
 			while ((line = reader.readLine()) != null) {

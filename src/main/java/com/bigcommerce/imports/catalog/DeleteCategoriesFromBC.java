@@ -23,7 +23,7 @@ public class DeleteCategoriesFromBC implements CommandLineRunner {
 		List<Integer> categoryIds = bigCommerceCategoryService.fetchAndFlattenCategories(7, "en");
 		System.out.println(" size  " + categoryIds.size());
 //		bigCommerceCategoryService.deleteCategories(categoryIds, "en");
-		
+
 		System.out.println("✅ Done!");
 		System.exit(0);
 

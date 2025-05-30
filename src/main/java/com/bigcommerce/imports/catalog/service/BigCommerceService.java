@@ -8,9 +8,12 @@ import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
 import java.util.Scanner;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -22,6 +25,7 @@ import org.springframework.stereotype.Component;
 
 import com.bigcommerce.imports.catalog.client.BigCommerceApiClient;
 import com.bigcommerce.imports.catalog.constants.AccessToken;
+import com.bigcommerce.imports.catalog.constants.BigCommerceStoreConfig;
 import com.bigcommerce.imports.catalog.constants.CommonConstants;
 import com.bigcommerce.imports.catalog.constants.LocaleConstants;
 import com.bigcommerce.imports.catalog.constants.StoreHash;
@@ -33,23 +37,150 @@ import io.micrometer.common.util.StringUtils;
 @Component
 public class BigCommerceService {
 
-	public  Map<String, Integer> getBCExternalToInternalCategoryMap(String locale) throws Exception {
-		String storeHash = StoreHash.getStoreHashByLocale(locale);
-		String accessToken = AccessToken.getStoreAccessTokenByLocale(locale);
+	private List<Integer> fetchAllCategoryIdsFromTree() throws Exception {
+
+		String storeHash = BigCommerceStoreConfig.STORE_HASH;
+		String accessToken = BigCommerceStoreConfig.ACCESS_TOKEN;
+		int treeId = BigCommerceStoreConfig.CATEGORY_TREE_ID;
+
+		List<Integer> categoryIds = new ArrayList<>();
+		String treeUrl = "https://api.bigcommerce.com/stores/" + storeHash + "/v3/catalog/trees/" + treeId
+				+ "/categories";
+
+		HttpURLConnection connection = (HttpURLConnection) new URL(treeUrl).openConnection();
+		connection.setRequestMethod("GET");
+		connection.setRequestProperty("X-Auth-Token", accessToken);
+		connection.setRequestProperty("Accept", "application/json");
+
+		int responseCode = connection.getResponseCode();
+		if (responseCode != 200) {
+			throw new RuntimeException("Failed to fetch category tree. Response code: " + responseCode);
+		}
+
+		String response;
+		try (Scanner scanner = new Scanner(connection.getInputStream(), StandardCharsets.UTF_8)) {
+			response = scanner.useDelimiter("\\A").next();
+		}
+
+		JSONObject jsonResponse = new JSONObject(response);
+		JSONArray data = jsonResponse.getJSONArray("data");
+		for (int i = 0; i < data.length(); i++) {
+			JSONObject category = data.getJSONObject(i);
+			categoryIds.add(category.getInt("id"));
+		}
+
+		return categoryIds;
+	}
+
+	public List<Integer> getCategoryIdsByTreeId() throws Exception {
+		String storeHash = BigCommerceStoreConfig.STORE_HASH;
+		String accessToken = BigCommerceStoreConfig.ACCESS_TOKEN;
+		int treeId = BigCommerceStoreConfig.CATEGORY_TREE_ID;
+
+		String url = "https://api.bigcommerce.com/stores/" + storeHash + "/v3/catalog/trees/" + treeId + "/categories";
+
+		HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection();
+		connection.setRequestMethod("GET");
+		connection.setRequestProperty("X-Auth-Token", accessToken);
+		connection.setRequestProperty("Accept", "application/json");
+
+		int responseCode = connection.getResponseCode();
+		if (responseCode != 200) {
+			throw new RuntimeException("Failed to fetch categories. HTTP code: " + responseCode);
+		}
+
+		String response;
+		try (Scanner scanner = new Scanner(connection.getInputStream())) {
+			response = scanner.useDelimiter("\\A").next();
+		}
+
+		JSONObject jsonResponse = new JSONObject(response);
+		JSONArray data = jsonResponse.getJSONArray("data");
+
+		List<Integer> allCategoryIds = new ArrayList<>();
+		for (int i = 0; i < data.length(); i++) {
+			JSONObject category = data.getJSONObject(i);
+			collectCategoryIds(category, allCategoryIds);
+		}
+
+		return allCategoryIds;
+	}
+
+	private void collectCategoryIds(JSONObject category, List<Integer> result) {
+		result.add(category.getInt("id"));
+
+		if (category.has("children")) {
+			JSONArray children = category.getJSONArray("children");
+			for (int i = 0; i < children.length(); i++) {
+				JSONObject child = children.getJSONObject(i);
+				collectCategoryIds(child, result);
+			}
+		}
+	}
+
+	public Map<String, Integer> getExternalToInternalCategoryMap() throws Exception {
+
+		String storeHash = BigCommerceStoreConfig.STORE_HASH;
+		String accessToken = BigCommerceStoreConfig.ACCESS_TOKEN;
+		String namespaceEncoded = URLEncoder.encode(CommonConstants.CATEGORY_EXTERNAL_ID_NAMESPACE,
+				StandardCharsets.UTF_8.toString());
+
+		Map<String, Integer> categoryMap = new HashMap<>();
+
+		List<Integer> categoryIds = fetchAllCategoryIdsFromTree();
+
+		for (Integer categoryId : categoryIds) {
+			String metafieldUrl = "https://api.bigcommerce.com/stores/" + storeHash + "/v3/catalog/categories/"
+					+ categoryId + "/metafields" + "?namespace=" + namespaceEncoded + "&key="
+					+ CommonConstants.CATEGORY_EXTERNAL_ID_KEY;
+
+			HttpURLConnection connection = (HttpURLConnection) new URL(metafieldUrl).openConnection();
+			connection.setRequestMethod("GET");
+			connection.setRequestProperty("X-Auth-Token", accessToken);
+			connection.setRequestProperty("Accept", "application/json");
+
+			int responseCode = connection.getResponseCode();
+			if (responseCode != 200)
+				continue;
+
+			String response;
+			try (Scanner scanner = new Scanner(connection.getInputStream(), StandardCharsets.UTF_8)) {
+				response = scanner.useDelimiter("\\A").next();
+			}
+
+			JSONObject jsonResponse = new JSONObject(response);
+			JSONArray data = jsonResponse.getJSONArray("data");
+			for (int i = 0; i < data.length(); i++) {
+				JSONObject metafield = data.getJSONObject(i);
+				String namespace = metafield.getString("namespace");
+				String key = metafield.getString("key");
+				if ("external_id".equals(key)) {
+					String value = metafield.getString("value");
+					categoryMap.put(value, categoryId);
+				}
+			}
+		}
+
+		return categoryMap;
+	}
+
+	public Map<String, Integer> getBCExternalToInternalCategoryMap(String locale) throws Exception {
+		String storeHash = BigCommerceStoreConfig.STORE_HASH;
+		String accessToken = BigCommerceStoreConfig.ACCESS_TOKEN;
 
 		Map<String, Integer> categoryMap = new HashMap<>();
 		int page = 1;
 		boolean hasNext = true;
 
 		while (hasNext) {
-			
-			 String namespaceEncoded = URLEncoder.encode(CommonConstants.CATEGORY_EXTERNAL_ID_NAMESPACE, StandardCharsets.UTF_8.toString());
-			
-			 String url = "https://api.bigcommerce.com/stores/" + storeHash
-			           + "/v3/catalog/categories/metafields"
-			           + "?namespace=" + namespaceEncoded
-			           + "&key=" + CommonConstants.CATEGORY_EXTERNAL_ID_KEY
-			           + "&limit=250&page=" + page;
+
+			String namespaceEncoded = URLEncoder.encode(CommonConstants.CATEGORY_EXTERNAL_ID_NAMESPACE+ "_tree_" + BigCommerceStoreConfig.CATEGORY_TREE_ID, StandardCharsets.UTF_8.toString());
+//			String namespaceEncoded = URLEncoder.encode(CommonConstants.CATEGORY_EXTERNAL_ID_NAMESPACE,
+//					StandardCharsets.UTF_8.toString());
+
+			String url = "https://api.bigcommerce.com/stores/" + storeHash + "/v3/catalog/categories/metafields"
+					+ "?namespace=" + namespaceEncoded + "&key=" + CommonConstants.CATEGORY_EXTERNAL_ID_KEY
+					+ "&limit=250&page=" + page;
 
 			HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection();
 			connection.setRequestMethod("GET");
@@ -83,6 +214,185 @@ public class BigCommerceService {
 		}
 
 		return categoryMap;
+	}
+
+	public Map<String, Integer> getBCExternalToInternalBrandMap(String locale) throws Exception {
+		String storeHash = BigCommerceStoreConfig.STORE_HASH;
+		String accessToken = BigCommerceStoreConfig.ACCESS_TOKEN;
+		Map<String, Integer> brandMap = new HashMap<>();
+		int page = 1;
+		boolean hasNext = true;
+
+		while (hasNext) {
+			String namespaceEncoded = URLEncoder.encode(CommonConstants.BRAND_EXTERNAL_ID_NAMESPACE,
+					StandardCharsets.UTF_8.toString());
+
+			String url = "https://api.bigcommerce.com/stores/" + storeHash + "/v3/catalog/brands/metafields"
+					+ "?namespace=" + namespaceEncoded + "&key=" + CommonConstants.BRAND_EXTERNAL_ID_KEY
+					+ "&limit=250&page=" + page;
+
+			HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection();
+			connection.setRequestMethod("GET");
+			connection.setRequestProperty("X-Auth-Token", accessToken);
+			connection.setRequestProperty("Accept", "application/json");
+
+			int responseCode = connection.getResponseCode();
+			if (responseCode != 200) {
+				throw new RuntimeException("Failed to fetch brand metafields. HTTP code: " + responseCode);
+			}
+
+			String response;
+			try (Scanner scanner = new Scanner(connection.getInputStream())) {
+				response = scanner.useDelimiter("\\A").next();
+			}
+
+			JSONObject jsonResponse = new JSONObject(response);
+			JSONArray data = jsonResponse.getJSONArray("data");
+
+			for (int i = 0; i < data.length(); i++) {
+				JSONObject metafield = data.getJSONObject(i);
+				String externalId = metafield.getString("value");
+				int internalId = metafield.getInt("resource_id");
+				brandMap.put(externalId, internalId);
+			}
+
+			JSONObject pagination = jsonResponse.getJSONObject("meta").getJSONObject("pagination");
+			int totalPages = pagination.getInt("total_pages");
+			hasNext = page < totalPages;
+			page++;
+		}
+
+		return brandMap;
+	}
+
+	public Map<Integer, List<Integer>> getCategoryPathMapFromTree() throws Exception {
+		String storeHash = BigCommerceStoreConfig.STORE_HASH;
+		String accessToken = BigCommerceStoreConfig.ACCESS_TOKEN;
+		int treeID = BigCommerceStoreConfig.CATEGORY_TREE_ID;
+
+		String url = "https://api.bigcommerce.com/stores/" + storeHash + "/v3/catalog/trees/" + treeID + "/categories";
+
+		HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection();
+		connection.setRequestMethod("GET");
+		connection.setRequestProperty("X-Auth-Token", accessToken);
+		connection.setRequestProperty("Accept", "application/json");
+
+		int responseCode = connection.getResponseCode();
+		if (responseCode != 200) {
+			throw new RuntimeException("Failed to fetch category tree. Response code: " + responseCode);
+		}
+
+		String response;
+		try (Scanner scanner = new Scanner(connection.getInputStream(), StandardCharsets.UTF_8)) {
+			response = scanner.useDelimiter("\\A").next();
+		}
+
+		JSONObject jsonResponse = new JSONObject(response);
+		JSONArray data = jsonResponse.getJSONArray("data");
+
+		Map<Integer, List<Integer>> categoryPathMap = new HashMap<>();
+		Queue<JSONObject> queue = new LinkedList<>();
+
+		for (int i = 0; i < data.length(); i++) {
+			queue.add(data.getJSONObject(i));
+		}
+
+		while (!queue.isEmpty()) {
+			JSONObject category = queue.poll();
+			int id = category.getInt("id");
+
+			List<Integer> path = new ArrayList<>();
+			JSONArray pathArray = category.optJSONArray("path");
+			if (pathArray != null) {
+				for (int i = 0; i < pathArray.length(); i++) {
+					path.add(pathArray.getInt(i));
+				}
+			}
+			path.add(id); // include self
+			categoryPathMap.put(id, path);
+
+			JSONArray children = category.optJSONArray("children");
+			if (children != null) {
+				for (int i = 0; i < children.length(); i++) {
+					queue.add(children.getJSONObject(i));
+				}
+			}
+		}
+
+		return categoryPathMap;
+	}
+
+	public Map<Integer, List<Integer>> getCategoryPathMap() throws Exception {
+		String storeHash = BigCommerceStoreConfig.STORE_HASH;
+		String accessToken = BigCommerceStoreConfig.ACCESS_TOKEN;
+
+		Map<Integer, List<Integer>> categoryPathMap = new HashMap<>();
+		Map<String, Integer> slugToIdMap = new HashMap<>();
+
+		int page = 1;
+		boolean hasNext = true;
+
+		List<JSONObject> allCategories = new ArrayList<>();
+
+		// Fetch all categories
+		while (hasNext) {
+			String url = "https://api.bigcommerce.com/stores/" + storeHash + "/v3/catalog/categories?limit=250&page="
+					+ page;
+
+			HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection();
+			connection.setRequestMethod("GET");
+			connection.setRequestProperty("X-Auth-Token", accessToken);
+			connection.setRequestProperty("Accept", "application/json");
+
+			int responseCode = connection.getResponseCode();
+			if (responseCode != 200) {
+				throw new RuntimeException("Failed to fetch categories. Response code: " + responseCode);
+			}
+
+			String response;
+			try (Scanner scanner = new Scanner(connection.getInputStream())) {
+				response = scanner.useDelimiter("\\A").next();
+			}
+
+			JSONObject jsonResponse = new JSONObject(response);
+			JSONArray data = jsonResponse.getJSONArray("data");
+
+			for (int i = 0; i < data.length(); i++) {
+				JSONObject category = data.getJSONObject(i);
+				allCategories.add(category);
+				slugToIdMap.put(category.getString("name_slug"), category.getInt("id"));
+			}
+
+			JSONObject pagination = jsonResponse.getJSONObject("meta").getJSONObject("pagination");
+			int totalPages = pagination.getInt("total_pages");
+			hasNext = page < totalPages;
+			page++;
+		}
+
+		// Build path map
+		for (JSONObject category : allCategories) {
+			int entityId = category.getInt("id");
+			String path = category.optString("path", "");
+
+			if (path.isEmpty())
+				continue;
+
+			String[] segments = path.split("/");
+			List<Integer> pathIds = new ArrayList<>();
+
+			for (String segment : segments) {
+				if (!segment.isBlank()) {
+					Integer id = slugToIdMap.get(segment);
+					if (id != null) {
+						pathIds.add(id);
+					}
+				}
+			}
+
+			categoryPathMap.put(entityId, pathIds);
+		}
+
+		return categoryPathMap;
 	}
 
 	public Map<String, Integer> getFlattenedCategoryNameToIdMap(String locale, int treeId) throws Exception {
@@ -171,36 +481,36 @@ public class BigCommerceService {
 		return categoryMap;
 	}
 
-
 	public void importCategoryTreeInThreads(List<CategoryNode> categoryTree, String locale, int treeId,
 			Map<String, Integer> categoriesForTheChannel) throws Exception {
-		ExecutorService executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
-		List<Future<?>> futures = new ArrayList<>();
-
+//		ExecutorService executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+//		List<Future<?>> futures = new ArrayList<>();
+//
 		for (CategoryNode rootCategory : categoryTree) {
-			futures.add(executor.submit(() -> {
-				try {
-					importCategoryRecursive(rootCategory, 0, null, 1, treeId, locale, categoriesForTheChannel);
-				} catch (Exception e) {
-					System.err.println("❌ Error importing category [" + rootCategory.getId() + "]: " + e.getMessage());
-					e.printStackTrace();
-				}
-			}));
+//			futures.add(executor.submit(() -> {
+			try {
+				importCategoryRecursive(rootCategory, 0, null, 1, treeId, locale, categoriesForTheChannel);
+			} catch (Exception e) {
+				System.err.println("❌ Error importing category [" + rootCategory.getId() + "]: " + e.getMessage());
+				e.printStackTrace();
+			}
+//			}));
 		}
-
-        // Wait for all threads to finish
-		for (Future<?> future : futures) {
-			future.get(); // Will throw ExecutionException if a thread failed
-		}
-
-		executor.shutdown();
+//
+//        // Wait for all threads to finish
+//		for (Future<?> future : futures) {
+//			future.get(); // Will throw ExecutionException if a thread failed
+//		}
+//
+//		executor.shutdown();
 	}
-	
+
 	public void importCategoryTree(List<CategoryNode> categoryTree, String locale, int treeId,
 			Map<String, Integer> categoriesForTheChannel) throws Exception {
 		for (CategoryNode rootCategory : categoryTree) {
 			importCategoryRecursive(rootCategory, 0, null, 1, treeId, locale, categoriesForTheChannel); // Start with
-																										// root																					// categories at
+																										// root //
+																										// categories at
 																										// level 1
 		}
 	}
@@ -241,8 +551,6 @@ public class BigCommerceService {
 					patchPayload.put("is_visible", updated.optBoolean("is_visible"));
 				}
 
-				
-				
 				if (!patchPayload.isEmpty()) {
 					JSONArray patchArray = new JSONArray();
 					patchArray.put(patchPayload);
@@ -256,47 +564,45 @@ public class BigCommerceService {
 					System.out.println("🔁 Updating French name metafield for category ID: " + currentCategoryId);
 					updateFrenchNameMetafield(currentCategoryId, expectedFrName, locale);
 				}
-				
-				
-				 // ✅ IMAGE LOGIC
-		        String existingImageUrl = existing.optString("image_url", null);
-		        String newImageFileName = CommonConstants.CATEGORY_IMAGE_URL+ categoryNode.getImageFileName();
-		        
-		        if (!StringUtils.isEmpty(newImageFileName) || !"NULL".equalsIgnoreCase(newImageFileName)) { 
-		            try {
-		                byte[] imageBytes = downloadImageBytes(newImageFileName);
-		                if (imageBytes != null) {
-		                    boolean shouldUpload = false;
 
-		                    if (existingImageUrl == null || existingImageUrl.isBlank()) {
-		                        shouldUpload = true;
-		                    } else {
-		                        String existingFileName = existingImageUrl.substring(existingImageUrl.lastIndexOf('/') + 1);
-		                        if (!existingFileName.equalsIgnoreCase(newImageFileName)) {
-		                            deleteCategoryImage(currentCategoryId, locale);
-		                            shouldUpload = true;
-		                        }
-		                    }
+				// ✅ IMAGE LOGIC
+//		        String existingImageUrl = existing.optString("image_url", null);
+//		        String newImageFileName = CommonConstants.CATEGORY_IMAGE_URL+ categoryNode.getImageFileName();
 
-		                    if (shouldUpload) {
-		                        uploadCategoryImageToBigCommerce(currentCategoryId, newImageFileName, imageBytes, locale);
-		                        System.out.println("📷 Uploaded image for category ID: " + currentCategoryId);
-		                    }
-		                }
-		            } catch (Exception e) {
-		                System.err.println("⚠️ Failed image handling for category ID: " + currentCategoryId + " → " + e.getMessage());
-		            }
-		        }else {
-		        	
-						System.out.println("📷 yyyyy  No image for new category ID: " + currentCategoryId);
-					
-		        }
-				
-				
+//		        if (!StringUtils.isEmpty(newImageFileName) || !"NULL".equalsIgnoreCase(newImageFileName)) { 
+//		            try {
+//		                byte[] imageBytes = downloadImageBytes(newImageFileName);
+//		                if (imageBytes != null) {
+//		                    boolean shouldUpload = false;
+//
+//		                    if (existingImageUrl == null || existingImageUrl.isBlank()) {
+//		                        shouldUpload = true;
+//		                    } else {
+//		                        String existingFileName = existingImageUrl.substring(existingImageUrl.lastIndexOf('/') + 1);
+//		                        if (!existingFileName.equalsIgnoreCase(newImageFileName)) {
+//		                            deleteCategoryImage(currentCategoryId, locale);
+//		                            shouldUpload = true;
+//		                        }
+//		                    }
+//
+//		                    if (shouldUpload) {
+//		                        uploadCategoryImageToBigCommerce(currentCategoryId, newImageFileName, imageBytes, locale);
+//		                        System.out.println("📷 Uploaded image for category ID: " + currentCategoryId);
+//		                    }
+//		                }
+//		            } catch (Exception e) {
+//		                System.err.println("⚠️ Failed image handling for category ID: " + currentCategoryId + " → " + e.getMessage());
+//		            }
+//		        }else {
+//		        	
+//						System.out.println("📷 yyyyy  No image for new category ID: " + currentCategoryId);
+//					
+//		        }
+
 			}
 
 		} else {
-			System.out.println("🆕 Creating new category External ID: " + externalId);
+//			System.out.println("🆕 Creating new category External ID: " + externalId);
 			currentCategoryId = createCategory(categoryJson, locale);
 
 			if (currentCategoryId != 0) {
@@ -310,7 +616,7 @@ public class BigCommerceService {
 						uploadCategoryImageToBigCommerce(currentCategoryId, newImageFileName, imageBytes, locale);
 						System.out.println("📷 Uploaded image for new category ID: " + currentCategoryId);
 					}
-				}else {
+				} else {
 					System.out.println("📷 xxxxxxxxxxx No image for new category ID: " + currentCategoryId);
 				}
 
@@ -391,8 +697,9 @@ public class BigCommerceService {
 	}
 
 	public int createCategory(JSONArray categoryJson, String locale) throws Exception {
-		String storeHash = StoreHash.getStoreHashByLocale(locale);
-		String acessToken = AccessToken.getStoreAccessTokenByLocale(locale);
+		String storeHash = BigCommerceStoreConfig.STORE_HASH;
+		String acessToken = BigCommerceStoreConfig.ACCESS_TOKEN;
+
 		HttpURLConnection connection = BigCommerceApiClient.createRequest(storeHash, acessToken,
 				"catalog/trees/categories", "POST");
 		// Send the request with the category JSON
@@ -478,8 +785,8 @@ public class BigCommerceService {
 	}
 
 	private boolean categoryNeedsUpdate(JSONObject existing, JSONObject updated) throws Exception {
-		
-		// check if BC category name, parent_id, visible or image url are changed 
+
+		// check if BC category name, parent_id, visible or image url are changed
 		if (!existing.optString("name").equals(updated.optString("name")))
 			return true;
 
@@ -488,10 +795,10 @@ public class BigCommerceService {
 
 		if (existing.optBoolean("is_visible", true) != updated.optBoolean("is_visible", true))
 			return true;
-		
+
 		if (StringUtils.isEmpty(existing.optString("image_url")))
-				return true;
-		
+			return true;
+
 		return false;
 	}
 
@@ -517,8 +824,8 @@ public class BigCommerceService {
 	}
 
 	private void updateCategory(int categoryId, JSONArray categoryJson, String locale) throws Exception {
-		String storeHash = StoreHash.getStoreHashByLocale(locale);
-		String accessToken = AccessToken.getStoreAccessTokenByLocale(locale);
+		String storeHash = BigCommerceStoreConfig.STORE_HASH;
+		String accessToken = BigCommerceStoreConfig.ACCESS_TOKEN;
 
 		HttpURLConnection connection = BigCommerceApiClient.createRequest(storeHash, accessToken,
 				"catalog/categories/" + categoryId, "PUT");
@@ -595,7 +902,8 @@ public class BigCommerceService {
 		JSONObject externalId = new JSONObject();
 		externalId.put("key", CommonConstants.CATEGORY_EXTERNAL_ID_KEY);
 		externalId.put("value", categoryNode.getId());
-		externalId.put("namespace", CommonConstants.CATEGORY_EXTERNAL_ID_NAMESPACE);
+		externalId.put("namespace",
+				CommonConstants.CATEGORY_EXTERNAL_ID_NAMESPACE + "_tree_" + BigCommerceStoreConfig.CATEGORY_TREE_ID);
 		externalId.put("permission_set", "write_and_sf_access");
 		externalId.put("description", "Original category ID from source feed");
 		externalId.put("resource_id", catId); // 🔥 Required for batch
@@ -622,8 +930,9 @@ public class BigCommerceService {
 	}
 
 	public boolean createBigCommerceCategoryMetaDataBatch(JSONArray metafields, String locale) throws Exception {
-		String storeHash = StoreHash.getStoreHashByLocale(locale);
-		String accessToken = AccessToken.getStoreAccessTokenByLocale(locale);
+
+		String storeHash = BigCommerceStoreConfig.STORE_HASH;
+		String accessToken = BigCommerceStoreConfig.ACCESS_TOKEN;
 
 		HttpURLConnection connection = BigCommerceApiClient.createRequest(storeHash, accessToken,
 				"catalog/categories/metafields", "POST");
@@ -638,7 +947,7 @@ public class BigCommerceService {
 		if (responseCode == HttpURLConnection.HTTP_OK || responseCode == HttpURLConnection.HTTP_CREATED) {
 			try (Scanner scanner = new Scanner(connection.getInputStream())) {
 				String responseBody = scanner.useDelimiter("\\A").next();
-				System.out.println("✅ Batch metafields created successfully.");
+//				System.out.println("✅ Batch metafields created successfully.");
 				return true;
 			}
 		} else {
@@ -747,55 +1056,56 @@ public class BigCommerceService {
 	}
 
 	private byte[] fetchImageBytesIfValid(String imageUrl, String existingImageUrl, int categoryId, String locale) {
-	    try {
-	        if (imageUrl == null || imageUrl.isBlank()) return null;
+		try {
+			if (imageUrl == null || imageUrl.isBlank())
+				return null;
 
-	        byte[] imageBytes = downloadImageBytes(imageUrl);
-	        if (imageBytes == null) return null;
+			byte[] imageBytes = downloadImageBytes(imageUrl);
+			if (imageBytes == null)
+				return null;
 
-	        boolean shouldUpload = false;
+			boolean shouldUpload = false;
 
-	        if (existingImageUrl == null || existingImageUrl.isBlank()) {
-	            shouldUpload = true;
-	        } else {
-	            String existingFileName = existingImageUrl.substring(existingImageUrl.lastIndexOf('/') + 1);
-	            String newFileName = imageUrl.substring(imageUrl.lastIndexOf('/') + 1);
+			if (existingImageUrl == null || existingImageUrl.isBlank()) {
+				shouldUpload = true;
+			} else {
+				String existingFileName = existingImageUrl.substring(existingImageUrl.lastIndexOf('/') + 1);
+				String newFileName = imageUrl.substring(imageUrl.lastIndexOf('/') + 1);
 
-	            if (!existingFileName.equalsIgnoreCase(newFileName)) {
-	                deleteCategoryImage(categoryId, locale);
-	                shouldUpload = true;
-	            }
-	        }
+				if (!existingFileName.equalsIgnoreCase(newFileName)) {
+					deleteCategoryImage(categoryId, locale);
+					shouldUpload = true;
+				}
+			}
 
-	        return shouldUpload ? imageBytes : null;
-	    } catch (Exception e) {
-	        System.err.println("⚠️ Failed image handling for category ID: " + categoryId + " → " + e.getMessage());
-	        return null;
-	    }
+			return shouldUpload ? imageBytes : null;
+		} catch (Exception e) {
+			System.err.println("⚠️ Failed image handling for category ID: " + categoryId + " → " + e.getMessage());
+			return null;
+		}
 	}
-	
+
 	private byte[] downloadImageBytes(String imageFileName) {
-	    try {
-	        String imageUrl =  imageFileName;
-	        URL url = new URL(imageUrl);
-	        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-	        connection.setRequestProperty("User-Agent", "Mozilla/5.0");
+		try {
+			String imageUrl = imageFileName;
+			URL url = new URL(imageUrl);
+			HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+			connection.setRequestProperty("User-Agent", "Mozilla/5.0");
 
-	        try (InputStream inputStream = connection.getInputStream()) {
-	            return inputStream.readAllBytes();
-	        }
-	    } catch (Exception e) {
-	        System.err.println("❌ Failed to download image: " + imageFileName + " → " + e.getMessage());
-	        return null;
-	    }
+			try (InputStream inputStream = connection.getInputStream()) {
+				return inputStream.readAllBytes();
+			}
+		} catch (Exception e) {
+			System.err.println("❌ Failed to download image: " + imageFileName + " → " + e.getMessage());
+			return null;
+		}
 	}
-	
 
-	
 	public void uploadCategoryImageToBigCommerce(int categoryId, String fileName, byte[] imageBytes, String locale)
 			throws Exception {
-		String storeHash = StoreHash.getStoreHashByLocale(locale);
-		String accessToken = AccessToken.getStoreAccessTokenByLocale(locale);
+
+		String storeHash = BigCommerceStoreConfig.STORE_HASH;
+		String accessToken = BigCommerceStoreConfig.ACCESS_TOKEN;
 
 		String boundary = "----WebKitFormBoundary" + System.currentTimeMillis();
 		String lineFeed = "\r\n";
@@ -844,41 +1154,182 @@ public class BigCommerceService {
 	}
 
 	public void deleteCategoryImage(int categoryId, String locale) throws Exception {
-	    String storeHash = StoreHash.getStoreHashByLocale(locale);
-	    String accessToken = AccessToken.getStoreAccessTokenByLocale(locale);
+		String storeHash = StoreHash.getStoreHashByLocale(locale);
+		String accessToken = AccessToken.getStoreAccessTokenByLocale(locale);
 
-	    String url = "https://api.bigcommerce.com/stores/" + storeHash + "/v3/catalog/categories/" + categoryId + "/image";
-	    HttpURLConnection connection = BigCommerceApiClient.createRequest(storeHash, accessToken, url, "DELETE");
+		String url = "https://api.bigcommerce.com/stores/" + storeHash + "/v3/catalog/categories/" + categoryId
+				+ "/image";
+		HttpURLConnection connection = BigCommerceApiClient.createRequest(storeHash, accessToken, url, "DELETE");
 
-	    int responseCode = connection.getResponseCode();
-	    if (responseCode == 204) {
-	        System.out.println("🗑️ Deleted existing image for category ID: " + categoryId);
-	    } else {
-	        System.err.println("❌ Failed to delete image for category ID " + categoryId + ". Status: " + responseCode);
-	    }
+		int responseCode = connection.getResponseCode();
+		if (responseCode == 204) {
+			System.out.println("🗑️ Deleted existing image for category ID: " + categoryId);
+		} else {
+			System.err.println("❌ Failed to delete image for category ID " + categoryId + ". Status: " + responseCode);
+		}
 	}
-	
-	
+
 	public void deleteCategories(List<Integer> categoryIds, String locale) throws Exception {
-	    String storeHash = StoreHash.getStoreHashByLocale(locale);
-	    String accessToken = AccessToken.getStoreAccessTokenByLocale(locale);
+		String storeHash = StoreHash.getStoreHashByLocale(locale);
+		String accessToken = AccessToken.getStoreAccessTokenByLocale(locale);
 
-	    for (Integer categoryId : categoryIds) {
-	        HttpURLConnection deleteConn = BigCommerceApiClient.createRequest(
-	            storeHash,
-	            accessToken,
-	            "catalog/categories/" + categoryId,
-	            "DELETE"
-	        );
+		for (Integer categoryId : categoryIds) {
+			HttpURLConnection deleteConn = BigCommerceApiClient.createRequest(storeHash, accessToken,
+					"catalog/categories/" + categoryId, "DELETE");
 
-	        int status = deleteConn.getResponseCode();
-	        if (status == 204) {
-	            System.out.println("Deleted category ID: " + categoryId);
-	        } else {
-	            System.err.println("Failed to delete category ID: " + categoryId + ", HTTP status: " + status);
-	        }
-	    }
+			int status = deleteConn.getResponseCode();
+			if (status == 204) {
+				System.out.println("Deleted category ID: " + categoryId);
+			} else {
+				System.err.println("Failed to delete category ID: " + categoryId + ", HTTP status: " + status);
+			}
+		}
 	}
 
+	public Integer createBigCommerceBrand(JSONObject brandJson) throws Exception {
+		HttpURLConnection connection = BigCommerceApiClient.createRequest(BigCommerceStoreConfig.STORE_HASH,
+				BigCommerceStoreConfig.ACCESS_TOKEN, "catalog/brands", "POST");
+
+		try (OutputStream os = connection.getOutputStream()) {
+			byte[] input = brandJson.toString().getBytes("utf-8");
+			os.write(input, 0, input.length);
+		}
+
+		int responseCode = connection.getResponseCode();
+		if (responseCode == HttpURLConnection.HTTP_OK || responseCode == HttpURLConnection.HTTP_CREATED) {
+			try (Scanner scanner = new Scanner(connection.getInputStream())) {
+				String responseBody = scanner.useDelimiter("\\A").next();
+				JSONObject responseJson = new JSONObject(responseBody);
+
+				if (responseJson.has("data")) {
+					int brandId = responseJson.getJSONObject("data").getInt("id");
+					System.out.printf("✅ Brand created: %s (ID: %d)%n", brandJson.getString("name"), brandId);
+					return brandId;
+				} else {
+					System.err.println("⚠️ Brand created but no ID returned.");
+					return null;
+				}
+			}
+		} else {
+			try (Scanner errorScanner = new Scanner(connection.getErrorStream())) {
+				String errorResponse = errorScanner.useDelimiter("\\A").next();
+				System.err.println("❌ Failed to create brand. Response code: " + responseCode);
+				System.err.println("Error details: " + errorResponse);
+			}
+			return null;
+		}
+	}
+
+	public boolean createBrandMetafields(int brandId, JSONArray metafields) throws Exception {
+		String endpoint = "catalog/brands/metafields";
+		HttpURLConnection connection = BigCommerceApiClient.createRequest(BigCommerceStoreConfig.STORE_HASH,
+				BigCommerceStoreConfig.ACCESS_TOKEN, endpoint, "POST");
+
+		try (OutputStream os = connection.getOutputStream()) {
+			byte[] input = metafields.toString().getBytes("utf-8");
+			os.write(input, 0, input.length);
+		}
+
+		int responseCode = connection.getResponseCode();
+		if (responseCode == HttpURLConnection.HTTP_OK || responseCode == HttpURLConnection.HTTP_CREATED) {
+			try (Scanner scanner = new Scanner(connection.getInputStream())) {
+				String responseBody = scanner.useDelimiter("\\A").next();
+				System.out.println("✅ Metafields created for brand " + brandId);
+				return true;
+			}
+		} else {
+			try (Scanner errorScanner = new Scanner(connection.getErrorStream())) {
+				String errorResponse = errorScanner.useDelimiter("\\A").next();
+				System.err.println("❌ Failed to create metafields for brand " + brandId + ". Code: " + responseCode);
+				System.err.println("Error details: " + errorResponse);
+			}
+			return false;
+		}
+	}
+
+	public List<String> getAllBrandNames() throws Exception {
+		List<String> allNames = new ArrayList<>();
+		int page = 1;
+		int limit = 50; // max supported by BC
+
+		while (true) {
+			String endpoint = String.format("catalog/brands?page=%d&limit=%d", page, limit);
+			HttpURLConnection connection = BigCommerceApiClient.createRequest(BigCommerceStoreConfig.STORE_HASH,
+					BigCommerceStoreConfig.ACCESS_TOKEN, endpoint, "GET");
+
+			int responseCode = connection.getResponseCode();
+			if (responseCode != HttpURLConnection.HTTP_OK) {
+				break;
+			}
+
+			try (Scanner scanner = new Scanner(connection.getInputStream())) {
+				String responseBody = scanner.useDelimiter("\\A").next();
+				JSONObject json = new JSONObject(responseBody);
+				JSONArray data = json.getJSONArray("data");
+
+				if (data.isEmpty())
+					break;
+
+				for (int i = 0; i < data.length(); i++) {
+					JSONObject brand = data.getJSONObject(i);
+					String name = brand.optString("name");
+					if (name != null && !name.isBlank()) {
+						allNames.add(name.trim());
+					}
+				}
+
+				// If fewer than limit, we're done
+				if (data.length() < limit)
+					break;
+
+				page++; // move to next page
+			}
+		}
+
+		return allNames;
+	}
+
+	public boolean deleteBrandByName(String brandName) throws Exception {
+		String encodedName = URLEncoder.encode(brandName, StandardCharsets.UTF_8);
+		String endpoint = String.format("catalog/brands?name=%s", encodedName);
+
+		HttpURLConnection connection = BigCommerceApiClient.createRequest(BigCommerceStoreConfig.STORE_HASH,
+				BigCommerceStoreConfig.ACCESS_TOKEN, endpoint, "DELETE");
+
+		int responseCode = connection.getResponseCode();
+		if (responseCode == HttpURLConnection.HTTP_NO_CONTENT || responseCode == HttpURLConnection.HTTP_OK) {
+			System.out.println("🗑️ Brand deleted by name: " + brandName);
+			return true;
+		} else {
+			try (Scanner errorScanner = new Scanner(connection.getErrorStream())) {
+				String errorResponse = errorScanner.useDelimiter("\\A").next();
+				System.err.printf("❌ Failed to delete brand '%s'. Code: %d%n", brandName, responseCode);
+				System.err.println("Error details: " + errorResponse);
+			}
+			return false;
+		}
+	}
+
+	private void buildPathMapRecursive(JSONObject category, Map<Integer, List<Integer>> map) {
+		int id = category.getInt("id");
+
+		List<Integer> path = new ArrayList<>();
+		if (category.has("path")) {
+			JSONArray pathArray = category.getJSONArray("path");
+			for (int i = 0; i < pathArray.length(); i++) {
+				path.add(pathArray.getInt(i));
+			}
+		}
+		path.add(id); // Add current category at the end
+
+		map.put(id, path);
+
+		if (category.has("children")) {
+			JSONArray children = category.getJSONArray("children");
+			for (int i = 0; i < children.length(); i++) {
+				buildPathMapRecursive(children.getJSONObject(i), map);
+			}
+		}
+	}
 
 }

@@ -7,26 +7,26 @@ import java.util.Map;
 public class CategoryNode {
 
 	private String id;
-    private String name;
-    private Map<String,String> localizedName;
-    private String parentId;
-    private String description;
-    private Map<String,String> localizedDescription;
-    private String slug;
-    private List<CategoryNode> children = new ArrayList<>();
-    private List<String> childrenIds = new ArrayList<>();
-    private boolean active;
-    private String imageFileName;
+	private String name;
+	private Map<String, String> localizedName;
+	private String parentId;
+	private String description;
+	private Map<String, String> localizedDescription;
+	private String slug;
+	private List<CategoryNode> children = new ArrayList<>();
+	private List<String> childrenIds = new ArrayList<>();
+	private boolean active;
+	private String imageFileName;
 
-    // Constructor, getters, and setters
-    public CategoryNode(String id, String name, String parentId, String description, String slug) {
-        this.id = id;
-        this.name = name;
-        this.parentId = parentId;
-        this.description=description;
-        this.slug=slug;
-    }
-    
+	// Constructor, getters, and setters
+	public CategoryNode(String id, String name, String parentId, String description, String slug) {
+		this.id = id;
+		this.name = name;
+		this.parentId = parentId;
+		this.description = description;
+		this.slug = slug;
+	}
+
 	public CategoryNode(String id, String name, Map<String, String> localizedName, String parentId, String description,
 			Map<String, String> localizedDescription, String slug) {
 		this.id = id;
@@ -37,7 +37,7 @@ public class CategoryNode {
 		this.localizedDescription = localizedDescription;
 		this.slug = slug;
 	}
-	
+
 	public CategoryNode(String id, String name, Map<String, String> localizedName, String parentId, String description,
 			Map<String, String> localizedDescription, String slug, List<String> childrenIds) {
 		this.id = id;
@@ -49,7 +49,7 @@ public class CategoryNode {
 		this.slug = slug;
 		this.setChildrenIds(childrenIds);
 	}
-	
+
 	public CategoryNode(String id, String name, Map<String, String> localizedName, String parentId, String description,
 			Map<String, String> localizedDescription, String slug, String type) {
 		this.id = id;
@@ -60,38 +60,36 @@ public class CategoryNode {
 		this.localizedDescription = localizedDescription;
 		this.slug = slug;
 	}
-	
-    
-    public CategoryNode(String id, String name, String parentId) {
-        this.id = id;
-        this.name = name;
-        this.parentId = parentId;
-    }
 
-    public String getId() {
-        return id;
-    }
+	public CategoryNode(String id, String name, String parentId) {
+		this.id = id;
+		this.name = name;
+		this.parentId = parentId;
+	}
 
-    public String getName() {
-        return name;
-    }
+	public String getId() {
+		return id;
+	}
 
-    public String getParentId() {
-        return parentId;
-    }
+	public String getName() {
+		return name;
+	}
 
-    
-    public void setParentId(String parentId) {
+	public String getParentId() {
+		return parentId;
+	}
+
+	public void setParentId(String parentId) {
 		this.parentId = parentId;
 	}
 
 	public List<CategoryNode> getChildren() {
-        return children;
-    }
+		return children;
+	}
 
-    public void addChild(CategoryNode child) {
-        children.add(child);
-    }
+	public void addChild(CategoryNode child) {
+		children.add(child);
+	}
 
 	public String getDescription() {
 		return description;
@@ -132,9 +130,9 @@ public class CategoryNode {
 	public void setChildrenIds(List<String> childrenIds) {
 		this.childrenIds = childrenIds;
 	}
-	
+
 	public List<String> getChildSkList() {
-	    return childrenIds;
+		return childrenIds;
 	}
 
 	public void setName(String name) {
@@ -160,8 +158,5 @@ public class CategoryNode {
 	public void setImageFileName(String imageFileName) {
 		this.imageFileName = imageFileName;
 	}
-	
-	
-	
-    
+
 }
