@@ -174,9 +174,9 @@ public class BigCommerceService {
 
 		while (hasNext) {
 
-			String namespaceEncoded = URLEncoder.encode(CommonConstants.CATEGORY_EXTERNAL_ID_NAMESPACE+ "_tree_" + BigCommerceStoreConfig.CATEGORY_TREE_ID, StandardCharsets.UTF_8.toString());
-//			String namespaceEncoded = URLEncoder.encode(CommonConstants.CATEGORY_EXTERNAL_ID_NAMESPACE,
-//					StandardCharsets.UTF_8.toString());
+//			String namespaceEncoded = URLEncoder.encode(CommonConstants.CATEGORY_EXTERNAL_ID_NAMESPACE+ "_tree_" + BigCommerceStoreConfig.CATEGORY_TREE_ID, StandardCharsets.UTF_8.toString());
+			String namespaceEncoded = URLEncoder.encode(CommonConstants.CATEGORY_EXTERNAL_ID_NAMESPACE,
+					StandardCharsets.UTF_8.toString());
 
 			String url = "https://api.bigcommerce.com/stores/" + storeHash + "/v3/catalog/categories/metafields"
 					+ "?namespace=" + namespaceEncoded + "&key=" + CommonConstants.CATEGORY_EXTERNAL_ID_KEY

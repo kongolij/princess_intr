@@ -5,6 +5,7 @@ public class Attribute {
 	public String id;
 	public String en;
 	public String fr_CA;
+	public String seq;
 
 	public String getId() {
 		return id;
@@ -28,6 +29,16 @@ public class Attribute {
 
 	public void setFr_CA(String fr_CA) {
 		this.fr_CA = fr_CA;
+	}
+	
+	
+
+	public String getSeq() {
+		return seq;
+	}
+
+	public void setSeq(String seq) {
+		this.seq = seq;
 	}
 
 	public boolean isAttributeLabel() {

@@ -36,11 +36,14 @@ public class Variant {
 	public double paWidth;
 	public double paWeight;
 	public String paCountryOfOrigin;
+	public String skuSeq;
 
 	public Video videos;
 
 	public WebLink webLinks;
 
+	public List<ProductRefernce> references;
+	
 //	
 //	"paProductStatus": "Active",
 //	"paHeight": "0.2",
@@ -213,4 +216,21 @@ public class Variant {
 		this.paArrivalDate = paArrivalDate;
 	}
 
+	public String getSkuSeq() {
+		return skuSeq;
+	}
+
+	public void setSkuSeq(String skuSeq) {
+		this.skuSeq = skuSeq;
+	}
+
+	public List<ProductRefernce> getReferences() {
+		return references;
+	}
+
+	public void setReferences(List<ProductRefernce> references) {
+		this.references = references;
+	}
+
+	
 }

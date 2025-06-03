@@ -15,8 +15,8 @@ public class CosmosConfig {
 	private static final String CONNECTION_STRING ="";
 
 	// Known names
-	private static final String DATABASE_NAME = "attribute-labels";
-	private static final String CONTAINER_NAME = "attribute-labels";
+	private static final String DATABASE_NAME = "ecom-attr-labels";
+	private static final String CONTAINER_NAME = "ecom-attr-labels-qa";
 
 	@Bean
 	public CosmosClient cosmosClient() {

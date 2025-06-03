@@ -70,14 +70,21 @@ public class BigCommerceRepository {
 			// Print response for debugging
 			try (Scanner errorScanner = new Scanner(connection.getErrorStream())) {
 				String errorResponse = errorScanner.useDelimiter("\\A").next();
-				System.err.println("Failed to create product. Response code: " + responseCode);
-				System.err.println("Error message: " + connection.getResponseMessage());
-				System.err.println("Error details: " + errorResponse);
+				System.out.println("Failed to create product. Response code: " + responseCode);
+//				System.err.println("Error message: " + connection.getResponseMessage());
+//				System.err.println("Error details: " + errorResponse);
+				
+				if (responseCode == HttpURLConnection.HTTP_CONFLICT) {
+		            throw new Exception("409: Product already exists (duplicate). Details: " + errorResponse);
+		        } else {
+		            throw new Exception("Product creation failed. Response code: " + responseCode + ". Details: " + errorResponse);
+		        }
+	            
 			} catch (Exception e) {
 				System.err.println("Error occurred while reading the error stream: " + e.getMessage());
 				throw new Exception(e);
 			}
-			return null; // Return 0 in case of failure
+			
 		}
 	}
 
@@ -195,6 +202,60 @@ public class BigCommerceRepository {
 			return false; // Return 0 in case of failure
 		}
 	}
+	
+	/**
+	 * Fetches all metafield IDs for a specific variant.
+	 * Uses BigCommerce v3 API endpoint: GET /v3/catalog/products/{product_id}/variants/{variant_id}/metafields
+	 *
+	 * @param productId The parent product ID.
+	 * @param variantId The variant ID.
+	 * @return List of metafield IDs (empty if none found or error).
+	 */
+	public List<Integer> getMetafieldIdsForVariant(int productId, int variantId) throws Exception {
+	    List<Integer> metafieldIds = new ArrayList<>();
+	    
+	    String url = String.format(
+	        "https://api.bigcommerce.com/stores/%s/v3/catalog/products/%d/variants/%d/metafields",
+	        BigCommerceStoreConfig.STORE_HASH,
+	        productId,
+	        variantId
+	    );
+
+	    HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection();
+	    connection.setRequestMethod("GET");
+	    connection.setRequestProperty("X-Auth-Token", BigCommerceStoreConfig.ACCESS_TOKEN);
+	    connection.setRequestProperty("Accept", "application/json");
+
+	    int responseCode = connection.getResponseCode();
+	    if (responseCode == HttpURLConnection.HTTP_OK) {
+	        try (Scanner scanner = new Scanner(connection.getInputStream())) {
+	            String responseBody = scanner.useDelimiter("\\A").next();
+	            JSONObject responseJson = new JSONObject(responseBody);
+	            JSONArray metafields = responseJson.optJSONArray("data");
+
+	            if (metafields != null) {
+	                for (int i = 0; i < metafields.length(); i++) {
+	                    int id = metafields.getJSONObject(i).optInt("id", -1);
+	                    if (id > 0) {
+	                        metafieldIds.add(id);
+	                    }
+	                }
+	            }
+	        }
+	    } else {
+	        System.err.printf("❌ Failed to fetch variant metafields for variant ID %d (product ID: %d). Response code: %d%n",
+	                          variantId, productId, responseCode);
+
+	        // Optional: read error details for debugging
+	        try (Scanner errorScanner = new Scanner(connection.getErrorStream())) {
+	            String errorResponse = errorScanner.useDelimiter("\\A").hasNext() ? errorScanner.next() : "";
+	            System.err.println("Error response: " + errorResponse);
+	        }
+	    }
+
+	    return metafieldIds;
+	}
+
 
 	public boolean setProductMetafieldsInBatches(JSONArray productMetafields) throws Exception {
 		// 1. Split into batches of 10
@@ -290,71 +351,86 @@ public class BigCommerceRepository {
 	    return allSuccess;
 	}
 
-	// Used in new product creation
-//	public boolean setVariantMetafieldsInBatches(Map<String, JSONArray> variantMetafields,
-//			JSONArray variantStaticAttributeJson, JSONArray optionLabelsFrMetafields, JSONArray manualMetafields)
-	public boolean setVariantMetafieldsInBatches(Map<String, JSONArray> variantMetafields,
-			JSONArray variantStaticAttributeJson, JSONArray optionLabelsFrMetafields)
-			throws Exception {
+	/**
+	 * Uploads variant-level metafields to BigCommerce in batches.
+	 * Combines localized, static, French option label, and related variant metafields into a single payload,
+	 * splits into batches of 10, and sends them to the BigCommerce API.
+	 */
+	public boolean setVariantMetafieldsInBatches(
+	        Map<String, JSONArray> variantMetafields,
+	        JSONArray variantStaticAttributeJson,
+	        JSONArray optionLabelsFrMetafields,
+	        JSONArray relatedVariants) throws Exception {
 
-		// 1. Combine all localized variant metafields
-		JSONArray combinedPayload = new JSONArray();
-		for (Map.Entry<String, JSONArray> entry : variantMetafields.entrySet()) {
-			JSONArray localeArray = entry.getValue();
-			for (int i = 0; i < localeArray.length(); i++) {
-				combinedPayload.put(localeArray.getJSONObject(i));
-			}
-		}
+	    // 1. Combine all localized variant metafields
+	    JSONArray combinedPayload = new JSONArray();
+	    for (Map.Entry<String, JSONArray> entry : variantMetafields.entrySet()) {
+	        JSONArray localeArray = entry.getValue();
+	        for (int i = 0; i < localeArray.length(); i++) {
+	            combinedPayload.put(localeArray.getJSONObject(i));
+	        }
+	    }
 
-		// 2. Add static (non-localized) variant metafields
-		for (int i = 0; i < variantStaticAttributeJson.length(); i++) {
-			combinedPayload.put(variantStaticAttributeJson.getJSONObject(i));
-		}
+	    // 2. Add static (non-localized) variant metafields
+	    for (int i = 0; i < variantStaticAttributeJson.length(); i++) {
+	        combinedPayload.put(variantStaticAttributeJson.getJSONObject(i));
+	    }
 
-		// 3. Add French option label/value metafields
-		for (int i = 0; i < optionLabelsFrMetafields.length(); i++) {
-			combinedPayload.put(optionLabelsFrMetafields.getJSONObject(i));
-		}
+	    // 3. Add French option label/value metafields
+	    for (int i = 0; i < optionLabelsFrMetafields.length(); i++) {
+	        combinedPayload.put(optionLabelsFrMetafields.getJSONObject(i));
+	    }
 
+	    // 4. Add related variants, only if not empty
+	    if (relatedVariants != null && relatedVariants.length() > 0) {
+	        for (int i = 0; i < relatedVariants.length(); i++) {
+	            combinedPayload.put(relatedVariants.getJSONObject(i));
+	        }
+	    }
 
-		// 4. Split into batches of 10
-		List<JSONArray> batches = splitIntoBatches(combinedPayload, 10);
-		boolean allSuccess = true;
+	    // 5. Split into batches of 10
+	    List<JSONArray> batches = splitIntoBatches(combinedPayload, 10);
+	    boolean allSuccess = true;
 
-		for (int batchIndex = 0; batchIndex < batches.size(); batchIndex++) {
-			JSONArray batch = batches.get(batchIndex);
+	    for (int batchIndex = 0; batchIndex < batches.size(); batchIndex++) {
+	        JSONArray batch = batches.get(batchIndex);
 
-			HttpURLConnection connection = BigCommerceApiClient.createRequest(BigCommerceStoreConfig.STORE_HASH,
-					BigCommerceStoreConfig.ACCESS_TOKEN, "catalog/variants/metafields", "POST");
+	        HttpURLConnection connection = BigCommerceApiClient.createRequest(
+	                BigCommerceStoreConfig.STORE_HASH,
+	                BigCommerceStoreConfig.ACCESS_TOKEN,
+	                "catalog/variants/metafields",
+	                "POST"
+	        );
 
-			try (OutputStream os = connection.getOutputStream()) {
-				byte[] input = batch.toString().getBytes("utf-8");
-				os.write(input, 0, input.length);
-			}
+	        try (OutputStream os = connection.getOutputStream()) {
+	            byte[] input = batch.toString().getBytes("utf-8");
+	            os.write(input, 0, input.length);
+	        }
 
-			int responseCode = connection.getResponseCode();
-			if (responseCode == HttpURLConnection.HTTP_OK || responseCode == HttpURLConnection.HTTP_CREATED) {
-				try (Scanner scanner = new Scanner(connection.getInputStream())) {
-					String responseBody = scanner.useDelimiter("\\A").next();
-					System.out.println("✅ Batch " + (batchIndex + 1) + "/" + batches.size() + " created successfully!");
-				}
-			} else {
-				allSuccess = false;
-				try (Scanner errorScanner = new Scanner(connection.getErrorStream())) {
-					String errorResponse = errorScanner.useDelimiter("\\A").next();
-					System.err.println("❌ Batch " + (batchIndex + 1) + " failed. Response code: " + responseCode);
-					System.err.println("Error message: " + connection.getResponseMessage());
-					System.err.println("Error details: " + errorResponse);
-				} catch (Exception e) {
-					System.err.println("⚠️ Error reading error stream: " + e.getMessage());
-					throw new Exception(e);
-				}
-			}
-		}
+	        int responseCode = connection.getResponseCode();
+	        if (responseCode == HttpURLConnection.HTTP_OK || responseCode == HttpURLConnection.HTTP_CREATED) {
+	            try (Scanner scanner = new Scanner(connection.getInputStream())) {
+	                String responseBody = scanner.useDelimiter("\\A").next();
+	                System.out.println("✅ Batch " + (batchIndex + 1) + "/" + batches.size() + " created successfully!");
+	            }
+	        } else {
+	            allSuccess = false;
+	            try (Scanner errorScanner = new Scanner(connection.getErrorStream())) {
+	                String errorResponse = errorScanner.useDelimiter("\\A").next();
+	                System.err.println("❌ Batch " + (batchIndex + 1) + " failed. Response code: " + responseCode);
+	                System.err.println("Error message: " + connection.getResponseMessage());
+	                System.err.println("Error details: " + errorResponse);
+	            } catch (Exception e) {
+	                System.err.println("⚠️ Error reading error stream: " + e.getMessage());
+	                throw new Exception(e);
+	            }
+	        }
+	    }
 
-		return allSuccess;
+	    return allSuccess;
 	}
 
+	
 	public ProductOptionResolution getResolvedProductOptions(int productId) {
 	    ProductOptionResolution result = new ProductOptionResolution();
 
@@ -790,38 +866,51 @@ public class BigCommerceRepository {
 	}
 
 	public void deleteVariantMetafields(List<Integer> metafieldIds) throws Exception {
-		HttpURLConnection connection = BigCommerceApiClient.createRequest(BigCommerceStoreConfig.STORE_HASH,
-				BigCommerceStoreConfig.ACCESS_TOKEN, "catalog/variants/metafields", "DELETE");
+	    // Split into batches of 50 to meet BigCommerce API limit
+	    final int BATCH_SIZE = 20;
+	    int total = metafieldIds.size();
+	    int batches = (int) Math.ceil((double) total / BATCH_SIZE);
 
-		connection.setRequestProperty("Content-Type", "application/json");
-		connection.setDoOutput(true);
+	    for (int i = 0; i < batches; i++) {
+	        int start = i * BATCH_SIZE;
+	        int end = Math.min(start + BATCH_SIZE, total);
+	        List<Integer> batchIds = metafieldIds.subList(start, end);
 
-		// Construct JSON array body
-		JSONArray payload = new JSONArray();
-		for (Integer id : metafieldIds) {
-			payload.put(id);
-		}
+	        // Prepare JSON payload
+	        JSONArray payload = new JSONArray(batchIds);
 
-		try (OutputStream os = connection.getOutputStream()) {
-			byte[] input = payload.toString().getBytes("utf-8");
-			os.write(input, 0, input.length);
-		}
+	        HttpURLConnection connection = BigCommerceApiClient.createRequest(
+	                BigCommerceStoreConfig.STORE_HASH,
+	                BigCommerceStoreConfig.ACCESS_TOKEN,
+	                "catalog/variants/metafields",
+	                "DELETE");
 
-		int responseCode = connection.getResponseCode();
-		if (responseCode != HttpURLConnection.HTTP_OK && responseCode != HttpURLConnection.HTTP_NO_CONTENT) {
-			try (Scanner errorScanner = new Scanner(connection.getErrorStream())) {
-				String errorResponse = errorScanner.useDelimiter("\\A").hasNext() ? errorScanner.next() : "";
-				System.err.println("❌ Failed to delete variant metafields. Response code: " + responseCode);
-				System.err.println("Error message: " + connection.getResponseMessage());
-				System.err.println("Error details: " + errorResponse);
-			} catch (Exception e) {
-				System.err.println("⚠️ Error occurred while reading the error stream: " + e.getMessage());
-				throw new Exception(e);
-			}
-		} else {
-			System.out.println("✅ Successfully deleted variant metafields.");
-		}
+	        connection.setRequestProperty("Content-Type", "application/json");
+	        connection.setDoOutput(true);
+
+	        try (OutputStream os = connection.getOutputStream()) {
+	            byte[] input = payload.toString().getBytes("utf-8");
+	            os.write(input, 0, input.length);
+	        }
+
+	        int responseCode = connection.getResponseCode();
+	        if (responseCode != HttpURLConnection.HTTP_OK && responseCode != HttpURLConnection.HTTP_NO_CONTENT) {
+	            try (Scanner errorScanner = new Scanner(connection.getErrorStream())) {
+	                String errorResponse = errorScanner.useDelimiter("\\A").hasNext() ? errorScanner.next() : "";
+	                System.err.println("❌ Failed to delete variant metafields (Batch " + (i + 1) + "/" + batches + ")");
+	                System.err.println("Response code: " + responseCode);
+	                System.err.println("Error message: " + connection.getResponseMessage());
+	                System.err.println("Error details: " + errorResponse);
+	            } catch (Exception e) {
+	                System.err.println("⚠️ Error reading error stream: " + e.getMessage());
+	                throw new Exception(e);
+	            }
+	        } else {
+	            System.out.println("✅ Deleted variant metafields (Batch " + (i + 1) + "/" + batches + ")");
+	        }
+	    }
 	}
+
 
 	public void deleteProductMetafields(List<Integer> metafieldIds) throws Exception {
 		HttpURLConnection connection = BigCommerceApiClient.createRequest(BigCommerceStoreConfig.STORE_HASH,
@@ -1095,12 +1184,13 @@ public class BigCommerceRepository {
 		return categoryIds;
 	}
 
-	public JSONObject getProductBySKU(String prodsku, String locale) throws Exception {
+	public JSONObject getProductBySKU(String prodsku) throws Exception {
 		Map<String, Object> queryParams = new HashMap<>();
 		queryParams.put("sku", prodsku);
 		queryParams.put("include", "variants");
 
-		HttpURLConnection connection = BigCommerceApiClient.createRequest(BigCommerceStoreConfig.STORE_HASH,
+		HttpURLConnection connection = BigCommerceApiClient.createRequest(
+				BigCommerceStoreConfig.STORE_HASH,
 				BigCommerceStoreConfig.ACCESS_TOKEN, "catalog/products", "GET", queryParams);
 
 		int responseCode = connection.getResponseCode();
@@ -1126,6 +1216,95 @@ public class BigCommerceRepository {
 //	        throw new Exception("Failed to fetch variant data. HTTP response code: " + responseCode);
 		}
 	}
+
+	
+	public List<Integer> getCustomFieldIdsForProduct(int productId) throws Exception {
+	    List<Integer> customFieldIds = new ArrayList<>();
+	    
+	    // ✅ Build the URL for custom fields
+	    String urlString = String.format(
+	        "https://api.bigcommerce.com/stores/%s/v3/catalog/products/%d/custom-fields",
+	        BigCommerceStoreConfig.STORE_HASH,
+	        productId
+	    );
+
+	    // ✅ Setup the HTTP connection
+	    HttpURLConnection connection = (HttpURLConnection) new URL(urlString).openConnection();
+	    connection.setRequestMethod("GET");
+	    connection.setRequestProperty("X-Auth-Token", BigCommerceStoreConfig.ACCESS_TOKEN);
+	    connection.setRequestProperty("Accept", "application/json");
+
+	    int responseCode = connection.getResponseCode();
+	    if (responseCode == HttpURLConnection.HTTP_OK) {
+	        // ✅ Read response
+	        try (Scanner scanner = new Scanner(connection.getInputStream())) {
+	            String responseBody = scanner.useDelimiter("\\A").next();
+	            JSONObject responseJson = new JSONObject(responseBody);
+
+	            // ✅ Extract custom fields
+	            JSONArray customFields = responseJson.optJSONArray("data");
+	            if (customFields != null) {
+	                for (int i = 0; i < customFields.length(); i++) {
+	                    JSONObject cf = customFields.getJSONObject(i);
+	                    int id = cf.optInt("id", -1);
+	                    if (id > 0) {
+	                        customFieldIds.add(id);
+	                    }
+	                }
+	            }
+	        }
+	    } else {
+	        System.err.printf("❌ Failed to fetch custom fields for product ID %d. Response code: %d%n",
+	                          productId, responseCode);
+	    }
+
+	    return customFieldIds;
+	}
+	
+	
+	public List<Integer> getProductMetafieldIds(int productId) throws Exception {
+	    List<Integer> metafieldIds = new ArrayList<>();
+
+	    // ✅ Build the URL for metafields
+	    String urlString = String.format(
+	        "https://api.bigcommerce.com/stores/%s/v3/catalog/products/%d/metafields",
+	        BigCommerceStoreConfig.STORE_HASH,
+	        productId
+	    );
+
+	    // ✅ Setup the HTTP connection
+	    HttpURLConnection connection = (HttpURLConnection) new URL(urlString).openConnection();
+	    connection.setRequestMethod("GET");
+	    connection.setRequestProperty("X-Auth-Token", BigCommerceStoreConfig.ACCESS_TOKEN);
+	    connection.setRequestProperty("Accept", "application/json");
+
+	    int responseCode = connection.getResponseCode();
+	    if (responseCode == HttpURLConnection.HTTP_OK) {
+	        // ✅ Read response
+	        try (Scanner scanner = new Scanner(connection.getInputStream())) {
+	            String responseBody = scanner.useDelimiter("\\A").next();
+	            JSONObject responseJson = new JSONObject(responseBody);
+
+	            // ✅ Extract metafields
+	            JSONArray metafields = responseJson.optJSONArray("data");
+	            if (metafields != null) {
+	                for (int i = 0; i < metafields.length(); i++) {
+	                    JSONObject mf = metafields.getJSONObject(i);
+	                    int id = mf.optInt("id", -1);
+	                    if (id > 0) {
+	                        metafieldIds.add(id);
+	                    }
+	                }
+	            }
+	        }
+	    } else {
+	        System.err.printf("❌ Failed to fetch metafields for product ID %d. Response code: %d%n",
+	                          productId, responseCode);
+	    }
+
+	    return metafieldIds;
+	}
+
 
 	public int getVariantBySku(String skuId, String locale) throws Exception {
 		Map<String, Object> queryParams = new HashMap<>();
@@ -1475,6 +1654,41 @@ public class BigCommerceRepository {
 	        String error = new BufferedReader(new InputStreamReader(connection.getErrorStream()))
 	                .lines().collect(Collectors.joining("\n"));
 	        throw new RuntimeException("❌ Failed to delete products: HTTP " + responseCode + "\n" + error);
+	    }
+	}
+
+	
+	public void deleteVariantsIndividually(int productId, List<Integer> variantIds) throws Exception {
+	    if (variantIds == null || variantIds.isEmpty()) {
+	        System.out.println("ℹ️ No variant IDs provided for deletion.");
+	        return;
+	    }
+
+	    for (Integer variantId : variantIds) {
+	        String url = String.format(
+	            "https://api.bigcommerce.com/stores/%s/v3/catalog/products/%d/variants/%d",
+	            BigCommerceStoreConfig.STORE_HASH,
+	            productId,
+	            variantId
+	        );
+
+	        HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection();
+	        connection.setRequestMethod("DELETE");
+	        connection.setRequestProperty("X-Auth-Token", BigCommerceStoreConfig.ACCESS_TOKEN);
+	        connection.setRequestProperty("Accept", "application/json");
+
+	        int responseCode = connection.getResponseCode();
+	        if (responseCode == HttpURLConnection.HTTP_NO_CONTENT) {
+	            System.out.printf("✅ Successfully deleted variant ID: %d%n", variantId);
+	        } else {
+	            try (Scanner errorScanner = new Scanner(connection.getErrorStream())) {
+	                String errorResponse = errorScanner.useDelimiter("\\A").hasNext() ? errorScanner.next() : "";
+	                System.err.printf("❌ Failed to delete variant ID %d. Response code: %d%n", variantId, responseCode);
+	                System.err.println("Error details: " + errorResponse);
+	            } catch (Exception e) {
+	                System.err.printf("⚠️ Error while reading error stream for variant ID %d: %s%n", variantId, e.getMessage());
+	            }
+	        }
 	    }
 	}
 

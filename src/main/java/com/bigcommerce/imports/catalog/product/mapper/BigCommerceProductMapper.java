@@ -1,6 +1,7 @@
 package com.bigcommerce.imports.catalog.product.mapper;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -141,26 +142,28 @@ public class BigCommerceProductMapper {
 	        productJson.put("brand_id", brandIds.get(product.getBrand()));
 	    }
 
-	    // 3. Add references ("related_products_custom")
+	    // 3️ Handle Related Products (References)
+	    // However, BC's field does NOT capture the type of the reference (e.g., "accessory", etc).
+	    // Therefore, we also store this data as a custom field (with type info) to maintain a full picture.
+	    // ⚠️ This does create some redundancy and should be evaluated for consistency across systems
 	    if (product.getReferences() != null && !product.getReferences().isEmpty()) {
 	        JSONArray referenceArray = new JSONArray();
-
+	        JSONArray relatedProductIds = new JSONArray();
+	        
 	        for (ProductRefernce ref : product.getReferences()) {
 	            String refProductNumber = ref.getProductNumber();
 	            Integer internalId = context.productNumberToProductId.get(refProductNumber);
 
 	            if (internalId != null) {
+	            	
 	                // ✅ Resolved reference – include in product JSON
 	                JSONObject refJson = new JSONObject();
 	                refJson.put("product_id", internalId);
 	                refJson.put("type", ref.getType());
 	                referenceArray.put(refJson);
+	                relatedProductIds.put(internalId);
 	            } else {
 	                // ❌ Unresolved reference – track for retry after all products are created
-	            	 String currentProductNumber = product.getProductNumber();
-//	                unresolvedReferencesMap
-//	                    .computeIfAbsent(currentProductId, k -> new ArrayList<>())
-//	                    .add(ref);
 	                System.out.printf(
 	                        "⚠️ Unresolved reference: product '%s' references '%s' (type: %s) which is not yet created.%n",
 	                        product.getProductNumber(),
@@ -171,13 +174,15 @@ public class BigCommerceProductMapper {
 	        }
 
 	        if (!referenceArray.isEmpty()) {
-	            productJson.put("related_products_custom", referenceArray);
-	           
+	            productJson.put("related_products", relatedProductIds);
 	        }
 	    }
-	   
-
+	    
 	    // 4. Handle replacements (delete if previously mapped)
+	    // Typically, "replacements" are only introduced when reorganizing existing products 
+	    // into new products. 
+	    // We do not expect to handle replacements for existing BigCommerce products during an update;
+	    // this logic is primarily for new products in a reorganization scenario.
 	    if (product.getReplaces() != null && !product.getReplaces().isEmpty()) {
 	        List<Integer> idsToDelete = new ArrayList<>();
 
@@ -219,8 +224,6 @@ public class BigCommerceProductMapper {
 	        }
 	    }
 
-
-	    
 	    // 5. Core fields
 	    productJson.put("type", "physical");
 	    productJson.put("is_visible", product.isActive());
@@ -270,18 +273,22 @@ public class BigCommerceProductMapper {
 	    return productJson;
 	}
 
+	/**
+	 * Maps a Product object to a BigCommerce-compatible JSON object for product updates.
+	 * This includes basic fields, brand and category IDs, and related product references.
+	 * Note: "related_products" Carefully review whether these should be included as we will have them peristed as custom filed as well.
+	 */
 	public JSONObject mapProductToUpdateJson(
 		    Map<Integer, String> productIdToName,
 		    Product product,
 		    Map<String, Integer> categoryIds,
 		    Map<String, Integer> brandIds,
 		    ProductSyncContext context,
-		    int currentProductId,
-		    Map<Integer, List<ProductRefernce>> unresolvedReferencesMap
+		    int currentProductId
 		) {
 		    JSONObject productJson = new JSONObject();
 
-		    // 1. Set categories
+		    // 1️ Assign Categories
 		    List<Integer> catIds = product.getCategories().stream()
 		        .map(Category::getId)
 		        .map(categoryIds::get)
@@ -292,30 +299,39 @@ public class BigCommerceProductMapper {
 		        productJson.put("categories", catIds);
 		    }
 
-		    // 2. Set brand
+		    // 2️ Assign Brand
 		    if (product.getBrand() != null && brandIds.containsKey(product.getBrand())) {
 		        productJson.put("brand_id", brandIds.get(product.getBrand()));
+		    }else {
+		    	System.out.printf(
+		    	        "⚠️ Brand not found in brandIds map for product '%s'. Brand name: '%s'%n",
+		    	        product.getProductNumber(),
+		    	        product.getBrand()
+		    	    );
 		    }
 
-		    // 3. Add related references
+		    // 3️ Handle Related Products (References)
+		    // However, BC's field does NOT capture the type of the reference (e.g., "accessory", etc).
+		    // Therefore, we also store this data as a custom field (with type info) to maintain a full picture.
+		    // ⚠️ This does create some redundancy and should be evaluated for consistency across systems
 		    if (product.getReferences() != null && !product.getReferences().isEmpty()) {
 		        JSONArray referenceArray = new JSONArray();
-
+		        JSONArray relatedProductIds = new JSONArray();
+		        
 		        for (ProductRefernce ref : product.getReferences()) {
 		            String refProductNumber = ref.getProductNumber();
 		            Integer internalId = context.productNumberToProductId.get(refProductNumber);
 
 		            if (internalId != null) {
+		            	
 		                // ✅ Resolved reference – include in product JSON
 		                JSONObject refJson = new JSONObject();
 		                refJson.put("product_id", internalId);
 		                refJson.put("type", ref.getType());
 		                referenceArray.put(refJson);
+		                relatedProductIds.put(internalId);
 		            } else {
 		                // ❌ Unresolved reference – track for retry after all products are created
-		                unresolvedReferencesMap
-		                    .computeIfAbsent(currentProductId, k -> new ArrayList<>())
-		                    .add(ref);
 		                System.out.printf(
 		                        "⚠️ Unresolved reference: product '%s' references '%s' (type: %s) which is not yet created.%n",
 		                        product.getProductNumber(),
@@ -326,38 +342,79 @@ public class BigCommerceProductMapper {
 		        }
 
 		        if (!referenceArray.isEmpty()) {
-		            productJson.put("related_products_custom", referenceArray);
+		            productJson.put("related_products", relatedProductIds);
 		        }
 		    }
 
 
-		    // 4. Core fields
+		    //  4️ Core Product Fields
 		    productJson.put("type", "physical");
 		    productJson.put("is_visible", product.isActive());
 
+		    // Use localized display name (fallback to product number if empty)
 		    String name = getLocalizedAttribute(product.getAttributes(), "displayName", "en");
 		    if (name == null || name.trim().isEmpty()) {
 		        name = product.getProductNumber();
 		    }
 
+		    // Only set name if it's not already present in the BC system
 		    if (!productIdToName.containsValue(name)) {
 		        productJson.put("name", name);
 		    }
 
-		    // 5. Variant defaults
+
+		   
+		    // 5️ Variant Defaults
+		    // If the product has a single simple variant (no options), promote variant fields to product level.   
 		    Variant firstVariant = product.getVariants() != null && !product.getVariants().isEmpty()
 		        ? product.getVariants().get(0)
 		        : null;
 
 		    if (firstVariant != null) {
+		    	// Use variant weight if valid, else default to 1.0
 		        Double weight = Optional.ofNullable(firstVariant.getPaWeight()).filter(w -> w > 0).orElse(1.0);
 		        productJson.put("weight", weight);
 		        productJson.put("price", 0.00); // required
+		        
+		       
+		        
+		        boolean incomingIsSimple = product.getVariants().size() == 1 &&
+		                (firstVariant.getOption_values() == null || firstVariant.getOption_values().isEmpty());
 
-		        boolean isSimple = product.getVariants().size() == 1 &&
-		            (firstVariant.getOption_values() == null || firstVariant.getOption_values().isEmpty());
+		        // 🚀 Check if existing product has variants (using context)
+		        boolean existingHasVariants = context.skuToVariantId.entrySet().stream()
+		                .anyMatch(e -> e.getValue() != null && e.getValue() > 0);
+		            
 
-		        if (isSimple) {
+//		        if (existingHasVariants && incomingIsSimple) {
+//		            System.out.printf("🔄 Existing product has variants, but incoming product is simple. Deleting existing variants for product ID %d.%n",
+//		            		currentProductId);
+//
+//		            List<Integer> variantIdsToDelete = new ArrayList<>();
+//		            Integer variantId = context.skuToVariantId.get(firstVariant.getSkuNumber());
+//		            if (variantId != null && variantId > 0) {
+//		                variantIdsToDelete.add(variantId);
+//		            }
+//		           
+//
+//		            if (!variantIdsToDelete.isEmpty()) {
+//		                try {
+//		                    bigCommerceRepository.deleteVariantsIndividually(currentProductId, variantIdsToDelete);
+//		                    System.out.printf("✅ Deleted %d variants to convert product %s to simple.%n",
+//		                        variantIdsToDelete.size(), product.getProductNumber());
+//		                } catch (Exception e) {
+//		                    System.err.printf("❌ Failed to delete existing variants for product ID %d: %s%n",
+//		                    		currentProductId, e.getMessage());
+//		                    e.printStackTrace();
+//		                }
+//		            }
+//		        }
+
+		        
+		      
+
+		        if (incomingIsSimple) {
+		        	// Promote SKU-level fields to product level
 		            productJson.put("sku", firstVariant.getSkuNumber());
 		            putIfNotNull(productJson, "upc", firstVariant.getPaUPC());
 		            putIfNotNull(productJson, "gtin", firstVariant.getPaVendorNumber());
@@ -370,6 +427,7 @@ public class BigCommerceProductMapper {
 		        }
 		    }
 
+		    // 6️ Final Logging
 		    System.out.println("🔄 Product update payload:\n" + productJson.toString(2));
 		    return productJson;
 		}
@@ -482,6 +540,86 @@ public class BigCommerceProductMapper {
 
 	}
 
+	  
+	/**
+	 * Maps predefined product attributes (like levy, availability, clearance, status, etc.)
+	 * and **resolved references** to custom fields.
+	 *
+	 * If some references are not yet resolved (not created), they will be tracked in unresolvedReferencesMap.
+	 *
+	 * @param product The product to map.
+	 * @param productNumberToProductId Mapping of product numbers to their BigCommerce product IDs.
+	 * @param unresolvedReferencesMap  Where to track unresolved references for later retry.
+	 * @param currentProductId         The current product's BigCommerce ID.
+	 * @return JSONArray of custom fields for this product.
+	 */
+	public static JSONArray mapPredefinedProductAttributesToCustomFields(
+	        Product product,
+	        Map<String, Integer> productNumberToProductId, 
+	        Map<Integer, List<ProductRefernce>> unresolvedReferencesMap,
+	        int currentProductId) {
+
+	    JSONArray customFields = new JSONArray();
+
+	    // 🔎  Process references (related products)
+	    if (product.getReferences() != null && !product.getReferences().isEmpty()) {
+	        JSONArray referenceArray = new JSONArray();
+
+	        for (ProductRefernce ref : product.getReferences()) {
+	            String refProductNumber = ref.getProductNumber();
+	            Integer internalId = productNumberToProductId.get(refProductNumber);
+
+	            if (internalId != null) {
+	                // ✅ Resolved reference – include as JSON object
+	                JSONObject refJson = new JSONObject();
+	                refJson.put("product_id", internalId);
+	                refJson.put("type", ref.getType());
+	                referenceArray.put(refJson);
+	            } else {
+	                // ❌ Unresolved reference – track for later retry
+	                unresolvedReferencesMap.computeIfAbsent(currentProductId, k -> new ArrayList<>()).add(ref);
+	                System.out.printf(
+	                        "⚠️ Unresolved reference: product '%s' references '%s' (type: %s) which is not yet created.%n",
+	                        product.getProductNumber(), refProductNumber, ref.getType());
+	            }
+	        }
+
+	        // 🟢 If there are resolved references, add them as a custom field
+	        if (!referenceArray.isEmpty()) {
+	            JSONObject relatedField = new JSONObject();
+	            relatedField.put("name", "related_products");
+	            // Store the JSON array as a **stringified JSON array** in the custom field value
+	            relatedField.put("value", referenceArray.toString());
+	            customFields.put(relatedField);
+	        }
+	    }
+
+	    // 🔎 2️⃣ Add existing flat fields (like levy, status, external product number, etc.)
+	    Map<String, Object> flatFields = Map.of(
+	            "levy", String.valueOf(product.isPaLevy()), 
+	            "availabilityCode", product.getPaAvailabilityCode(), 
+	            "productClearance", String.valueOf(product.isPaProductClearance()),
+	            "productStatus", product.getPaProductStatus(), 
+	            CommonConstants.NEW_External_Product_Number, product.getProductNumber());
+
+	    for (Map.Entry<String, Object> entry : flatFields.entrySet()) {
+	        Object value = entry.getValue();
+	        if (value != null) {
+	            String stringValue = String.valueOf(value).trim();
+	            if (!stringValue.isEmpty()) { // Skip empty string values
+	                JSONObject field = new JSONObject();
+	                field.put("name", entry.getKey());
+	                field.put("value", stringValue);
+	                customFields.put(field);
+	            }
+	        }
+	    }
+
+	    return customFields;
+	}
+
+
+	
 	public static JSONArray mapPredefinedProductAttributesToCustomFields (Product product) {
 		JSONArray customFields = new JSONArray();
 
@@ -525,6 +663,18 @@ public class BigCommerceProductMapper {
 		JSONArray attributesEn = new JSONArray();
 		JSONArray attributesFr = new JSONArray();
 
+		// 🟩 1️⃣ Filter and sort attributes based on numeric sequence (if present)
+	    List<Attribute> sortedAttributes = attributes.stream()
+	        .filter(attr -> attr.getId() != null && !attr.getId().isEmpty())
+	        .sorted(Comparator.comparingInt(attr -> {
+	            try {
+	                return Integer.parseInt(attr.getSeq() != null ? attr.getSeq() : "9999"); // fallback if no sequence
+	            } catch (NumberFormatException e) {
+	                return 9999;
+	            }
+	        }))
+	        .toList();
+	    
 		for (Attribute attr : attributes) {
 			String id = attr.getId();
 			if (id == null || id.isEmpty())
@@ -532,6 +682,8 @@ public class BigCommerceProductMapper {
 
 			String enValue = attr.en != null ? attr.en.trim() : "";
 			String frValue = attr.fr_CA != null ? attr.fr_CA.trim() : "";
+			
+
 
 			boolean hasEn = !enValue.isEmpty();
 			boolean hasFr = !frValue.isEmpty();
@@ -574,6 +726,14 @@ public class BigCommerceProductMapper {
 					JSONObject entry = new JSONObject();
 					entry.put("label", label);
 					entry.put("value", enValue);
+					
+					try {
+				        int seq = Integer.parseInt(attr.getSeq());
+				        entry.put("seq", seq);
+				    } catch (NumberFormatException e) {
+				        entry.put("seq", 9999);
+				    }
+					
 					attributesEn.put(entry);
 				}
 				if (hasFr) {
@@ -581,6 +741,14 @@ public class BigCommerceProductMapper {
 					JSONObject entry = new JSONObject();
 					entry.put("label", label);
 					entry.put("value", frValue);
+					
+					try {
+				        int seq = Integer.parseInt(attr.getSeq());
+				        entry.put("seq", seq);
+				    } catch (NumberFormatException e) {
+				        entry.put("seq", 9999);
+				    }
+					
 					attributesFr.put(entry);
 				}
 			}
@@ -694,6 +862,7 @@ public class BigCommerceProductMapper {
 	            continue;
 
 	        JSONObject predefinedAttributes = new JSONObject();
+	        predefinedAttributes.put("skuSeq", variant.getSkuSeq());
 	        predefinedAttributes.put("clearance", String.valueOf(variant.isPaSkuClearance()));
 	        predefinedAttributes.put("availabilityCode", 
 	            variant.getPaAvailabilityCode() != null ? variant.getPaAvailabilityCode() : "");
@@ -701,9 +870,7 @@ public class BigCommerceProductMapper {
 	        predefinedAttributes.put("skuStatus", variant.getPaSkuStatus());
 	        predefinedAttributes.put("arrivalDate", variant.getPaArrivalDate());
 	        predefinedAttributes.put("country_of_origin", variant.getPaCountryOfOrigin());
-
 	       
-
 	        // ✅ Add videos only if at least one valid URL exists
 	        if (variant.getVideos() != null) {
 	            JSONObject videosJson = new JSONObject();
@@ -984,7 +1151,7 @@ public class BigCommerceProductMapper {
 
 	                JSONObject attrEntry = new JSONObject();
 	                attrEntry.put("label", label);
-	                attrEntry.put("value", value);
+	                attrEntry.put("value", value);              
 	                localizedAttrArray.put(attrEntry);
 	            }
 
@@ -1092,6 +1259,7 @@ public class BigCommerceProductMapper {
 
 				staticMetafields.put(field);
 			}
+			
 		}
 
 		return staticMetafields;
@@ -1141,7 +1309,141 @@ public class BigCommerceProductMapper {
 
 		return variantsArray;
 	}
+	
+	/**
+	 * Creates a metafield JSON array for variants, checking both productNumber and skuNumber
+	 * in references. Each object includes:
+	 * - "namespace": "variant_related_data"
+	 * - "key": variant.skuNumber
+	 * - "value": JSON string of related variant references
+	 * Skips creating entries for variants with no resolved references.
+	 */
+	public JSONArray buildRelatedVariantMetafields(
+	        List<Variant> variants,
+	        ProductSyncContext context,
+	        Map<Integer, List<ProductRefernce>> variantsUnresolvedReferencesMap) {
 
+	    JSONArray metafields = new JSONArray();
+
+	    for (Variant variant : variants) {
+	        if (variant.getReferences() == null || variant.getReferences().isEmpty()) {
+	            continue; // No references for this variant
+	        }
+
+	        JSONArray referenceArray = new JSONArray();
+
+	        for (ProductRefernce ref : variant.getReferences()) {
+	            String refProductNumber = ref.getParentProduct();
+	            String refSkuNumber = ref.getSkuNumber();
+
+	            // First try to resolve by productNumber
+	            Integer internalProductId = context.productNumberToProductId.get(refProductNumber);
+	            // Also check if skuNumber can resolve to a variantId
+	            Integer internalVariantId = context.skuToVariantId.get(refSkuNumber);
+
+	            if (internalProductId != null || internalVariantId != null) {
+	                // ✅ Create JSON object for resolved reference
+	                JSONObject refJson = new JSONObject();
+	                if (internalProductId != null) {
+	                    refJson.put("product_id", internalProductId);
+	                }
+	                if (internalVariantId != null) {
+	                    refJson.put("variant_id", internalVariantId);
+	                }
+	                refJson.put("sku_number", refSkuNumber);
+	                refJson.put("type", ref.getType());
+	                referenceArray.put(refJson);
+	            } else {
+	                // ❌ Track for retry later
+	                variantsUnresolvedReferencesMap
+	                        .computeIfAbsent(Integer.valueOf(variant.getSkuNumber()), k -> new ArrayList<>())
+	                        .add(ref);
+	                System.out.printf(
+	                        "⚠️ Unresolved reference: variant '%s' references product '%s' / sku '%s' (type: %s)%n",
+	                        variant.getSkuNumber(),
+	                        refProductNumber,
+	                        refSkuNumber,
+	                        ref.getType()
+	                );
+	            }
+	        }
+
+	        if (!referenceArray.isEmpty()) {
+	            // ✅ Create a metafield JSON object for this variant
+	            JSONObject metafield = new JSONObject();
+	            metafield.put("namespace", "variant_related_data");
+	            metafield.put("key", variant.getSkuNumber());
+	            metafield.put("value", referenceArray.toString());
+	            metafield.put("permission_set", "read_and_sf_access");
+	            metafield.put("resource_id", context.skuToVariantId.get(variant.getSkuNumber())); // optional
+
+	            metafields.put(metafield);
+	        }
+	    }
+
+	    return metafields;
+	}
+
+
+
+	/**
+	 * Helper method to build variant JSONs including related variants if resolved.
+	 * Returns a JSONArray with all variant JSON payloads.
+	 */
+	public JSONArray addRelatedVariants(
+	        List<Variant> variants,
+	        ProductSyncContext context,
+	        Map<Integer, List<ProductRefernce>> variantsUnresolvedReferencesMap) {
+
+	    JSONArray updatedVariantsArray = new JSONArray();
+
+	    for (Variant variant : variants) {
+	        JSONObject variantJson = new JSONObject();
+//	        variantJson.put("sku", variant.getSkuNumber());
+	        // You might want to add other basic variant details here as needed.
+
+	        if (variant.getReferences() != null && !variant.getReferences().isEmpty()) {
+	            JSONArray referenceArray = new JSONArray();
+
+	            for (ProductRefernce ref : variant.getReferences()) {
+	                String refProductNumber = ref.getParentProduct();
+	                Integer internalId = context.productNumberToProductId.get(refProductNumber);
+
+	                if (internalId != null) {
+	                    // ✅ Resolved reference – include in variant JSON
+	                    JSONObject refJson = new JSONObject();
+	                    refJson.put("product_id", internalId);
+	                    refJson.put("sku_number", ref.getSkuNumber());
+	                    refJson.put("type", ref.getType());
+	                    referenceArray.put(refJson);
+	                } else {
+	                	  // ❌ Unresolved reference – track for retry later using SKU as key
+	                    variantsUnresolvedReferencesMap
+	                            .computeIfAbsent(Integer.valueOf(variant.getSkuNumber()), k -> new ArrayList<>())
+	                            .add(ref);
+	                    System.out.printf(
+	                            "⚠️ Unresolved reference: variant '%s' references '%s' (type: %s) which is not yet created.%n",
+	                            variant.getSkuNumber(),
+	                            refProductNumber,
+	                            ref.getType()
+	                    );
+	                }
+	            }
+
+	            if (!referenceArray.isEmpty()) {
+	                variantJson.put("related_variants", referenceArray);
+	            }
+	        }
+
+	        updatedVariantsArray.put(variantJson);
+	    }
+
+	    return updatedVariantsArray;
+	}
+
+	
+
+	
 	private String getLocalizedNameAttribute(List<Attribute> attributes, String attributeId, String locale) {
 		for (Attribute attr : attributes) {
 			if (attr.id.equalsIgnoreCase(attributeId)) {
@@ -1328,9 +1630,13 @@ public class BigCommerceProductMapper {
 						break;
 					}
 
+					
 					if (attr.id != null && !attr.id.isEmpty()) {
 						// Get label if available, else fallback to ID
 						String label = labelMap.getOrDefault(attr.id, attr.id);
+						
+						
+						
 						localizedAttributes.put(label, value);
 					}
 				}
@@ -1362,12 +1668,15 @@ public class BigCommerceProductMapper {
 						value = attr.en != null ? attr.en : "";
 						break;
 					}
-
+					
 					if (attr.id != null && !attr.id.isEmpty()) {
-						localizedAttributes.put(attr.id, value);
-					}
+	                    // 🌟 Include the attribute value
+	                    localizedAttributes.put(attr.id, value);
+	                }
 				}
 			}
+			
+			
 
 			if (variant.skuNumber != null && !variant.skuNumber.isEmpty()) {
 				result.put(variant.skuNumber, localizedAttributes);

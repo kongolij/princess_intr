@@ -7,6 +7,7 @@ public class OptionValue {
 	public String option_value_en;
 	public String option_name_fr_CA;
 	public String option_value_fr_CA;
+	public String seq;
 
 	public String getId() {
 		return id;
@@ -48,4 +49,13 @@ public class OptionValue {
 		this.option_value_fr_CA = option_value_fr_CA;
 	}
 
+	public String getSeq() {
+		return seq;
+	}
+
+	public void setSeq(String seq) {
+		this.seq = seq;
+	}
+
+	
 }
