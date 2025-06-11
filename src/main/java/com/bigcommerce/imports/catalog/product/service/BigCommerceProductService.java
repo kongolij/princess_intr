@@ -53,7 +53,7 @@ public class BigCommerceProductService {
 
 	}
 
-	public void importProducts(List<Product> products, String locale,
+	public void importProducts(Map<String, Product> productMap, String locale,
 			Map<String, Map<String, String>> attribtueLabelMap) throws Exception {
 
 		// ⏱️ 1. Retrieve category mappings from external ID to BigCommerce internal ID (for EN locale)
@@ -68,7 +68,7 @@ public class BigCommerceProductService {
 		Map<String, Integer> brandMap = bigCommerceCategoryService.getBCExternalToInternalBrandMap("");
 		endTime = System.currentTimeMillis();
 		durationInSeconds = (endTime - startTime) / 1000.0;
-		System.out.printf("✅ Fetched %d brands in %.2f seconds%n", categoriesMap.size(), durationInSeconds);
+		System.out.printf("✅ Fetched %d brands in %.2f seconds%n", brandMap.size(), durationInSeconds);
 
 		// ⏱️ 3. Build the ProductSyncContext — captures current product state in BC (IDs, names, metafields)
 		startTime = System.currentTimeMillis();
@@ -89,7 +89,7 @@ public class BigCommerceProductService {
 		//
 		// This is essential for scaling up to larger product feeds (e.g., >10,000 SKUs).
 		// ------------------------------------------------------------------------------------------------------
-		if (!(products == null || products.isEmpty())) {
+		if (!(productMap == null || productMap.isEmpty())) {
 			
 			// 🔄 unresolvedReferencesMap Tracks unresolved product references during import.
 			// -------------------------------------------------------------------------------------
@@ -106,18 +106,25 @@ public class BigCommerceProductService {
 			Map<Integer, List<ProductRefernce>> unresolvedReferencesMap = new HashMap<>();
 			Map<Integer, List<ProductRefernce>> variantsUnresolvedReferencesMap = new HashMap<>();
 			
-			
-			for (Product product : products) {
+			for (Map.Entry<String, Product> entry : productMap.entrySet()) {
+//			for (Product product : products) {
 
+				
+		        Product product = entry.getValue();
 				String productNumber = product.getProductNumber();
 				
 //				//has replaces
 //				if (!"PA1000001804".equals(productNumber)) {
 //				//variant has no options
 //				//if (!"PA0003461449".equals(productNumber)) {
-//     		    if (!"PA1000000455".equals(productNumber)) {
-//					continue;
-//				}
+     		    if (!"PA0008677999".equals(productNumber)) {
+     		    	continue;
+			    }
+//    		    if (!"PA1000001804".equals(productNumber)) {
+// 	       	    	continue;
+//     		    }
+	
+				
 
 				Integer existingProductId = productSyncContext.productNumberToProductId.get(productNumber);
 
@@ -126,43 +133,48 @@ public class BigCommerceProductService {
 						: null;
 
 				// 🚀 Only consider if incoming product is a single variant with NO options
-		        boolean incomingIsSimple = product.getVariants().size() == 1 &&
-		            (firstVariant.getOption_values() == null || firstVariant.getOption_values().isEmpty());
-		        
-				// 🚀 Check if this product already has variants in BigCommerce (not just in our
-				// local object)
+				boolean incomingIsSimple = product.getVariants().size() == 1 &&
+				    (firstVariant.getOption_values() == null || firstVariant.getOption_values().isEmpty());
+
+				// 🚀 Check if this product already has variants in BigCommerce (not just in our local object)
 				boolean existingHasVariants = false;
+				boolean existingVariantHasOptions = false;
 				if (firstVariant != null) {
-					Integer variantId = productSyncContext.skuToVariantId.get(firstVariant.getSkuNumber());
-					existingHasVariants = (variantId != null && variantId > 0);
+				    Integer variantId = productSyncContext.skuToVariantId.get(firstVariant.getSkuNumber());
+				    existingHasVariants = (variantId != null && variantId > 0);
+
+				    // ✅ Check if existing variant has options in BC (using productSyncContext’s map)
+				    Boolean hasOptions = productSyncContext.skuHasOptionsMap.get(firstVariant.getSkuNumber());
+				    existingVariantHasOptions = (hasOptions != null && hasOptions);
 				}
-				// 🔄 If incoming is simple, but BC has variants, delete and recreate
-		        if (incomingIsSimple && existingHasVariants) {
-		            System.out.printf(
-		                "🛑 Converting product '%s' (ID: %d) from variant-based to simple. Deleting to recreate as simple.%n",
-		                productNumber, existingProductId);
 
-		            try {
-		                bigCommerceRepository.deleteProductsInBatch(Collections.singletonList(existingProductId));
-		                System.out.printf("✅ Deleted product '%s' (ID: %d).%n", productNumber, existingProductId);
+				// 🔄 If incoming is simple, but existing BC variant has options, delete and recreate
+				if (incomingIsSimple && existingHasVariants && existingVariantHasOptions) {
+				    System.out.printf(
+				        "🛑 Converting product '%s' (ID: %d) from variant-based (with options) to simple. Deleting to recreate as simple.%n",
+				        productNumber, existingProductId);
 
-		                // Recreate as a simple product
-		                createNewProduct(
-		                    product,
-		                    productSyncContext,
-		                    attribtueLabelMap,
-		                    categoriesMap,
-		                    brandMap,
-		                    unresolvedReferencesMap,
-		                    variantsUnresolvedReferencesMap
-		                );
-		      
-		                continue; // Skip update flow
-		            } catch (Exception e) {
-		                System.err.printf("❌ Failed to delete product '%s' (ID: %d): %s%n",
-		                    productNumber, existingProductId, e.getMessage());
-		                e.printStackTrace();
-		            }
+				    try {
+				        bigCommerceRepository.deleteProductsInBatch(Collections.singletonList(existingProductId));
+				        System.out.printf("✅ Deleted product '%s' (ID: %d).%n", productNumber, existingProductId);
+
+				        // Recreate as a simple product
+				        createNewProduct(
+				            product,
+				            productSyncContext,
+				            attribtueLabelMap,
+				            categoriesMap,
+				            brandMap,
+				            unresolvedReferencesMap,
+				            variantsUnresolvedReferencesMap
+				        );
+
+				        continue; // Skip update flow
+				    } catch (Exception e) {
+				        System.err.printf("❌ Failed to delete product '%s' (ID: %d): %s%n",
+				            productNumber, existingProductId, e.getMessage());
+				        e.printStackTrace();
+				    }
 				}
 		     
 		            
@@ -194,53 +206,17 @@ public class BigCommerceProductService {
 
 			}
 
+			// try to set unresilved referendes 
+			postProcessUnresolvedReferences(
+			        productMap,
+			        unresolvedReferencesMap,
+			        variantsUnresolvedReferencesMap,
+			        productSyncContext,
+			        attribtueLabelMap,
+			        categoriesMap,
+			        brandMap);
 			
-			
-			 // 🔍 Print final unresolved references
-	        System.out.println("\n🟢 --- Unresolved Product References ---");
-	        for (Map.Entry<Integer, List<ProductRefernce>> entry : unresolvedReferencesMap.entrySet()) {
-	            System.out.printf("Unresolved Product References : %d\n", entry.getKey());
-	            for (ProductRefernce ref : entry.getValue()) {
-	                System.out.printf("  -> Reference to product '%s' (type: %s, sku: %s)\n",
-	                        ref.getParentProduct(), ref.getType(), ref.getSkuNumber());
-	            }
-	        }
-
-	        System.out.println("\n🟡 --- Unresolved Variant References ---");
-	        List<String> unresolvedSkus = new ArrayList<>();
-	        for (Map.Entry<Integer, List<ProductRefernce>> entry : variantsUnresolvedReferencesMap.entrySet()) {
-	            Integer productId = entry.getKey();
-	            List<ProductRefernce> references = entry.getValue();
-	            System.out.printf("Unresolved Variant : %d\n", productId);
-
-	            for (ProductRefernce ref : references) {
-	                System.out.printf("  -> Reference to product '%s' (type: %s, sku: %s)\n",
-	                        ref.getParentProduct(),
-	                        ref.getType(),
-	                        ref.getSkuNumber());
-	                // Collect unresolved SKUs
-	                if (ref.getSkuNumber() != null && !ref.getSkuNumber().isEmpty()) {
-	                    unresolvedSkus.add(ref.getSkuNumber());
-	                }
-	            }
-	        }
-
-	        // Query BC for these SKUs
-	        if (!unresolvedSkus.isEmpty()) {
-	            Map<String, SkuVariantInfo> resolvedSkuMap =
-	                    bigCommerceRepository.getVariantProductAndIdsBySkusUpdated(unresolvedSkus);
-
-	            System.out.println("\n🟢 --- Resolved Variant References from BC ---");
-	            for (String sku : unresolvedSkus) {
-	                SkuVariantInfo info = resolvedSkuMap.get(sku);
-	                if (info != null) {
-	                    System.out.printf("✅ SKU: %s resolved to ProductId: %d, VariantId: %d\n",
-	                            sku, info.getProductId(), info.getVariantId());
-	                } else {
-	                    System.out.printf("⚠️ SKU: %s could not be resolved in BC.\n", sku);
-	                }
-	            }
-	        }
+	       
 
 		}
 	}
@@ -283,7 +259,7 @@ public class BigCommerceProductService {
 		// ✅ Delete old product metafields
 		List<Integer> existingMetafieldIds = productIdToMetafieldIds.get(existingProductId);
 		if (existingMetafieldIds != null) {
-			bigCommerceRepository.deleteProductMetafields(existingMetafieldIds);
+			bigCommerceRepository.deleteProductMetafieldsInBatches(existingMetafieldIds);
 
 		}
 
@@ -434,7 +410,12 @@ public class BigCommerceProductService {
 	    Map<String, String> uploadedProductAssets = uploadProductsAssets(productId, product);
 	    
 	     // 📝  Update product fields (like custom fields, references, metafields)
-        updateProductFields(product, productId, attributeLabelMap, productSyncContext.productNumberToProductId, unresolvedReferencesMap);
+        updateProductFields(
+        		product, 
+        		productId, 
+        		attributeLabelMap, 
+        		productSyncContext.productNumberToProductId, 
+        		unresolvedReferencesMap);
         
          // 📝  Create variant-level metafields (localized, static, and label data)
         createVariantMetafieldsOnly(
@@ -461,12 +442,16 @@ public class BigCommerceProductService {
 		JSONArray customFields = BigCommerceProductMapper.mapPredefinedProductAttributesToCustomFields(
 				product,
 				productNumberToProductId,
-				unresolvedReferencesMap,
 				productId);
 		bigCommerceRepository.setProductCustomFields(customFields, productId);
 
 		 // 🌍 Map localized product attributes (e.g., name, description in EN/FR) to metafields
-		JSONArray metafields = BigCommerceProductMapper.mapProductToMetafields(product.getAttributes(), productId, attribtueLabelMap);
+		JSONArray metafields = BigCommerceProductMapper.mapProductToMetafields(
+				product, 
+				productId,
+				productNumberToProductId,
+				attribtueLabelMap,
+				unresolvedReferencesMap);
 		
 		// 📥 Upload all product-level metafields in batch
 		bigCommerceRepository.setProductMetafieldsInBatches(metafields);
@@ -544,9 +529,17 @@ public class BigCommerceProductService {
 
 	private void uploadVariantAssets(Product product, Map<String, Integer> skuToVariantIdMap, int productId,
 			Map<String, String> uploadProductsAssets) {
-		if (product.getVariants() == null)
-			return;
-
+		
+	 
+	   
+	   if (product.getVariants()==null || product.getVariants().size() == 1) {
+	        Variant singleVariant = product.getVariants().get(0);
+	        if (singleVariant.getOption_values() == null || singleVariant.getOption_values().isEmpty()) {
+	            System.out.printf("⚠️ Skipping image upload for single-variant simple product (SKU: %s).%n", singleVariant.getSkuNumber());
+	            return;
+	        }
+	    }
+		 
 		for (Variant variant : product.getVariants()) {
 			List<Asset> assets = variant.getAssets();
 			if (assets == null || assets.isEmpty())
@@ -639,8 +632,12 @@ public class BigCommerceProductService {
 			// ⚠️ For simple products (1 variant, no options), we skip this step to avoid overwriting the single variant.
 			// Any updates (e.g. dimensions or SKU-level attributes) are handled via metafields instead.
 			
-			List<JSONObject> variantUpdatePayloads = prepareVariantUpdatePayloads(sortedVariants, variantIdMap,
-					existingProductId, context, variantsUnresolvedReferencesMap);
+			List<JSONObject> variantUpdatePayloads = prepareVariantUpdatePayloads(
+					sortedVariants, 
+					variantIdMap,
+					existingProductId, 
+					context, 
+					variantsUnresolvedReferencesMap);
 			bigCommerceRepository.updateVariantsInBatches(variantUpdatePayloads);
 		}
 		
@@ -663,7 +660,7 @@ public class BigCommerceProductService {
 		Map<String, Map<String, JSONObject>> skuVariantCustomAttributesMap = bigCommerceProductMapper
 				.buildLocalizedVariantAttributeMap(product, attribtueLabelMap);
 		
-		
+		//check this out
 		Map<String, JSONObject> predefinedvariantAttrMap = bigCommerceProductMapper
 				.mapPredefinedVariantAttributesToMetafields (product);
 
@@ -778,7 +775,7 @@ public class BigCommerceProductService {
 	            variantJson.put("id", variantId);
 			} else {
 				
-				  // 🆕 Variant is new — provide product ID and SKU so BC can link it
+				// 🆕 Variant is new — provide product ID and SKU so BC can link it
 				variantJson.put("product_id", productId);
 				variantJson.put("sku", sku);
 				
@@ -866,4 +863,92 @@ public class BigCommerceProductService {
 		}
 		return newProductCount;
 	}
+	
+	@SuppressWarnings("unused")
+	private void postProcessUnresolvedReferences(
+	        Map<String, Product> productMap,
+	        Map<Integer, List<ProductRefernce>> unresolvedReferencesMap,
+	        Map<Integer, List<ProductRefernce>> variantsUnresolvedReferencesMap,
+	        ProductSyncContext productSyncContext,
+	        Map<String, Map<String, String>> attributeLabelMap,
+	        Map<String, Integer> categoriesMap,
+	        Map<String, Integer> brandMap) throws Exception {
+
+//	    System.out.println("\n🟢 --- Unresolved Product References ---");
+//	    for (Map.Entry<Integer, List<ProductRefernce>> entry : unresolvedReferencesMap.entrySet()) {
+//	        System.out.printf("Unresolved Product References : %d\n", entry.getKey());
+//	        for (ProductRefernce ref : entry.getValue()) {
+//	            System.out.printf(" cccccczxxx  -> Reference to product '%s' (type: %s, sku: %s)\n",
+//	                    ref.getParentProduct(), ref.getType(), ref.getSkuNumber());
+//	        }
+//	    }
+		
+		
+
+	    System.out.println("\n🟡 --- Unresolved Variant References ---");
+	    List<String> unresolvedSkus = new ArrayList<>();
+	    for (Map.Entry<Integer, List<ProductRefernce>> entry : variantsUnresolvedReferencesMap.entrySet()) {
+	        Integer productId = entry.getKey();
+	        List<ProductRefernce> references = entry.getValue();
+	        System.out.printf("Unresolved Variant : %d\n", productId);
+
+	        for (ProductRefernce ref : references) {
+	            List<String> possibleSkus = new ArrayList<>();
+	            if (ref.getProductNumber() != null && !ref.getProductNumber().isEmpty()) {
+	                possibleSkus.add(ref.getProductNumber());
+	            } else if (ref.getParentProduct() != null && !ref.getParentProduct().isEmpty()) {
+	                possibleSkus.add(ref.getParentProduct());
+	            }
+	            if (ref.getSkuNumber() != null && !ref.getSkuNumber().isEmpty()) {
+	                possibleSkus.add(ref.getSkuNumber());
+	            }
+
+	            // Query BC once for all these SKUs
+	            Map<String, SkuVariantInfo> resolvedSkuMap =
+	                    bigCommerceRepository.getVariantProductAndIdsBySkusUpdated(possibleSkus);
+
+	            // Find the first resolved SKU ➜ get productId
+	            Integer existingProductId = null;
+	            for (String sku : possibleSkus) {
+	                SkuVariantInfo info = resolvedSkuMap.get(sku);
+	                if (info != null) {
+	                    existingProductId = info.getProductId();
+	                    System.out.printf("✅ SKU: %s resolved to ProductId: %d (variantId: %d)\n",
+	                            sku, info.getProductId(), info.getVariantId());
+	                    break;
+	                }
+	            }
+
+	            if (existingProductId != null) {
+	                Product productForUpdate = productMap.get(productId.toString());
+	                // Log the update intention
+	                System.out.printf("  XXXXXXXXX   🔧 Updating product in BC with ID: %d%n", existingProductId);
+
+	                if (productForUpdate != null) {
+	                    updateExistingProduct(
+	                            productForUpdate,
+	                            existingProductId,
+	                            productSyncContext,
+	                            attributeLabelMap,
+	                            categoriesMap,
+	                            brandMap,
+	                            unresolvedReferencesMap,
+	                            variantsUnresolvedReferencesMap);
+	                } else {
+	                    System.out.printf("⚠️ No product found for productId: %d\n", productId);
+	                }
+	            } else {
+	                System.out.println("⚠️ None of the possible SKUs resolved in BC for this reference.");
+	            }
+
+	            System.out.printf("  ddd ddd -> Reference to product '%s' (type: %s, sku: %s)\n",
+	                    ref.getParentProduct(), ref.getType(), ref.getSkuNumber());
+
+	            if (ref.getSkuNumber() != null && !ref.getSkuNumber().isEmpty()) {
+	                unresolvedSkus.add(ref.getSkuNumber());
+	            }
+	        }
+	    }
+	}
+
 }

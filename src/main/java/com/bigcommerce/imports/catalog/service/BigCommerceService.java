@@ -174,9 +174,9 @@ public class BigCommerceService {
 
 		while (hasNext) {
 
-//			String namespaceEncoded = URLEncoder.encode(CommonConstants.CATEGORY_EXTERNAL_ID_NAMESPACE+ "_tree_" + BigCommerceStoreConfig.CATEGORY_TREE_ID, StandardCharsets.UTF_8.toString());
-			String namespaceEncoded = URLEncoder.encode(CommonConstants.CATEGORY_EXTERNAL_ID_NAMESPACE,
-					StandardCharsets.UTF_8.toString());
+			String namespaceEncoded = URLEncoder.encode(CommonConstants.CATEGORY_EXTERNAL_ID_NAMESPACE+ "_tree_" + BigCommerceStoreConfig.CATEGORY_TREE_ID, StandardCharsets.UTF_8.toString());
+//			String namespaceEncoded = URLEncoder.encode(CommonConstants.CATEGORY_EXTERNAL_ID_NAMESPACE,
+//					StandardCharsets.UTF_8.toString());
 
 			String url = "https://api.bigcommerce.com/stores/" + storeHash + "/v3/catalog/categories/metafields"
 					+ "?namespace=" + namespaceEncoded + "&key=" + CommonConstants.CATEGORY_EXTERNAL_ID_KEY
@@ -566,38 +566,38 @@ public class BigCommerceService {
 				}
 
 				// ✅ IMAGE LOGIC
-//		        String existingImageUrl = existing.optString("image_url", null);
-//		        String newImageFileName = CommonConstants.CATEGORY_IMAGE_URL+ categoryNode.getImageFileName();
+		        String existingImageUrl = existing.optString("image_url", null);
+		        String newImageFileName = CommonConstants.CATEGORY_IMAGE_URL+ categoryNode.getImageFileName();
 
-//		        if (!StringUtils.isEmpty(newImageFileName) || !"NULL".equalsIgnoreCase(newImageFileName)) { 
-//		            try {
-//		                byte[] imageBytes = downloadImageBytes(newImageFileName);
-//		                if (imageBytes != null) {
-//		                    boolean shouldUpload = false;
-//
-//		                    if (existingImageUrl == null || existingImageUrl.isBlank()) {
-//		                        shouldUpload = true;
-//		                    } else {
-//		                        String existingFileName = existingImageUrl.substring(existingImageUrl.lastIndexOf('/') + 1);
-//		                        if (!existingFileName.equalsIgnoreCase(newImageFileName)) {
-//		                            deleteCategoryImage(currentCategoryId, locale);
-//		                            shouldUpload = true;
-//		                        }
-//		                    }
-//
-//		                    if (shouldUpload) {
-//		                        uploadCategoryImageToBigCommerce(currentCategoryId, newImageFileName, imageBytes, locale);
-//		                        System.out.println("📷 Uploaded image for category ID: " + currentCategoryId);
-//		                    }
-//		                }
-//		            } catch (Exception e) {
-//		                System.err.println("⚠️ Failed image handling for category ID: " + currentCategoryId + " → " + e.getMessage());
-//		            }
-//		        }else {
-//		        	
-//						System.out.println("📷 yyyyy  No image for new category ID: " + currentCategoryId);
-//					
-//		        }
+		        if (!StringUtils.isEmpty(newImageFileName) || !"NULL".equalsIgnoreCase(newImageFileName)) { 
+		            try {
+		                byte[] imageBytes = downloadImageBytes(newImageFileName);
+		                if (imageBytes != null) {
+		                    boolean shouldUpload = false;
+
+		                    if (existingImageUrl == null || existingImageUrl.isBlank()) {
+		                        shouldUpload = true;
+		                    } else {
+		                        String existingFileName = existingImageUrl.substring(existingImageUrl.lastIndexOf('/') + 1);
+		                        if (!existingFileName.equalsIgnoreCase(newImageFileName)) {
+		                            deleteCategoryImage(currentCategoryId, locale);
+		                            shouldUpload = true;
+		                        }
+		                    }
+
+		                    if (shouldUpload) {
+		                        uploadCategoryImageToBigCommerce(currentCategoryId, newImageFileName, imageBytes, locale);
+		                        System.out.println("📷 Uploaded image for category ID: " + currentCategoryId);
+		                    }
+		                }
+		            } catch (Exception e) {
+		                System.err.println("⚠️ Failed image handling for category ID: " + currentCategoryId + " → " + e.getMessage());
+		            }
+		        }else {
+		        	
+						System.out.println("📷 yyyyy  No image for new category ID: " + currentCategoryId);
+					
+		        }
 
 			}
 
@@ -736,8 +736,8 @@ public class BigCommerceService {
 	}
 
 	private JSONObject fetchExistingCategory(int categoryId, String locale) throws Exception {
-		String storeHash = StoreHash.getStoreHashByLocale(locale);
-		String accessToken = AccessToken.getStoreAccessTokenByLocale(locale);
+		String storeHash = BigCommerceStoreConfig.STORE_HASH;
+		String accessToken = BigCommerceStoreConfig.ACCESS_TOKEN;
 
 		HttpURLConnection connection = BigCommerceApiClient.createRequest(storeHash, accessToken,
 				"catalog/categories/" + categoryId, "GET");
@@ -756,8 +756,8 @@ public class BigCommerceService {
 	}
 
 	private String fetchFrenchMetafieldValue(int categoryId, String locale) throws Exception {
-		String storeHash = StoreHash.getStoreHashByLocale(locale);
-		String accessToken = AccessToken.getStoreAccessTokenByLocale(locale);
+		String storeHash = BigCommerceStoreConfig.STORE_HASH;
+		String accessToken = BigCommerceStoreConfig.ACCESS_TOKEN;
 
 		HttpURLConnection conn = BigCommerceApiClient.createRequest(storeHash, accessToken,
 				"catalog/categories/" + categoryId + "/metafields", "GET");

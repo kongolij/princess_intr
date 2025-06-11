@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -16,12 +17,14 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.stereotype.Component;
 import java.util.stream.Collectors;
+import org.springframework.util.StringUtils;
 
 import com.bigcommerce.imports.catalog.constants.CommonConstants;
 import com.bigcommerce.imports.catalog.product.constant.AttributeLabels;
 import com.bigcommerce.imports.catalog.product.dto.Asset;
 import com.bigcommerce.imports.catalog.product.dto.Attribute;
 import com.bigcommerce.imports.catalog.product.dto.Category;
+import com.bigcommerce.imports.catalog.product.dto.DisplayName;
 import com.bigcommerce.imports.catalog.product.dto.OptionValue;
 import com.bigcommerce.imports.catalog.product.dto.Product;
 import com.bigcommerce.imports.catalog.product.dto.ProductCreationResult;
@@ -228,7 +231,12 @@ public class BigCommerceProductMapper {
 	    productJson.put("type", "physical");
 	    productJson.put("is_visible", product.isActive());
 
-	    String name = getLocalizedAttribute(product.getAttributes(), "displayName", "en");
+	    String name = Optional.ofNullable(product.getDisplayName())
+                .map(DisplayName::getEn)
+                .filter(StringUtils::hasText)
+                .orElse(product.getProductNumber());
+	    
+//	    String name = getLocalizedAttribute(product.getAttributes(), "displayName", "en");
 	    if (name == null || name.trim().isEmpty()) {
 	        name = product.getProductNumber();
 	    }
@@ -351,17 +359,15 @@ public class BigCommerceProductMapper {
 		    productJson.put("type", "physical");
 		    productJson.put("is_visible", product.isActive());
 
-		    // Use localized display name (fallback to product number if empty)
-		    String name = getLocalizedAttribute(product.getAttributes(), "displayName", "en");
-		    if (name == null || name.trim().isEmpty()) {
-		        name = product.getProductNumber();
-		    }
-
+		    String name = Optional.ofNullable(product.getDisplayName())
+                    .map(DisplayName::getEn)
+                    .filter(StringUtils::hasText)
+                    .orElse(product.getProductNumber());
+		    
 		    // Only set name if it's not already present in the BC system
-		    if (!productIdToName.containsValue(name)) {
+//		    if (!productIdToName.containsValue(name)) {
 		        productJson.put("name", name);
-		    }
-
+//		    }
 
 		   
 		    // 5️ Variant Defaults
@@ -385,34 +391,6 @@ public class BigCommerceProductMapper {
 		        boolean existingHasVariants = context.skuToVariantId.entrySet().stream()
 		                .anyMatch(e -> e.getValue() != null && e.getValue() > 0);
 		            
-
-//		        if (existingHasVariants && incomingIsSimple) {
-//		            System.out.printf("🔄 Existing product has variants, but incoming product is simple. Deleting existing variants for product ID %d.%n",
-//		            		currentProductId);
-//
-//		            List<Integer> variantIdsToDelete = new ArrayList<>();
-//		            Integer variantId = context.skuToVariantId.get(firstVariant.getSkuNumber());
-//		            if (variantId != null && variantId > 0) {
-//		                variantIdsToDelete.add(variantId);
-//		            }
-//		           
-//
-//		            if (!variantIdsToDelete.isEmpty()) {
-//		                try {
-//		                    bigCommerceRepository.deleteVariantsIndividually(currentProductId, variantIdsToDelete);
-//		                    System.out.printf("✅ Deleted %d variants to convert product %s to simple.%n",
-//		                        variantIdsToDelete.size(), product.getProductNumber());
-//		                } catch (Exception e) {
-//		                    System.err.printf("❌ Failed to delete existing variants for product ID %d: %s%n",
-//		                    		currentProductId, e.getMessage());
-//		                    e.printStackTrace();
-//		                }
-//		            }
-//		        }
-
-		        
-		      
-
 		        if (incomingIsSimple) {
 		        	// Promote SKU-level fields to product level
 		            productJson.put("sku", firstVariant.getSkuNumber());
@@ -556,51 +534,34 @@ public class BigCommerceProductMapper {
 	public static JSONArray mapPredefinedProductAttributesToCustomFields(
 	        Product product,
 	        Map<String, Integer> productNumberToProductId, 
-	        Map<Integer, List<ProductRefernce>> unresolvedReferencesMap,
 	        int currentProductId) {
 
 	    JSONArray customFields = new JSONArray();
 
-	    // 🔎  Process references (related products)
-	    if (product.getReferences() != null && !product.getReferences().isEmpty()) {
-	        JSONArray referenceArray = new JSONArray();
+  	    
+	    // 🔎  Build the flatFields map — skipping empty or null values
+	    Map<String, Object> flatFields = new HashMap<>();
 
-	        for (ProductRefernce ref : product.getReferences()) {
-	            String refProductNumber = ref.getProductNumber();
-	            Integer internalId = productNumberToProductId.get(refProductNumber);
+	    // Always include boolean fields (since they’re primitive)
+	    flatFields.put("levy", String.valueOf(product.isPaLevy()));
+	    flatFields.put("productClearance", String.valueOf(product.isPaProductClearance()));
+	   
+	    flatFields.put("productClearance", String.valueOf(product.isPaProductClearance()));
+	     
+	     // Conditionally add string fields if they’re not empty
+	     if (StringUtils.hasText(product.getPaAvailabilityCode())) {
+	         flatFields.put("availabilityCode", product.getPaAvailabilityCode());
+	     }
 
-	            if (internalId != null) {
-	                // ✅ Resolved reference – include as JSON object
-	                JSONObject refJson = new JSONObject();
-	                refJson.put("product_id", internalId);
-	                refJson.put("type", ref.getType());
-	                referenceArray.put(refJson);
-	            } else {
-	                // ❌ Unresolved reference – track for later retry
-	                unresolvedReferencesMap.computeIfAbsent(currentProductId, k -> new ArrayList<>()).add(ref);
-	                System.out.printf(
-	                        "⚠️ Unresolved reference: product '%s' references '%s' (type: %s) which is not yet created.%n",
-	                        product.getProductNumber(), refProductNumber, ref.getType());
-	            }
-	        }
+	     if (StringUtils.hasText(product.getPaProductStatus())) {
+	        flatFields.put("productStatus", product.getPaProductStatus());
+	     }
 
-	        // 🟢 If there are resolved references, add them as a custom field
-	        if (!referenceArray.isEmpty()) {
-	            JSONObject relatedField = new JSONObject();
-	            relatedField.put("name", "related_products");
-	            // Store the JSON array as a **stringified JSON array** in the custom field value
-	            relatedField.put("value", referenceArray.toString());
-	            customFields.put(relatedField);
-	        }
-	    }
+	     if (StringUtils.hasText(product.getProductNumber())) {
+	         flatFields.put(CommonConstants.NEW_External_Product_Number, product.getProductNumber());
+	     }
+	   
 
-	    // 🔎 2️⃣ Add existing flat fields (like levy, status, external product number, etc.)
-	    Map<String, Object> flatFields = Map.of(
-	            "levy", String.valueOf(product.isPaLevy()), 
-	            "availabilityCode", product.getPaAvailabilityCode(), 
-	            "productClearance", String.valueOf(product.isPaProductClearance()),
-	            "productStatus", product.getPaProductStatus(), 
-	            CommonConstants.NEW_External_Product_Number, product.getProductNumber());
 
 	    for (Map.Entry<String, Object> entry : flatFields.entrySet()) {
 	        Object value = entry.getValue();
@@ -646,144 +607,233 @@ public class BigCommerceProductMapper {
 		return customFields;
 	}
 
-	public static JSONArray mapProductToMetafields(List<Attribute> attributes, 
-			int productId,
-			Map<String, Map<String, String>> attributeLabelMap) {
+	/**
+	 * Maps a Product object to a set of JSON metafields to be stored to BC.
+	 * Each metafield captures either:
+	 *  - Explicit localized product attributes (flattened as individual fields)
+	 *  - Dynamically discovered product attributes grouped by locale
+	 *  - Related product references (if resolved)
+	 *
+	 * @param product The product to map
+	 * @param productId The internal ID of the product
+	 * @param productNumberToProductId A lookup for resolving product references to internal IDs
+	 * @param attributeLabelMap Localized attribute labels (en/fr)
+	 * @param unresolvedReferencesMap To track references that couldn’t be resolved yet
+	 * @return A JSONArray of metafields
+	 */
+	public static JSONArray mapProductToMetafields(
+	    Product product,
+	    int productId,
+	    Map<String, Integer> productNumberToProductId,
+	    Map<String, Map<String, String>> attributeLabelMap,
+	    Map<Integer, List<ProductRefernce>> unresolvedReferencesMap) {
 
-		JSONArray metafields = new JSONArray();
+	    JSONArray metafields = new JSONArray();
 
-		// ✅ Explicit list of attributes that should be stored separately as distinct fields
-		Set<String> explicitLocalizedFields = Set.of(
-				"displayName", 
-				"longDescription", 
-				"paSharedFeatures",
-				"paSharedApplications");
+	    
+	    // 🟩 1️ Explicit localized fields (flattened individually for easier querying in downstream systems)
+	    Map<String, String> flatFields = new HashMap<>();
+	    
+//	    Map<String, JSONObject> flatFields = new HashMap<>();
+////	    
+//	    flatFields.put("displayName",
+//	    	    createLocalizedValue.apply(
+//	    	        product.getDisplayName() != null && StringUtils.hasText(product.getDisplayName().getEn()) 
+//	    	            ? product.getDisplayName().getEn() : "",
+//	    	        product.getDisplayName() != null && StringUtils.hasText(product.getDisplayName().getFr_CA()) 
+//	    	            ? product.getDisplayName().getFr_CA() : ""
+//	    	    )
+//	    	);
+////
+//	    	flatFields.put("longDescription",
+//	    	    createLocalizedValue.apply(
+//	    	        product.getLongDescription() != null && StringUtils.hasText(product.getLongDescription().getEn()) 
+//	    	            ? product.getLongDescription().getEn() : "",
+//	    	        product.getLongDescription() != null && StringUtils.hasText(product.getLongDescription().getFr_CA()) 
+//	    	            ? product.getLongDescription().getFr_CA() : ""
+//	    	    )
+//	    	);
+////
+//	    	flatFields.put("sharedApplications",
+//	    	    createLocalizedValue.apply(
+//	    	        product.getPaSharedApplications() != null && StringUtils.hasText(product.getPaSharedApplications().getEn()) 
+//	    	            ? product.getPaSharedApplications().getEn() : "",
+//	    	        product.getPaSharedApplications() != null && StringUtils.hasText(product.getPaSharedApplications().getFr_CA()) 
+//	    	            ? product.getPaSharedApplications().getFr_CA() : ""
+//	    	    )
+//	    	);
+////
+//	    	flatFields.put("sharedFeatures",
+//	    	    createLocalizedValue.apply(
+//	    	        product.getPaSharedFeatures() != null && StringUtils.hasText(product.getPaSharedFeatures().getEn()) 
+//	    	            ? product.getPaSharedFeatures().getEn() : "",
+//	    	        product.getPaSharedFeatures() != null && StringUtils.hasText(product.getPaSharedFeatures().getFr_CA()) 
+//	    	            ? product.getPaSharedFeatures().getFr_CA() : ""
+//	    	    )
+//	    	);
+	    	
+	    flatFields.put("displayName_en",
+	        product.getDisplayName() != null && StringUtils.hasText(product.getDisplayName().getEn())
+	            ? product.getDisplayName().getEn() : "");
+	    flatFields.put("displayName_fr",
+	        product.getDisplayName() != null && StringUtils.hasText(product.getDisplayName().getFr_CA())
+	            ? product.getDisplayName().getFr_CA() : "");
+	    flatFields.put("longDescription_en",
+	        product.getLongDescription() != null && StringUtils.hasText(product.getLongDescription().getEn())
+	            ? product.getLongDescription().getEn() : "");
+	    flatFields.put("longDescription_fr",
+	        product.getLongDescription() != null && StringUtils.hasText(product.getLongDescription().getFr_CA())
+	            ? product.getLongDescription().getFr_CA() : "");
+	    flatFields.put("sharedApplications_en",
+	        product.getPaSharedApplications() != null && StringUtils.hasText(product.getPaSharedApplications().getEn())
+	            ? product.getPaSharedApplications().getEn() : "");
+	    flatFields.put("sharedApplications_fr",
+	        product.getPaSharedApplications() != null && StringUtils.hasText(product.getPaSharedApplications().getFr_CA())
+	            ? product.getPaSharedApplications().getFr_CA() : "");
+	    flatFields.put("sharedFeatures_en",
+	        product.getPaSharedFeatures() != null && StringUtils.hasText(product.getPaSharedFeatures().getEn())
+	            ? product.getPaSharedFeatures().getEn() : "");
+	    flatFields.put("sharedFeatures_fr",
+	        product.getPaSharedFeatures() != null && StringUtils.hasText(product.getPaSharedFeatures().getFr_CA())
+	            ? product.getPaSharedFeatures().getFr_CA() : "");
 
-		// 🌍 Arrays to group dynamically discovered attributes per locale as structured entries
-		JSONArray attributesEn = new JSONArray();
-		JSONArray attributesFr = new JSONArray();
+	    // 🔄 2️ Add explicit fields as individual metafields (one per locale + attribute)
+	    	
+	    	// 🔥 Create metafields from the map (each value is JSON!)
+//	    	for (Map.Entry<String, JSONObject> entry : flatFields.entrySet()) {
+//	    	    JSONObject field = new JSONObject();
+//	    	    field.put("namespace", "product_attributes");
+//	    	    field.put("key", entry.getKey());
+//	    	    field.put("value", entry.getValue().toString());  // store as JSON string
+//	    	    field.put("permission_set", "read_and_sf_access");
+//	    	    field.put("description", "Localized product attribute: " + entry.getKey());
+//	    	    field.put("resource_id", productId);
+//
+//	    	    metafields.put(field);
+//	    	} 	
+	    for (Map.Entry<String, String> entry : flatFields.entrySet()) {
+	        JSONObject field = new JSONObject();
+	        field.put("namespace", "product_attributes");
+	        field.put("key", entry.getKey());
+	        field.put("value", entry.getValue());
+	        field.put("permission_set", "read_and_sf_access");
+	        field.put("description", "Flattened localized product attribute: " + entry.getKey());
+	        field.put("resource_id", productId);
+	        metafields.put(field);
+	    }
 
-		// 🟩 1️⃣ Filter and sort attributes based on numeric sequence (if present)
-	    List<Attribute> sortedAttributes = attributes.stream()
+	    // 🌍 3️ Dynamic attributes (attributes array) grouped by locale (en/fr)
+	    JSONArray attributesEn = new JSONArray();
+	    JSONArray attributesFr = new JSONArray();
+
+	    // ✅ Sort attributes by sequence (if present)
+	    List<Attribute> sortedAttributes = product.getAttributes().stream()
 	        .filter(attr -> attr.getId() != null && !attr.getId().isEmpty())
 	        .sorted(Comparator.comparingInt(attr -> {
 	            try {
-	                return Integer.parseInt(attr.getSeq() != null ? attr.getSeq() : "9999"); // fallback if no sequence
+	                return Integer.parseInt(attr.getSeq() != null ? attr.getSeq() : "9999");
 	            } catch (NumberFormatException e) {
-	                return 9999;
+	                return 9999; // fallback if no sequence
 	            }
 	        }))
 	        .toList();
-	    
-		for (Attribute attr : attributes) {
-			String id = attr.getId();
-			if (id == null || id.isEmpty())
-				continue;
 
-			String enValue = attr.en != null ? attr.en.trim() : "";
-			String frValue = attr.fr_CA != null ? attr.fr_CA.trim() : "";
-			
+	    for (Attribute attr : sortedAttributes) {
+	        String id = attr.getId();
+	        String enValue = attr.en != null ? attr.en.trim() : "";
+	        String frValue = attr.fr_CA != null ? attr.fr_CA.trim() : "";
 
+	        boolean hasEn = !enValue.isEmpty();
+	        boolean hasFr = !frValue.isEmpty();
 
-			boolean hasEn = !enValue.isEmpty();
-			boolean hasFr = !frValue.isEmpty();
+	        // Skip attributes with no localized data
+	        if (!hasEn && !hasFr) continue;
 
-			if (!hasEn && !hasFr) {
-				// ⏭️ Skipping attribute with no localized content
-				continue;
-			}
+	        // ⚙️ Remove "pa" prefix for keys (for cleaner downstream use)
+	        String keyBase = id.startsWith("pa") ? id.substring(2) : id;
 
-			String keyBase = id.startsWith("pa") ? id.substring(2) : id;
-			
-			
-			if (explicitLocalizedFields.contains(id)) {
-				// 🧷 Create individual metafields for explicitly localized fields
-				if (hasEn) {
-					JSONObject field = new JSONObject();
-					field.put("namespace", "product_attributes");
-					field.put("key", keyBase + "_en");
-					field.put("value", enValue);
-					field.put("permission_set", "read_and_sf_access");
-					field.put("description", "Localized product field (EN): " + id);
-					field.put("resource_id", productId);
-					metafields.put(field);
-				}
+	        // 🏷️ Localized label resolution
+	        if (hasEn) {
+	            String label = attributeLabelMap.getOrDefault("en", Map.of()).getOrDefault(id, id);
+	            JSONObject entry = new JSONObject();
+	            entry.put("label", label);
+	            entry.put("value", enValue);
+	            entry.put("seq", parseSeq(attr.getSeq()));
+	            attributesEn.put(entry);
+	        }
+	        if (hasFr) {
+	            String label = attributeLabelMap.getOrDefault("fr", Map.of()).getOrDefault(id, id);
+	            JSONObject entry = new JSONObject();
+	            entry.put("label", label);
+	            entry.put("value", frValue);
+	            entry.put("seq", parseSeq(attr.getSeq()));
+	            attributesFr.put(entry);
+	        }
+	    }
 
-				if (hasFr) {
-					JSONObject field = new JSONObject();
-					field.put("namespace", "product_attributes");
-					field.put("key", keyBase + "_fr");
-					field.put("value", frValue);
-					field.put("permission_set", "read_and_sf_access");
-					field.put("description", "Localized product field (FR): " + id);
-					field.put("resource_id", productId);
-					metafields.put(field);
-				}
-			} else {
-				// 🧩 Everything else is grouped as structured key/value pairs
-				if (hasEn) {
-					String label = attributeLabelMap.getOrDefault("en", Map.of()).getOrDefault(id, id);
-					JSONObject entry = new JSONObject();
-					entry.put("label", label);
-					entry.put("value", enValue);
-					
-					try {
-				        int seq = Integer.parseInt(attr.getSeq());
-				        entry.put("seq", seq);
-				    } catch (NumberFormatException e) {
-				        entry.put("seq", 9999);
-				    }
-					
-					attributesEn.put(entry);
-				}
-				if (hasFr) {
-					String label = attributeLabelMap.getOrDefault("fr", Map.of()).getOrDefault(id, id);
-					JSONObject entry = new JSONObject();
-					entry.put("label", label);
-					entry.put("value", frValue);
-					
-					try {
-				        int seq = Integer.parseInt(attr.getSeq());
-				        entry.put("seq", seq);
-				    } catch (NumberFormatException e) {
-				        entry.put("seq", 9999);
-				    }
-					
-					attributesFr.put(entry);
-				}
-			}
-		}
+	    // 📦 4️ Add dynamic English attributes as a single metafield (structured JSON array as value)
+	    if (!attributesEn.isEmpty()) {
+	        JSONObject field = new JSONObject();
+	        field.put("namespace", "product_attributes");
+	        field.put("key", "product_attributes_en");
+	        field.put("value", attributesEn.toString());
+	        field.put("permission_set", "read_and_sf_access");
+	        field.put("description", "Dynamic English product attributes");
+	        field.put("resource_id", productId);
+	        metafields.put(field);
+	    }
 
-		// 📦 Package up the dynamic fields (English)
-		if (!attributesEn.isEmpty()) {
-			JSONObject field = new JSONObject();
-			field.put("namespace", "product_attributes");
-			field.put("key", "product_attributes_en");
-			field.put("value", attributesEn.toString());
-			field.put("permission_set", "read_and_sf_access");
-			field.put("description", "Dynamic English product attributes");
-			field.put("resource_id", productId);
-			metafields.put(field);
-		}
+	    // 📦 5️ Add dynamic French attributes
+	    if (!attributesFr.isEmpty()) {
+	        JSONObject field = new JSONObject();
+	        field.put("namespace", "product_attributes");
+	        field.put("key", "product_attributes_fr");
+	        field.put("value", attributesFr.toString());
+	        field.put("permission_set", "read_and_sf_access");
+	        field.put("description", "Dynamic French product attributes");
+	        field.put("resource_id", productId);
+	        metafields.put(field);
+	    }
 
-		// 📦 Package up the dynamic fields (French)
-		if (!attributesFr.isEmpty()) {
-			JSONObject field = new JSONObject();
-			field.put("namespace", "product_attributes");
-			field.put("key", "product_attributes_fr");
-			field.put("value", attributesFr.toString());
-			field.put("permission_set", "read_and_sf_access");
-			field.put("description", "Dynamic French product attributes");
-			field.put("resource_id", productId);
-			metafields.put(field);
-		}
+	    // 🔗 6️ Add related product references (if resolved)
+	    if (product.getReferences() != null && !product.getReferences().isEmpty()) {
+	        JSONArray referenceArray = new JSONArray();
 
-		return metafields;
+	        for (ProductRefernce ref : product.getReferences()) {
+	            String refProductNumber = ref.getProductNumber();
+	            Integer internalId = productNumberToProductId.get(refProductNumber);
+
+	            if (internalId != null) {
+	                // ✅ Reference resolved – add as a JSON object
+	                JSONObject refJson = new JSONObject();
+	                refJson.put("product_id", internalId);
+	                refJson.put("type", ref.getType());
+	                referenceArray.put(refJson);
+	            } else {
+	                // ❌ Unresolved – track it for later retry
+	                unresolvedReferencesMap.computeIfAbsent(productId, k -> new ArrayList<>()).add(ref);
+	                System.out.printf(
+	                    "⚠️ Unresolved reference: product '%s' references '%s' (type: %s) which is not yet created.%n",
+	                    product.getProductNumber(), refProductNumber, ref.getType());
+	            }
+	        }
+
+	        // 🟢 Add resolved references as a separate metafield
+	        if (!referenceArray.isEmpty()) {
+	            JSONObject relatedProductsField = new JSONObject();
+	            relatedProductsField.put("namespace", "product_attributes");
+	            relatedProductsField.put("key", "related_products");
+	            relatedProductsField.put("value", referenceArray.toString());
+	            relatedProductsField.put("permission_set", "read_and_sf_access");
+	            relatedProductsField.put("description", "Related product references");
+	            relatedProductsField.put("resource_id", productId);
+	            metafields.put(relatedProductsField);
+	        }
+	    }
+
+	    return metafields;
 	}
 
-
-	
-	
 
 	public Map<String, Map<String, JSONObject>> mapVariantAttribtuesToBigCommerceCustomAttr(Product product,
 			Map<String, Map<String, String>> attributeLabelMap) {
@@ -852,26 +902,34 @@ public class BigCommerceProductMapper {
 
 		return localeSkuMap;
 	}
-
-	public Map<String, JSONObject> mapPredefinedVariantAttributesToMetafields (Product product) {
+	
+	
+	/**
+	 * Maps variant-level attributes to JSON metafields, ready for further processing.
+	 */
+	public Map<String, JSONObject> mapPredefinedVariantAttributesToMetafields(Product product) {
 	    Map<String, JSONObject> result = new HashMap<>();
+
+	    if (product == null || product.getVariants() == null) {
+	        return result;
+	    }
 
 	    for (Variant variant : product.getVariants()) {
 	        String sku = variant.getSkuNumber();
-	        if (sku == null || sku.isEmpty())
-	            continue;
+	        if (sku == null || sku.isEmpty()) continue;
 
 	        JSONObject predefinedAttributes = new JSONObject();
+
+	        // Basic variant fields
 	        predefinedAttributes.put("skuSeq", variant.getSkuSeq());
 	        predefinedAttributes.put("clearance", String.valueOf(variant.isPaSkuClearance()));
-	        predefinedAttributes.put("availabilityCode", 
-	            variant.getPaAvailabilityCode() != null ? variant.getPaAvailabilityCode() : "");
+	        predefinedAttributes.put("availabilityCode", variant.getPaAvailabilityCode() != null ? variant.getPaAvailabilityCode() : "");
 	        predefinedAttributes.put("shippable", variant.getPaShippable());
 	        predefinedAttributes.put("skuStatus", variant.getPaSkuStatus());
 	        predefinedAttributes.put("arrivalDate", variant.getPaArrivalDate());
 	        predefinedAttributes.put("country_of_origin", variant.getPaCountryOfOrigin());
-	       
-	        // ✅ Add videos only if at least one valid URL exists
+
+	        // ✅ Videos (only if at least one has a valid URL)
 	        if (variant.getVideos() != null) {
 	            JSONObject videosJson = new JSONObject();
 	            boolean hasValidVideo = false;
@@ -879,21 +937,29 @@ public class BigCommerceProductMapper {
 	            if (variant.getVideos().getVideos_en() != null && !variant.getVideos().getVideos_en().isEmpty()) {
 	                JSONArray enVideos = new JSONArray(variant.getVideos().getVideos_en());
 	                videosJson.put("videos_en", enVideos);
-	                hasValidVideo |= enVideos.toList().stream().anyMatch(v -> ((Map<?, ?>) v).get("url") != null && !((String) ((Map<?, ?>) v).get("url")).isBlank());
+	                hasValidVideo |= enVideos.toList().stream()
+	                        .anyMatch(v -> {
+	                            Object url = ((Map<?, ?>) v).get("url");
+	                            return url != null && !((String) url).isBlank();
+	                        });
 	            }
 
 	            if (variant.getVideos().getVideos_fr() != null && !variant.getVideos().getVideos_fr().isEmpty()) {
 	                JSONArray frVideos = new JSONArray(variant.getVideos().getVideos_fr());
 	                videosJson.put("videos_fr", frVideos);
-	                hasValidVideo |= frVideos.toList().stream().anyMatch(v -> ((Map<?, ?>) v).get("url") != null && !((String) ((Map<?, ?>) v).get("url")).isBlank());
+	                hasValidVideo |= frVideos.toList().stream()
+	                        .anyMatch(v -> {
+	                            Object url = ((Map<?, ?>) v).get("url");
+	                            return url != null && !((String) url).isBlank();
+	                        });
 	            }
 
 	            if (hasValidVideo) {
-	            	predefinedAttributes.put("videos", videosJson);
+	                predefinedAttributes.put("videos", videosJson);
 	            }
 	        }
 
-	        // ✅ Add webLinks only if at least one URL is not blank
+	        // ✅ Web links (only if at least one URL is not blank)
 	        if (variant.getWebLinks() != null) {
 	            String urlEn = variant.getWebLinks().getUrl_en();
 	            String urlFr = variant.getWebLinks().getUrl_fr();
@@ -904,44 +970,164 @@ public class BigCommerceProductMapper {
 	                predefinedAttributes.put("webLinks", linksJson);
 	            }
 	        }
-	        
-	        // ✅ Add manual PDF asset details
+
+	        // ✅ Manual PDF assets
 	        if (variant.getAssets() != null) {
 	            JSONArray manuals = new JSONArray();
 	            variant.getAssets().stream()
-	                .filter(asset -> "document".equalsIgnoreCase(asset.getType()))
-	                .forEach(asset -> {
-	                    JSONObject manualJson = new JSONObject();
-	                    manualJson.put("filename", asset.getPaDocumentsFileName());
-	                    manualJson.put("label", asset.getDocumentLabel() != null ? asset.getDocumentLabel() : "Manual PDF");
-	                    manualJson.put("description", asset.getDescription() != null ? asset.getDescription() : "PDF Document");
-	                    manuals.put(manualJson);
-	                });
+	                    .filter(asset -> "document".equalsIgnoreCase(asset.getType()))
+	                    .forEach(asset -> {
+	                        JSONObject manualJson = new JSONObject();
+	                        manualJson.put("filename", asset.getPaDocumentsFileName());
+	                        manualJson.put("label", asset.getDocumentLabel() != null ? asset.getDocumentLabel() : "Manual PDF");
+	                        manualJson.put("description", asset.getDescription() != null ? asset.getDescription() : "PDF Document");
+	                        manuals.put(manualJson);
+	                    });
 
 	            if (!manuals.isEmpty()) {
-	            	predefinedAttributes.put("manual_pdfs", manuals); // 🔑 use plural key
+	                predefinedAttributes.put("manual_pdfs", manuals); // 🔑 using plural
+	            }
+	        }
+
+	        // ✅ Direct localized fields (English and French)
+	        if (variant.getDisplayName() != null) {
+	            String enValue = variant.getDisplayName().getEn();
+	            String frValue = variant.getDisplayName().getFr_CA();
+	            if (StringUtils.hasText(enValue)) {
+	                predefinedAttributes.put("displayName_en", enValue);
+	            }
+	            if (StringUtils.hasText(frValue)) {
+	                predefinedAttributes.put("displayName_fr", frValue);
+	            }
+	        }
+
+	        if (variant.getLongDescription() != null) {
+	            String enValue = variant.getLongDescription().getEn();
+	            String frValue = variant.getLongDescription().getFr_CA();
+	            if (StringUtils.hasText(enValue)) {
+	                predefinedAttributes.put("longDescription_en", enValue);
+	            }
+	            if (StringUtils.hasText(frValue)) {
+	                predefinedAttributes.put("longDescription_fr", frValue);
+	            }
+	        }
+
+	        if (variant.getPaSharedApplications() != null) {
+	            String enValue = variant.getPaSharedApplications().getEn();
+	            String frValue = variant.getPaSharedApplications().getFr_CA();
+	            if (StringUtils.hasText(enValue)) {
+	                predefinedAttributes.put("sharedApplications_en", enValue);
+	            }
+	            if (StringUtils.hasText(frValue)) {
+	                predefinedAttributes.put("sharedApplications_fr", frValue);
+	            }
+	        }
+
+	        if (variant.getPaSharedFeatures() != null) {
+	            String enValue = variant.getPaSharedFeatures().getEn();
+	            String frValue = variant.getPaSharedFeatures().getFr_CA();
+	            if (StringUtils.hasText(enValue)) {
+	                predefinedAttributes.put("sharedFeatures_en", enValue);
+	            }
+	            if (StringUtils.hasText(frValue)) {
+	                predefinedAttributes.put("sharedFeatures_fr", frValue);
+	            }
+	        }
+
+	        if (variant.getPaSaleDates() != null) {
+	            String enValue = variant.getPaSaleDates().getEn();
+	            String frValue = variant.getPaSaleDates().getFr_CA();
+	            if (StringUtils.hasText(enValue)) {
+	                predefinedAttributes.put("saleDates_en", enValue);
+	            }
+	            if (StringUtils.hasText(frValue)) {
+	                predefinedAttributes.put("saleDates_fr", frValue);
 	            }
 	        }
 	        
-	        // ✅ Add attribute fields: displayName + paSaleDates
-	        if (variant.getAttributes() != null) {
-	            variant.getAttributes().forEach(attr -> {
-	                String id = attr.getId();
-	                if ("displayName".equalsIgnoreCase(id) && attr.getEn() != null && !attr.getEn().isBlank()) {
-	                	predefinedAttributes.put("displayName", attr.getEn());
-	                }
-	                if ("paSaleDates".equalsIgnoreCase(id) && attr.getEn() != null && !attr.getEn().isBlank()) {
-	                	predefinedAttributes.put("saleDates", attr.getEn());
-	                }
-	            });
-	        }
-
+//	        if (variant.getDisplayName() != null) {
+//	            String enValue = variant.getDisplayName().getEn();
+//	            String frValue = variant.getDisplayName().getFr_CA();
+//	            Map<String, String> localizedValues = new HashMap<>();
+//	            if (StringUtils.hasText(enValue)) {
+//	                localizedValues.put("en", enValue);
+//	            }
+//	            if (StringUtils.hasText(frValue)) {
+//	                localizedValues.put("fr", frValue);
+//	            }
+//	            if (!localizedValues.isEmpty()) {
+//	                predefinedAttributes.put("displayName", localizedValues);
+//	            }
+//	        }
+//
+//	        if (variant.getLongDescription() != null) {
+//	            String enValue = variant.getLongDescription().getEn();
+//	            String frValue = variant.getLongDescription().getFr_CA();
+//	            Map<String, String> localizedValues = new HashMap<>();
+//	            if (StringUtils.hasText(enValue)) {
+//	                localizedValues.put("en", enValue);
+//	            }
+//	            if (StringUtils.hasText(frValue)) {
+//	                localizedValues.put("fr", frValue);
+//	            }
+//	            if (!localizedValues.isEmpty()) {
+//	                predefinedAttributes.put("longDescription", localizedValues);
+//	            }
+//	        }
+//
+//	        if (variant.getPaSharedApplications() != null) {
+//	            String enValue = variant.getPaSharedApplications().getEn();
+//	            String frValue = variant.getPaSharedApplications().getFr_CA();
+//	            Map<String, String> localizedValues = new HashMap<>();
+//	            if (StringUtils.hasText(enValue)) {
+//	                localizedValues.put("en", enValue);
+//	            }
+//	            if (StringUtils.hasText(frValue)) {
+//	                localizedValues.put("fr", frValue);
+//	            }
+//	            if (!localizedValues.isEmpty()) {
+//	                predefinedAttributes.put("sharedApplications", localizedValues);
+//	            }
+//	        }
+//
+//	        if (variant.getPaSharedFeatures() != null) {
+//	            String enValue = variant.getPaSharedFeatures().getEn();
+//	            String frValue = variant.getPaSharedFeatures().getFr_CA();
+//	            Map<String, String> localizedValues = new HashMap<>();
+//	            if (StringUtils.hasText(enValue)) {
+//	                localizedValues.put("en", enValue);
+//	            }
+//	            if (StringUtils.hasText(frValue)) {
+//	                localizedValues.put("fr", frValue);
+//	            }
+//	            if (!localizedValues.isEmpty()) {
+//	                predefinedAttributes.put("sharedFeatures", localizedValues);
+//	            }
+//	        }
+//	       
+//	        if (variant.getPaSaleDates() != null) {
+//	            String enValue = variant.getPaSaleDates().getEn();
+//	            String frValue = variant.getPaSaleDates().getFr_CA();
+//	            Map<String, String> localizedValues = new HashMap<>();
+//	            if (StringUtils.hasText(enValue)) {
+//	                localizedValues.put("en", enValue);
+//	            }
+//	            if (StringUtils.hasText(frValue)) {
+//	                localizedValues.put("fr", frValue);
+//	            }
+//	            if (!localizedValues.isEmpty()) {
+//	                predefinedAttributes.put("saleDates", localizedValues);
+//	            }
+//	        }
+	        // Final mapping by SKU
 	        result.put(sku, predefinedAttributes);
 	    }
 
 	    return result;
 	}
 
+
+	
 	public static JSONArray mapProductAttributesToCustomFieldsRich(List<Attribute> attributes,
 			Map<String, Map<String, String>> attribtueLabelMap) {
 
@@ -1142,7 +1328,7 @@ public class BigCommerceProductMapper {
 	                String attrId = keys.next();
 
 	                // ❌ Skip specific fields that are handled separately
-	                if ("displayName".equalsIgnoreCase(attrId) || "paSaleDates".equalsIgnoreCase(attrId)) continue;
+//	                if ("displayName".equalsIgnoreCase(attrId) || "paSaleDates".equalsIgnoreCase(attrId)) continue;
 
 	                String value = rawAttributes.optString(attrId, "").trim();
 	                if (value.isEmpty()) continue;
@@ -1313,8 +1499,8 @@ public class BigCommerceProductMapper {
 	/**
 	 * Creates a metafield JSON array for variants, checking both productNumber and skuNumber
 	 * in references. Each object includes:
-	 * - "namespace": "variant_related_data"
-	 * - "key": variant.skuNumber
+	 * - "namespace": "variant_attributes"
+	 * - "key": "related_variants"
 	 * - "value": JSON string of related variant references
 	 * Skips creating entries for variants with no resolved references.
 	 */
@@ -1344,8 +1530,8 @@ public class BigCommerceProductMapper {
 	            if (internalProductId != null || internalVariantId != null) {
 	                // ✅ Create JSON object for resolved reference
 	                JSONObject refJson = new JSONObject();
-	                if (internalProductId != null) {
-	                    refJson.put("product_id", internalProductId);
+	                if (refProductNumber != null) {
+	                    refJson.put("ref_product_id", refProductNumber);
 	                }
 	                if (internalVariantId != null) {
 	                    refJson.put("variant_id", internalVariantId);
@@ -1371,8 +1557,8 @@ public class BigCommerceProductMapper {
 	        if (!referenceArray.isEmpty()) {
 	            // ✅ Create a metafield JSON object for this variant
 	            JSONObject metafield = new JSONObject();
-	            metafield.put("namespace", "variant_related_data");
-	            metafield.put("key", variant.getSkuNumber());
+	            metafield.put("namespace", "variant_attributes");  // Changed from variant_related_data
+	            metafield.put("key", "related_variants");          // Changed to static key
 	            metafield.put("value", referenceArray.toString());
 	            metafield.put("permission_set", "read_and_sf_access");
 	            metafield.put("resource_id", context.skuToVariantId.get(variant.getSkuNumber())); // optional
@@ -1691,5 +1877,22 @@ public class BigCommerceProductMapper {
 			obj.put(key, value);
 		}
 	}
+	
+	// Utility method for safe sequence parsing
+	private static int parseSeq(String seqStr) {
+	    try {
+	        return Integer.parseInt(seqStr != null ? seqStr : "9999");
+	    } catch (NumberFormatException e) {
+	        return 9999;
+	    }
+	}
+	
+	// Utility function to create a JSON object for { "en": "", "fr": "" }
+	private static BiFunction<String, String, JSONObject> createLocalizedValue = (en, fr) -> {
+	    JSONObject json = new JSONObject();
+	    json.put("en", en != null ? en : "");
+	    json.put("fr", fr != null ? fr : "");
+	    return json;
+	};
 
 }

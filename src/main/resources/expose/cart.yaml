@@ -1,0 +1,1502 @@
+openapi: 3.0.3
+x-stoplight:
+  id: 9yrpza87iyxpb
+info:
+  title: Cart
+  description: 'This API provides interface to create, update, delete Shopping Cart'
+  version: v1
+  x-api-id: Cart-v1
+  contact:
+    name: Jimmy Kongoli
+    email: jimmy_kongooli@epam.com
+servers:
+  - url: 'https://devapic.medline.com/ecom/cart/v1'
+    description: Dev environment
+  - url: 'https://testapic.medline.com/ecom/cart/v1'
+    description: Test environment
+  - url: 'https://apic.medline.com/ecom/cart/v1'
+    description: Production environment
+tags:
+  - name: ecom
+    description: shopping cart api
+  - name: shopping-cart
+    description: Shopping Cart
+security: []
+paths:
+  '/carts/{cartId}':
+    get:
+      summary: Get shopping cart by id
+      description: Get shopping cart by id
+      operationId: cart
+      tags:
+        - Cart
+      security:
+        - jwtTokenAuth: []
+      parameters:
+        - in: header
+          name: Authorization
+          required: true
+          description: It is a pass-through header containing JWT token.
+          schema:
+            type: string
+            example: 'Authorization: Bearer xxxxx'
+        - in: path
+          name: cartId
+          description: Valid cart id values can be internal cartId or "current" which represents last modified cart of the specified user
+          required: true
+          schema:
+            type: string
+            example: e2367c30-4403-4fac-8f8c-0d9e954ed57a
+          examples:
+            cartId:
+              summary: internal cart Id
+              value: e2367c30-4403-4fac-8f8c-0d9e954ed57a
+            current:
+              summary: last modified cart for user
+              value: current
+        - in: query
+          name: extend
+          description: Extend response with external data
+          required: false
+          schema:
+            type: array
+            items:
+              $ref: '#/components/schemas/ExtendType'
+            example:
+              - variants
+        - in: query
+          name: locale
+          description: Locale
+          required: false
+          schema:
+            type: string
+            example: en-us
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShoppingCart'
+              examples:
+                shoppingCartExample:
+                  $ref: '#/components/examples/shoppingCartExample'
+        '400':
+          description: Validation failed.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BadRequest'
+              examples:
+                Required parameter account number is missing:
+                  value:
+                    error_code: cart_99999
+                    message: Required parameter account number is missing
+                    type: general
+        '401':
+          description: Invalid token
+        '403':
+          description: Insufficient privileges.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+              examples:
+                Token has insufficient privileges:
+                  value:
+                    error_code: cart_99999
+                    message: Access denied insufficient privileges
+                    type: general
+        '404':
+          description: Resource Not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFound'
+              examples:
+                Resource not found:
+                  value:
+                    error_code: cart_99999
+                    message: Resource not found
+                    type: general
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InternalServerError'
+              examples:
+                Critical dependent service is down:
+                  value:
+                    error_code: cart_99999
+                    message: Service unavailable please try after some time
+                    type: general
+    patch:
+      summary: Update shopping cart
+      description: Update shopping cart
+      operationId: updateCart
+      tags:
+        - Cart
+      security:
+        - jwtTokenAuth: []
+      parameters:
+        - in: header
+          name: Authorization
+          required: true
+          description: It is a pass-through header containing JWT token.
+          schema:
+            type: string
+            example: 'Authorization: Bearer xxxxx'
+        - in: path
+          name: cartId
+          description: Cart Id
+          required: true
+          schema:
+            type: string
+            example: e2367c30-4403-4fac-8f8c-0d9e954ed57a
+        - in: query
+          name: extend
+          description: Extend response with external data
+          required: false
+          schema:
+            type: array
+            items:
+              $ref: '#/components/schemas/ExtendType'
+            example:
+              - variants
+        - in: query
+          name: locale
+          description: Locale
+          required: false
+          schema:
+            type: string
+            example: en-us
+      requestBody:
+        $ref: '#/components/requestBodies/cartOperationRequest'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShoppingCart'
+              examples:
+                shoppingCartExample:
+                  $ref: '#/components/examples/shoppingCartExample'
+        '400':
+          description: Validation failed.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BadRequest'
+              examples:
+                Required parameter account number is missing:
+                  value:
+                    error_code: cart_99999
+                    message: Required parameter account number is missing
+                    type: general
+        '401':
+          description: Invalid token
+        '403':
+          description: Insufficient privileges.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+              examples:
+                Token has insufficent privileges:
+                  value:
+                    error_code: cart_99999
+                    message: Access denied insufficient privileges
+                    type: general
+        '404':
+          description: Resource Not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFound'
+              examples:
+                Resource not found:
+                  value:
+                    error_code: cart_99999
+                    message: Resource not found
+                    type: general
+        '500':
+          description: Internal Server Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/InternalServerError'
+              examples:
+                Critical dependent service is down:
+                  value:
+                    error_code: cart_99999
+                    message: Service unavailable please try after some time
+                    type: general
+    delete:
+      summary: Delete shopping cart
+      description: Delete shopping cart
+      operationId: deleteCart
+      tags:
+        - Cart
+      security:
+        - jwtTokenAuth: []
+      parameters:
+        - in: header
+          name: Authorization
+          required: true
+          description: It is a pass-through header containing JWT token.
+          schema:
+            type: string
+            example: 'Authorization: Bearer xxxxx'
+        - in: path
+          name: cartId
+          description: Cart Id
+          required: true
+          schema:
+            type: string
+            example: e2367c30-4403-4fac-8f8c-0d9e954ed57a
+      responses:
+        '204':
+          description: No Content
+        '400':
+          description: Validation failed.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BadRequest'
+              examples:
+                Required parameter account number is missing:
+                  value:
+                    error_code: cart_99999
+                    message: Required parameter account number is missing
+                    type: general
+        '401':
+          description: Invalid token
+        '403':
+          description: Insufficient priviledges.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+              examples:
+                Token has insufficient privileges:
+                  value:
+                    error_code: cart_99999
+                    message: Access denied insufficient privileges
+                    type: general
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InternalServerError'
+              examples:
+                Critical dependent service is down:
+                  value:
+                    error_code: cart_99999
+                    message: Service unavailable please try after some time
+                    type: general
+  '/carts/{cartId}/price':
+    get:
+      summary: Get basic shopping cart with pricing data
+      description: Get basic shopping cart with pricing data
+      operationId: getShoppingCartPrice
+      tags:
+        - BasicCart
+      security:
+        - jwtTokenAuth: []
+      parameters:
+        - in: header
+          name: Authorization
+          required: true
+          description: It is a pass-through header containing JWT token.
+          schema:
+            type: string
+            example: 'Authorization: Bearer xxxxx'
+        - in: path
+          name: cartId
+          description: Valid cart id values can be internal cartId or "current" which represents last modified cart of the specified user
+          required: true
+          schema:
+            type: string
+            example: e2367c30-4403-4fac-8f8c-0d9e954ed57a
+          examples:
+            cartId:
+              summary: internal cart Id
+              value: e2367c30-4403-4fac-8f8c-0d9e954ed57a
+            current:
+              summary: last modifield cart for user
+              value: current
+        - in: query
+          name: shipTo
+          description: Ship to account
+          required: false
+          schema:
+            type: string
+            example: '1000836'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShoppingCartPrice'
+              examples:
+                shoppingCartPriceExample:
+                  $ref: '#/components/examples/shoppingCartPriceExample'
+        '400':
+          description: Validation failed.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BadRequest'
+              examples:
+                Required parameter account number is missing:
+                  value:
+                    error_code: cart_99999
+                    message: Required parameter account number is missing
+                    type: general
+        '401':
+          description: Invalid token
+        '403':
+          description: Insufficient priviledges.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+              examples:
+                Token has insufficent privileges:
+                  value:
+                    error_code: cart_99999
+                    message: Access denied insufficient privileges
+                    type: general
+        '404':
+          description: Resource Not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFound'
+              examples:
+                Resource not found:
+                  value:
+                    error_code: cart_99999
+                    message: Resource not found
+                    type: general
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InternalServerError'
+              examples:
+                Critical dependent service is down:
+                  value:
+                    error_code: cart_99999
+                    message: Service unavailable please try after some time
+                    type: general
+  /carts:
+    post:
+      summary: Create shopping cart
+      description: Create shopping carts
+      operationId: createCart
+      tags:
+        - Cart
+      security:
+        - jwtTokenAuth: []
+      parameters:
+        - in: header
+          name: Authorization
+          required: true
+          description: It is a pass-through header containing JWT token.
+          schema:
+            type: string
+            example: 'Authorization: Bearer xxxxx'
+        - in: query
+          name: extend
+          description: Extend response with external data
+          required: false
+          schema:
+            type: array
+            items:
+              $ref: '#/components/schemas/ExtendType'
+            example:
+              - variants
+        - in: query
+          name: locale
+          description: Locale
+          required: false
+          schema:
+            type: string
+            example: en-us
+      requestBody:
+        $ref: '#/components/requestBodies/shoppingCartDraft'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShoppingCart'
+              examples:
+                shoppingCartExample:
+                  $ref: '#/components/examples/shoppingCartExample'
+        '400':
+          description: Validation failed.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BadRequest'
+              examples:
+                Required parameter account number is missing:
+                  value:
+                    error_code: cart_99999
+                    message: Required parameter account number is missing
+                    type: general
+        '401':
+          description: Invalid token
+        '403':
+          description: Insufficient priviledges.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+              examples:
+                Token has insufficent privileges:
+                  value:
+                    error_code: cart_99999
+                    message: Access denied insufficient privileges
+                    type: general
+        '404':
+          description: Resource Not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFound'
+              examples:
+                Resource not found:
+                  value:
+                    error_code: cart_99999
+                    message: Resource not found
+                    type: general
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InternalServerError'
+              examples:
+                Critical dependent service is down:
+                  value:
+                    error_code: cart_99999
+                    message: Service unavailable please try after some time
+                    type: general
+  
+  '/carts/{cartId}/items/add':
+    post:
+      summary: Add products to cart
+      description: Add products to cart
+      operationId: addProductsToCart
+      tags:
+        - Cart
+      security:
+        - jwtTokenAuth: []
+      parameters:
+        - in: header
+          name: Authorization
+          required: true
+          description: It is a pass-through header containing JWT token.
+          schema:
+            type: string
+            example: 'Authorization: Bearer xxxxx'
+        - in: header
+          name: source
+          required: false
+          description: It represents the location from which the 'add item to cart' action is triggered.
+          schema:
+            type: string
+            enum:
+              - ProductDetailPage
+            example: ProductDetailPage
+        - in: path
+          name: cartId
+          description: Cart Id
+          required: true
+          schema:
+            type: string
+            example: e2367c30-4403-4fac-8f8c-0d9e954ed57a
+        - in: query
+          name: locale
+          description: Locale
+          required: false
+          schema:
+            type: string
+            example: en-us
+      requestBody:
+        $ref: '#/components/requestBodies/addProductRequest'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AddProductResult'
+              example:
+                - sku: FG100L
+                  status: success
+                  message: Success
+        '400':
+          description: Validation failed.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BadRequest'
+              examples:
+                Required parameter account number is missing:
+                  value:
+                    error_code: cart_99999
+                    message: Required parameter account number is missing
+                    type: general
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+              examples:
+                Unauthenticated user:
+                  value:
+                    error_code: cart_99999
+                    message: Full authentication is required to access this resource
+                    type: general
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Forbidden'
+              examples:
+                User has no shipTo authorization:
+                  value:
+                    error_code: cart_00030
+                    message: 'Current user is not authorized to access shipTo={id}'
+                    type: general
+        '404':
+          description: Resource Not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFound'
+              examples:
+                Resource not found:
+                  value:
+                    error_code: cart_99999
+                    message: Resource not found
+                    type: general
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InternalServerError'
+              examples:
+                Critical dependent service is down:
+                  value:
+                    error_code: cart_99999
+                    message: Service unavailable please try after some time
+                    type: general
+components:
+  schemas:
+    ShoppingCart:
+      type: object
+      properties:
+        id:
+          type: string
+        createdAt:
+          type: string
+          description: 'Format RFC 3339, section 5.6'
+          format: date-time
+          example: '2023-01-21T17:32:28Z'
+        lastModifiedAt:
+          type: string
+          description: 'Format RFC 3339, section 5.6'
+          format: date-time
+          example: '2023-01-21T17:32:28Z'
+        profileId:
+          type: string
+        orderNumber:
+          type: string
+        customerFirstName:
+          type: string
+        customerLastName:
+          type: string
+        assignedFreightCode:
+          type: string
+        isEditable:
+          type: boolean
+        shipments:
+          type: array
+          items:
+            type: object
+            properties:
+                 shipTo:
+                    $ref: '#/components/schemas/Address'
+                 items:
+                    type: array
+                    items:
+                       $ref: '#/components/schemas/Item'
+        deliveryAddress:
+          $ref: '#/components/schemas/Address'
+        deliveryAddressType:
+          type: string
+          enum:
+            - shipTo
+            - dropTo
+        purchaseOrderNumber:
+          type: string
+        delayShipping:
+          type: string
+          description: 'Format RFC 3339, date part only'
+          format: date
+          example: '2023-01-21'
+        paymentMethod:
+          $ref: '#/components/schemas/PaymentMethod'
+        notes:
+          type: string
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Item'
+        subtotalPrice:
+          $ref: '#/components/schemas/Price'
+        couponCodes:
+          type: array
+          items:
+            type: string
+        channel:
+          type: string
+          enum:
+            - medline_com
+        cartType:
+          type: string
+          enum:
+            - Standard
+        version:
+          type: integer
+          format: int64
+        tax:
+          $ref: '#/components/schemas/Price'
+        totalPrice:
+          $ref: '#/components/schemas/Price'
+        validation:
+          $ref: '#/components/schemas/ValidationHeader'
+        glCodesSummary:
+          type: array
+          items:
+            $ref: '#/components/schemas/GlCodeSummary'
+    ShoppingCartPrice:
+      type: object
+      properties:
+        id:
+          type: string
+          example: bb15864e-50e1-49f4-af34-2142b08a7c76
+        shipToAccountId:
+          type: string
+          example: '1000843'
+        userProfileId:
+          type: string
+          example: 3338e0c8-a794-4e5b-a1b2-01a80284323
+        organizationId:
+          type: string
+          example: '230182'
+        subtotal:
+          $ref: '#/components/schemas/Price'
+    Account:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        shortName:
+          type: string
+    Address:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        address1:
+          type: string
+        address2:
+          type: string
+        poBox:
+          type: string
+        city:
+          type: string
+        state:
+          type: string
+        postalCode:
+          type: string
+        country:
+          type: string
+        phoneNumber:
+          type: string
+        faxNumber:
+          type: string
+    Item:
+      type: object
+      properties:
+        position:
+          type: integer
+          format: int64
+        productVariant:
+          $ref: '#/components/schemas/ProductVariant'
+        quantity:
+          type: integer
+          format: int64
+        salesUom:
+          type: string
+        price:
+          $ref: '#/components/schemas/Price'
+        comment:
+          type: string
+        skuMaterial:
+          type: string
+        skuId:
+          type: string
+        availabilityMsgType:
+          type: string
+          enum:
+            - INFO
+            - WARN
+            - ERROR
+            - STRICT_WARN
+        availabilityMsg:
+          type: string
+        contract:
+          $ref: '#/components/schemas/ContractDetails'
+        subtotalPrice:
+          $ref: '#/components/schemas/Price'
+        tax:
+          $ref: '#/components/schemas/Price'
+        ackMessages:
+          type: array
+          items:
+            $ref: '#/components/schemas/AcknowledgeMessage'
+        validationMessages:
+          type: array
+          items:
+            $ref: '#/components/schemas/ValidationMessage'
+        itemOptions:
+          type: array
+          items:
+            $ref: '#/components/schemas/ItemOption'
+    ProductVariant:
+      type: object
+      properties:
+        sku:
+          type: string
+        parentProductId:
+          type: string
+        parentProductName:
+          type: string
+        materialGroup:
+          type: string
+        manufacturer:
+          type: string
+        productDivision:
+          type: string
+        accountLinked:
+          $ref: '#/components/schemas/AccountLinkedItem'
+        containsLatex:
+          type: string
+          format: boolean
+        description:
+          type: string
+        disclaimers:
+          type: array
+          items:
+            $ref: '#/components/schemas/Disclaimer'
+        formularyCode:
+          type: string
+          enum:
+            - F
+            - P
+        images:
+          $ref: '#/components/schemas/KeyValue'
+        link:
+          type: string
+        manufacturerProductNumber:
+          type: string
+        onPromo:
+          type: boolean
+        packageStringLong:
+          type: string
+        packageStringShort:
+          type: string
+        price:
+          $ref: '#/components/schemas/Price'
+        glcodes:
+          type: array
+          items:
+            type: string
+        cmirs:
+          type: array
+          items:
+            type: string
+        orderQuantityMinimum:
+          type: integer
+        orderQuantityMultiples:
+          type: integer
+    ItemOption:
+      type: object
+      properties:
+        skuMaterial:
+          type: string
+        skuId:
+          type: string
+        images:
+          $ref: '#/components/schemas/KeyValue'
+        link:
+          type: string
+        description:
+          type: string
+    Price:
+      type: object
+      properties:
+        value:
+          type: number
+          format: double
+        currency:
+          type: string
+    ContractDetails:
+      title: ContractDetails
+      type: object
+      properties:
+        contract:
+          type: string
+          format: boolean
+        medlineContract:
+          type: string
+        medlineContractName:
+          type: string
+        groupContract:
+          type: string
+        groupContractName:
+          type: string
+        vendorContract:
+          type: string
+        vendorContractName:
+          type: string
+        contractTier:
+          type: string
+        gpoContract:
+          type: string
+        validFrom:
+          type: string
+          format: date
+          example: '2023-01-23'
+        validTo:
+          type: string
+          format: date
+          example: '2023-01-22'
+      description: Contract Details
+    AddProductResult:
+      type: object
+      properties:
+        sku:
+          type: string
+        status:
+          type: string
+          enum:
+            - success
+            - error
+            - validationError
+        message:
+          type: string
+    InvalidSku:
+      type: object
+      properties:
+        skuId:
+          type: string
+          description: The sku id
+        skuMaterial:
+          type: string
+          description: The sku material
+        quantity:
+          type: integer
+          format: int64
+          description: The number of items
+    ExtendType:
+      type: string
+      enum:
+        - variants
+        - pricing
+      example: view
+    CartOperation:
+      type: object
+      properties:
+        op:
+          type: string
+          enum:
+            - replace
+            - remove
+        path:
+          type: string
+        value:
+          type: object
+      required:
+        - op
+        - path
+    AddProductRequest:
+      type: object
+      properties:
+        sku:
+          type: string
+          maxLength: 20
+          pattern: '^(?!\s)(?!.*\s$)[A-Z0-9\s]+$'
+        quantity:
+          type: integer
+          format: int64
+          minimum: 1
+      required:
+        - sku
+        - quantity
+    AccountLinkedItem:
+      type: object
+      properties:
+        accountLinkedItem:
+          type: string
+          format: boolean
+        lastOrderedDate:
+          type: string
+        accountLinkedMessage:
+          type: string
+    PaymentMethodEnum:
+      type: string
+      enum:
+        - creditCard
+        - invoiceAccount
+    PaymentMethod:
+      type: object
+      properties:
+        method:
+          $ref: '#/components/schemas/PaymentMethodEnum'
+      required:
+        - method
+      oneOf:
+        - $ref: '#/components/schemas/InvoiceAccountPaymentMethod'
+        - $ref: '#/components/schemas/CreditCardPaymentMethod'
+      discriminator:
+        propertyName: method
+        mapping:
+          invoiceAccount: '#/components/schemas/InvoiceAccountPaymentMethod'
+          creditCard: '#/components/schemas/CreditCardPaymentMethod'
+    InvoiceAccountPaymentMethod:
+      type: object
+      properties:
+        method:
+          $ref: '#/components/schemas/PaymentMethodEnum'
+      required:
+        - method
+    CreditCardPaymentMethod:
+      type: object
+      properties:
+        method:
+          $ref: '#/components/schemas/PaymentMethodEnum'
+        cardLastDigits:
+          type: string
+        tokenizedCreditCard:
+          type: string
+        ownerName:
+          type: string
+        cardType:
+          type: string
+          enum:
+            - VISA
+            - MC
+            - AMEX
+      required:
+        - method
+        - cardLastDigits
+        - tokenizedCreditCard
+        - cardType
+    Disclaimer:
+      type: object
+      properties:
+        name:
+          type: string
+        value:
+          type: string
+    KeyValue:
+      type: object
+      additionalProperties:
+        type: string
+    GlCodeSummary:
+      type: object
+      required:
+        - code
+        - amount
+        - tax
+        - totalAmount
+      properties:
+        code:
+          type: string
+        costCenter:
+          type: string
+        amount:
+          $ref: '#/components/schemas/Price'
+        tax:
+          $ref: '#/components/schemas/Price'
+        totalAmount:
+          $ref: '#/components/schemas/Price'
+    ErrorResponse:
+      type: object
+      required:
+        - message
+        - type
+      oneOf:
+        - $ref: '#/components/schemas/GeneralErrorResponse'
+        - $ref: '#/components/schemas/ParametrizedErrorResponse'
+      discriminator:
+        propertyName: type
+        mapping:
+          general: '#/components/schemas/GeneralErrorResponse'
+          cart/parametrized: '#/components/schemas/ParametrizedErrorResponse'
+      properties:
+        message:
+          type: string
+        detailedMessage:
+          type: string
+        errorCode:
+          type: string
+        type:
+          type: string
+    GeneralErrorResponse:
+      type: object
+      properties:
+        type:
+          type: string
+          default: general
+      required:
+        - type
+    ParametrizedErrorResponse:
+      type: object
+      properties:
+        type:
+          type: string
+          default: cart/parametrized
+        parameters:
+          type: array
+          items:
+            $ref: '#/components/schemas/ErrorParameter'
+      required:
+        - type
+        - parameters
+    ErrorParameter:
+      type: object
+      required:
+        - name
+        - value
+      properties:
+        name:
+          type: string
+        value:
+          type: string
+    ExcelExportRequest:
+      type: object
+      nullable: true
+    ValidationHeader:
+      type: object
+      properties:
+        canSubmit:
+          type: boolean
+          description: Shortcut to check if validation resulted in any errors
+        validationMessages:
+          type: array
+          items:
+            $ref: '#/components/schemas/ValidationMessage'
+      required:
+        - canSubmit
+        - validationMessages
+    ValidationMessage:
+      type: object
+      properties:
+        type:
+          type: string
+          enum:
+            - ack
+            - info
+            - warn
+            - error
+        code:
+          type: string
+        message:
+          type: string
+        variables:
+          type: object
+          additionalProperties:
+            type: string
+      required:
+        - type
+        - code
+        - message
+    AcknowledgeMessageDraft:
+      type: object
+      properties:
+        accepted:
+          type: boolean
+        code:
+          type: string
+      required:
+        - accepted
+        - code
+    AcknowledgeMessage:
+      type: object
+      properties:
+        accepted:
+          type: boolean
+        code:
+          type: string
+        message:
+          type: string
+        acceptedAt:
+          type: string
+          description: 'Format RFC 3339, section 5.6'
+          format: date-time
+          example: '2023-01-21T17:32:28Z'
+        acceptedByFirstName:
+          type: string
+        acceptedByLastName:
+          type: string
+      required:
+        - accepted
+        - code
+        - message
+    BadRequest:
+      type: object
+      oneOf:
+        - $ref: '#/components/schemas/ErrorResponse'
+        - $ref: '#/components/schemas/ParametrizedErrorResponse'
+      discriminator:
+        propertyName: type
+        mapping:
+          general: '#/components/schemas/ErrorResponse'
+          cart/parametrized: '#/components/schemas/ParametrizedErrorResponse'
+    Unauthorized:
+      type: object
+      oneOf:
+        - $ref: '#/components/schemas/ErrorResponse'
+        - $ref: '#/components/schemas/ParametrizedErrorResponse'
+      discriminator:
+        propertyName: type
+        mapping:
+          general: '#/components/schemas/ErrorResponse'
+          cart/parametrized: '#/components/schemas/ParametrizedErrorResponse'
+    Forbidden:
+      type: object
+      oneOf:
+        - $ref: '#/components/schemas/ErrorResponse'
+        - $ref: '#/components/schemas/ParametrizedErrorResponse'
+      discriminator:
+        propertyName: type
+        mapping:
+          general: '#/components/schemas/ErrorResponse'
+          cart/parametrized: '#/components/schemas/ParametrizedErrorResponse'
+    NotFound:
+      type: object
+      oneOf:
+        - $ref: '#/components/schemas/ErrorResponse'
+        - $ref: '#/components/schemas/ParametrizedErrorResponse'
+      discriminator:
+        propertyName: type
+        mapping:
+          general: '#/components/schemas/ErrorResponse'
+          cart/parametrized: '#/components/schemas/ParametrizedErrorResponse'
+    MethodNotAllowed:
+      type: object
+      oneOf:
+        - $ref: '#/components/schemas/ErrorResponse'
+        - $ref: '#/components/schemas/ParametrizedErrorResponse'
+      discriminator:
+        propertyName: type
+        mapping:
+          general: '#/components/schemas/ErrorResponse'
+          cart/parametrized: '#/components/schemas/ParametrizedErrorResponse'
+    InternalServerError:
+      type: object
+      oneOf:
+        - $ref: '#/components/schemas/ErrorResponse'
+        - $ref: '#/components/schemas/ParametrizedErrorResponse'
+      discriminator:
+        propertyName: type
+        mapping:
+          general: '#/components/schemas/ErrorResponse'
+          cart/parametrized: '#/components/schemas/ParametrizedErrorResponse'
+  requestBodies:
+    shoppingCartDraft:
+    
+    cartOperationRequest:
+      description: Update cart request
+      required: true
+      content:
+        application/json-patch+json:
+          schema:
+            type: array
+            minItems: 1
+            items:
+              $ref: '#/components/schemas/CartOperation'
+          example:
+            - op: remove
+              path: /purchaseOrderNumber
+    
+  
+    
+    addProductRequest:
+      description: Add products to cart draft
+      required: true
+      content:
+        application/json:
+          schema:
+            type: array
+            minItems: 1
+            items:
+              $ref: '#/components/schemas/AddProductRequest'
+          example:
+            - sku: MDPIPT800
+              quantity: 1
+    excelExportRequest:
+      description: Excel export request parameters
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ExcelExportRequest'
+          example: null
+  securitySchemes:
+    jwtTokenAuth:
+      type: apiKey
+      in: header
+      name: Authorization
+      description: JWT token
+  examples:
+    replicationResult:
+      summary: Cart replication response example
+      value:
+        id: e2367c30-4403-4fac-8f8c-0d9e954ed57a
+        shipToId: '1259836'
+        invalidSkus:
+          - skuId: MDPITP800
+            skuMaterial: ITP800
+            quantity: 1
+    shoppingCartExample:
+      summary: Cart for extend=variants
+      value:
+        id: e2367c30-4403-4fac-8f8c-0d9e954ed57a
+        createdAt: '2023-01-21T17:32:28Z'
+        lastModifiedAt: '2023-01-21T17:32:28Z'
+        profileId: TEST_HH_User01
+        customerFirstName: John
+        customerLastName: Smith
+        shipToAccount:
+          id: '1259836'
+          name: 1259836-CUSTOMER SERVICE GENERAL ACCT
+          shortName: 1259836-CUSTOMER SERVICE GENERAL ACCT
+        soldToAccount:
+          id: '1259836'
+          shortName: 1259836-CUSTOMER SERVICE GENERAL ACCT
+        deliveryAddress:
+          id: '1259836'
+          name: my address
+          address1: 1 MEDLINE PL
+          address2: ''
+          poBox: '4485'
+          city: MUNDELEIN
+          state: IL
+          postalCode: '60060'
+          country: US
+          phoneNumber: string
+          faxNumber: string
+        deliveryAddressType: shipTo
+        purchaseOrderNumber: string
+        delayShipping: '2023-01-21'
+        paymentMethod:
+          method: creditCard
+          cardLastDigits: 1234
+          tokenizedCreditCard: xyz
+          ownerName: Oliver Twist
+          cardType: VISA
+        acknowledgementEmails:
+          - xxxrfgwzytrx6@medline.com
+        notes: Sample notes
+        validation:
+          canSubmit: false
+          validationMessages:
+            - type: error
+              code: INVAL
+              message: 'Material {material} is invalid.'
+              variables:
+                material: ALR190000
+        items:
+          - position: 10
+            productVariant:
+              sku: MDPITP800
+              accountLinked:
+                accountLinkedItem: 'true'
+                lastOrderedDate: '2023-01-01'
+                accountLinkedMessage: text
+              containsLatex: 'true'
+              description: ITP800
+              disclaimers:
+                - name: hazardous
+                  value: Q
+              formularyCode: F
+              images:
+                hoverImage: /media/catalog/sku/BAX/BAX002002H_PRI02.JPG
+              link: /ecom/pdp/ITP800
+              manufacturerProductNumber: MG100S
+              onPromo: true
+              packageStringLong: 160 Each / Case
+              packageStringShort: 160/CS
+              salesUom: CS
+              glcodes:
+                - '123'
+              cmir:
+                - code1
+              orderQuantityMinimum: 1
+              orderQuantityMultiples: 1
+            quantity: 2
+            price:
+              value: 5.01
+              currency: USD
+            subtotalPrice:
+              value: 10.02
+              currency: USD
+            tax:
+              value: 2.34
+              currency: USD
+            comment: No comments
+            skuMaterial: ITP800
+            skuId: MDPITP800
+            ackMessages:
+              - accepted: true
+                code: DUPLICATE
+                message: Duplicate items.
+                acceptedAt: '2023-01-21T17:32:28Z'
+                acceptedByFirstName: John
+                acceptedByLastName: Smith
+            validationMessages:
+              - type: error
+                code: EMB
+                message: 'To have product {material} customized, you need to order it via {phone}.'
+                variables:
+                  material: ALR190000
+                  phone: 1-800-MEDLINE
+        subtotalPrice:
+          value: 10.02
+          currency: USD
+        tax:
+          value: 2.34
+          currency: USD
+        version: 1
+        internalOrderHistory: order1
+        couponCodes:
+          - '123'
+        channel: medline_com
+        cartType: Standard
+        cartState: Active
+        orderNumber: '753002622'
+    shoppingCartPriceExample:
+      summary: Empty cart with default values for user
+      value:
+        customerFirstName: John
+        customerLastName: Smith
+        createdAt: '2023-01-21T17:32:28Z'
+        shipToAccount:
+          id: '1259836'
+          name: 1259836-CUSTOMER SERVICE GENERAL ACCT
+          shortName: 1259836-CUSTOMER SERVICE GENERAL ACCT
+        soldToAccount:
+          id: '1259836'
+          shortName: 1259836-CUSTOMER SERVICE GENERAL ACCT
+        deliveryAddress:
+          id: '1259836'
+          name: my address
+          address1: 1 MEDLINE PL
+          address2: ''
+          poBox: '4485'
+          city: MUNDELEIN
+          state: IL
+          postalCode: '60060'
+          country: US
+          phoneNumber: string
+          faxNumber: string
+        deliveryAddressType: shipTo
+        defaultAcknowledgementEmail: xxxrfgwzytrx7@medline.com
+        acknowledgementEmails:
+          - xxxrfgwzytrx6@medline.com
+    itemExample:
+      summary: Shopping cart item
+      value:
+        position: 10
+        productVariant:
+          sku: MDPITP800
+          accountLinked:
+            accountLinkedItem: 'true'
+            lastOrderedDate: '2023-01-01'
+            accountLinkedMessage: text
+          containsLatex: 'true'
+          description: ITP800
+          disclaimers:
+            - name: hazardous
+              value: Q
+          formularyCode: F
+          images:
+            hoverImage: /media/catalog/sku/BAX/BAX002002H_PRI02.JPG
+          link: /ecom/pdp/ITP800
+          manufacturerProductNumber: MG100S
+          onPromo: true
+          packageStringLong: 160 Each / Case
+          packageStringShort: 160/CS
+          salesUom: CS
+          glcodes:
+            - '123'
+          cmir:
+            - code1
+        quantity: 2
+        price:
+          value: 5.01
+          currency: USD
+        subtotalPrice:
+          value: 10.02
+          currency: USD
+        tax:
+          value: 2.34
+          currency: USD
+        comment: No comments
+        skuMaterial: ITP800
+        skuId: MDPITP800
+        ackMessages:
+          - accepted: true
+            code: DUPLICATE
+            message: Duplicate items.
+            acceptedAt: '2023-01-21T17:32:28Z'
+            acceptedByFirstName: John
+            acceptedByLastName: Smith
+        validationMessages:
+          - type: error
+            code: EMB
+            message: 'To have product {material} customized, you need to order it via {phone}.'
+            variables:
+              material: ALR190000
+              phone: 1-800-MEDLINE
+        itemOptions:
+          - skuMaterial: ITP800
+            skuId: MDPITP800
+            images:
+              hoverImage: /media/catalog/sku/BAX/BAX002002H_PRI02.JPG
+            link: /sku/item/ITP800
+            description: ITP800

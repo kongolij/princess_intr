@@ -1,10 +1,12 @@
 package com.bigcommerce.imports.catalog.product;
 
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -52,8 +54,9 @@ public class ImportProductsFromCVS implements CommandLineRunner {
 //		InputStream inputStream = getClass().getClassLoader().getResourceAsStream("Sample For EPAM (flattened)_1.json");
 
 //		InputStream inputStream = getClass().getClassLoader().getResourceAsStream("Flattened_Products.jsonl");
+		InputStream inputStream = getClass().getClassLoader().getResourceAsStream("Flattened_Products_V3.jsonl");
 		
-		InputStream inputStream = getClass().getClassLoader().getResourceAsStream("merged_products_flattened.json");
+//		InputStream inputStream = getClass().getClassLoader().getResourceAsStream("merged_products_flattened.json");
 		
 		
 		if (inputStream == null) {
@@ -64,19 +67,87 @@ public class ImportProductsFromCVS implements CommandLineRunner {
 		try (BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream))) {
 			String line;
 			List<Product> products = new ArrayList<>();
+			Map<String, Product> productMap = new HashMap<>();
+			
+			// Collect category IDs, brand IDs, and product-to-SKU mapping
+	        List<String> categoryIds = new ArrayList<>();
+	        List<String> brandIds = new ArrayList<>();
+	        Map<String, List<String>> productToSkusMap = new HashMap<>();
+	        
 			while ((line = reader.readLine()) != null) {
 				line = line.trim(); // Remove leading/trailing spaces
 				Product product = mapper.readValue(line, Product.class);
 				products.add(product);
 
-				System.out.println("✅ Product Number: " + product.productNumber);
-				String categoriesCsv = product.getCategories().stream().map(Category::getId)
-						.collect(Collectors.joining(", "));
+				// Check if the product has only one variant and no options
+			    boolean isSimpleProduct = false;
+			    if (product.getVariants() != null && product.getVariants().size() == 1) {
+			        Variant singleVariant = product.getVariants().get(0);
+			        isSimpleProduct = (singleVariant.getOption_values() == null || singleVariant.getOption_values().isEmpty());
+			    }
 
-				System.out.println("  📂 Categories: " + categoriesCsv);
-				System.out.println("  🔧 Variants:");
+			    String key;
+			    if (isSimpleProduct && product.getVariants().get(0).getSkuNumber() != null) {
+			        // Use the SKU as the key for simple product
+			        key = product.getVariants().get(0).getSkuNumber();
+			    } else if (product.getProductNumber() != null) {
+			        // Otherwise, use the product number
+			        key = product.getProductNumber();
+			    } else {
+			        // Fallback – skip if no suitable key
+			    	 System.err.printf("⚠️ Skipping product: no suitable key "
+			    	 		+ "(productNumber: %s, firstVariantSku: %s)%n",
+			                 product.getProductNumber(),
+			                 (product.getVariants() != null && !product.getVariants().isEmpty()) ? product.getVariants().get(0).getSkuNumber() : "null");
+			        continue;
+			    }
+			    
+			    // Put the product in the map
+			    productMap.put(key, product);
+				
+				// ✅ Collect category IDs
+	            if (product.getCategories() != null) {
+	                for (Category category : product.getCategories()) {
+	                    if (category.getId() != null) {
+	                        categoryIds.add(category.getId());
+	                    }
+	                }
+	            }
+
+	            // ✅ Collect brand IDs
+	            if (product.getBrand() != null && product.getBrand() != null) {
+	                brandIds.add(product.getBrand());
+	            }
+
+	            // ✅ Collect productNumber -> list of SKUs
+	            List<String> skus = product.getVariants().stream()
+	                    .map(Variant::getSkuNumber)
+	                    .distinct()
+	                    .collect(Collectors.toList());
+	            productToSkusMap.put(product.getProductNumber(), skus);
+				System.out.println("✅ Product Number: " + product.productNumber);
 
 			}
+			
+			// 🟢 Print categories list as a CSV
+			List<String> uniqueCategoryIds = categoryIds.stream().distinct().collect(Collectors.toList());
+			String categoryCsv = String.join(", ", uniqueCategoryIds);
+			System.out.println("✅ Categories (CSV):");
+			System.out.println(categoryCsv);
+
+			// 🟢 Print brands list as a CSV
+			List<String> uniqueBrandIds = brandIds.stream().distinct().collect(Collectors.toList());
+			String brandCsv = String.join(", ", uniqueBrandIds);
+			System.out.println("✅ Brands (CSV):");
+			System.out.println(brandCsv);
+
+			// 🟢 Print products and their SKUs in CSV-like style
+			System.out.println("✅ Products and their SKUs:");
+			productToSkusMap.forEach((productNumber, skus) -> {
+			    String skuList = skus.stream().collect(Collectors.joining(", "));
+			    System.out.printf("%s, [%s]%n", productNumber, skuList);
+			});
+	        
 			// Get attribute label codes with English and French translations
 			long startLabelMapTime = System.currentTimeMillis();
 			Map<String, Map<String, String>> attributeLabelMap = attributeLabelService.buildEnglishAndFrenchMaps();
@@ -88,7 +159,8 @@ public class ImportProductsFromCVS implements CommandLineRunner {
 
 			System.out.printf("✅ Mapped %d attribute codes in %.2f seconds%n", totalMappedAttributes, labelMapDurationInSeconds);
 			
-			addProductToBigCommerce(products, "en", attributeLabelMap);
+//			addProductToBigCommerce(products, "en", attributeLabelMap);
+			addProductToBigCommerce(productMap, "en", attributeLabelMap);
 		} catch (IOException e) {
 			System.err.println("❌ Error reading JSON line: " + e.getMessage());
 			e.printStackTrace();
@@ -98,9 +170,16 @@ public class ImportProductsFromCVS implements CommandLineRunner {
 		System.exit(0);
 	}
 
+	public void addProductToBigCommerce(
+			Map<String, Product> productMap, 
+			String locale,
+			Map<String, Map<String, String>> attribtueLabelMap) throws Exception {
+		bigCommerceProductService.importProducts(productMap, locale, attribtueLabelMap);
+	}
+	
 	public void addProductToBigCommerce(List<Product> products, String locale,
 			Map<String, Map<String, String>> attribtueLabelMap) throws Exception {
-		bigCommerceProductService.importProducts(products, locale, attribtueLabelMap);
+//		bigCommerceProductService.importProducts(products, locale, attribtueLabelMap);
 	}
 
 }

@@ -271,6 +271,9 @@ public class ProductGraphQLResponse {
 	}
 
 	public static class MetafieldConnection {
+		
+		public PageInfo pageInfo;
+		
 		public List<MetafieldEdge> edges;
 
 		public List<MetafieldEdge> getEdges() {
@@ -380,6 +383,9 @@ public class ProductGraphQLResponse {
 	}
 
 	public static class VariantConnection {
+		
+		public PageInfo pageInfo;
+		
 		public List<VariantEdge> edges;
 
 		public List<VariantEdge> getEdges() {
@@ -389,6 +395,15 @@ public class ProductGraphQLResponse {
 		public void setEdges(List<VariantEdge> edges) {
 			this.edges = edges;
 		}
+
+		public PageInfo getPageInfo() {
+			return pageInfo;
+		}
+
+		public void setPageInfo(PageInfo pageInfo) {
+			this.pageInfo = pageInfo;
+		}
+		
 	}
 
 	public static class VariantEdge {
@@ -750,4 +765,25 @@ public class ProductGraphQLResponse {
 			this.label = label;
 		}
 	}
+	
+	public static class PageInfo {
+		
+		public boolean hasNextPage;
+		public String endCursor;
+		
+		public boolean isHasNextPage() {
+			return hasNextPage;
+		}
+		public void setHasNextPage(boolean hasNextPage) {
+			this.hasNextPage = hasNextPage;
+		}
+		public String getEndCursor() {
+			return endCursor;
+		}
+		public void setEndCursor(String endCursor) {
+			this.endCursor = endCursor;
+		}
+		  
+		  
+		} 
 }

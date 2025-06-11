@@ -7,6 +7,12 @@ public class Product {
 	public String productNumber;
 	public List<Category> categories;
 
+	public DisplayName displayName;
+	public LongDescription longDescription;
+	public SharedApplications paSharedApplications;
+	public SharedFeatures paSharedFeatures;
+	
+	
 	public boolean active;
 	public boolean paLevy;
 	public String paAvailabilityCode;
@@ -28,6 +34,40 @@ public class Product {
 
 	public void setProductNumber(String productNumber) {
 		this.productNumber = productNumber;
+	}
+	
+	
+
+	public DisplayName getDisplayName() {
+		return displayName;
+	}
+
+	public void setDisplayName(DisplayName displayName) {
+		this.displayName = displayName;
+	}
+
+	public LongDescription getLongDescription() {
+		return longDescription;
+	}
+
+	public void setLongDescription(LongDescription longDescription) {
+		this.longDescription = longDescription;
+	}
+
+	public SharedApplications getPaSharedApplications() {
+		return paSharedApplications;
+	}
+
+	public void setPaSharedApplications(SharedApplications paSharedApplications) {
+		this.paSharedApplications = paSharedApplications;
+	}
+
+	public SharedFeatures getPaSharedFeatures() {
+		return paSharedFeatures;
+	}
+
+	public void setPaSharedFeatures(SharedFeatures paSharedFeatures) {
+		this.paSharedFeatures = paSharedFeatures;
 	}
 
 	public boolean isActive() {

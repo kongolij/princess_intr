@@ -20,6 +20,12 @@ public class Variant {
 //	"paWeight": "0.2",
 //	"paCountryOfOrigin": "CN",
 
+	public DisplayName displayName;
+	public LongDescription longDescription;
+	public SharedApplications paSharedApplications;
+	public SharedFeatures paSharedFeatures;
+	public SaleDates paSaleDates;
+	
 	public String skuNumber;
 	public boolean active;
 	public String paShippable;
@@ -62,6 +68,49 @@ public class Variant {
 
 	public void setSkuNumber(String skuNumber) {
 		this.skuNumber = skuNumber;
+	}
+	
+	
+
+	public DisplayName getDisplayName() {
+		return displayName;
+	}
+
+	public void setDisplayName(DisplayName displayName) {
+		this.displayName = displayName;
+	}
+
+	public LongDescription getLongDescription() {
+		return longDescription;
+	}
+
+	public void setLongDescription(LongDescription longDescription) {
+		this.longDescription = longDescription;
+	}
+
+	public SharedApplications getPaSharedApplications() {
+		return paSharedApplications;
+	}
+
+	public void setPaSharedApplications(SharedApplications paSharedApplications) {
+		this.paSharedApplications = paSharedApplications;
+	}
+
+	public SharedFeatures getPaSharedFeatures() {
+		return paSharedFeatures;
+	}
+
+	public void setPaSharedFeatures(SharedFeatures paSharedFeatures) {
+		this.paSharedFeatures = paSharedFeatures;
+	}
+
+	
+	public SaleDates getPaSaleDates() {
+		return paSaleDates;
+	}
+
+	public void setPaSaleDates(SaleDates paSaleDates) {
+		this.paSaleDates = paSaleDates;
 	}
 
 	public boolean isPaSkuClearance() {

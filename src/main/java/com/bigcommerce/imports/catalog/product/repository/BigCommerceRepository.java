@@ -866,8 +866,7 @@ public class BigCommerceRepository {
 	}
 
 	public void deleteVariantMetafields(List<Integer> metafieldIds) throws Exception {
-	    // Split into batches of 50 to meet BigCommerce API limit
-	    final int BATCH_SIZE = 20;
+	    final int BATCH_SIZE = 10;
 	    int total = metafieldIds.size();
 	    int batches = (int) Math.ceil((double) total / BATCH_SIZE);
 
@@ -876,74 +875,105 @@ public class BigCommerceRepository {
 	        int end = Math.min(start + BATCH_SIZE, total);
 	        List<Integer> batchIds = metafieldIds.subList(start, end);
 
-	        // Prepare JSON payload
+	        System.out.println("🟡 Deleting batch of variant metafields: " + batchIds);
+
 	        JSONArray payload = new JSONArray(batchIds);
 
 	        HttpURLConnection connection = BigCommerceApiClient.createRequest(
 	                BigCommerceStoreConfig.STORE_HASH,
 	                BigCommerceStoreConfig.ACCESS_TOKEN,
 	                "catalog/variants/metafields",
-	                "DELETE");
+	                "DELETE"
+	        );
 
 	        connection.setRequestProperty("Content-Type", "application/json");
 	        connection.setDoOutput(true);
 
 	        try (OutputStream os = connection.getOutputStream()) {
-	            byte[] input = payload.toString().getBytes("utf-8");
+	            byte[] input = payload.toString().getBytes(StandardCharsets.UTF_8);
 	            os.write(input, 0, input.length);
 	        }
 
 	        int responseCode = connection.getResponseCode();
-	        if (responseCode != HttpURLConnection.HTTP_OK && responseCode != HttpURLConnection.HTTP_NO_CONTENT) {
+	        if (responseCode == HttpURLConnection.HTTP_OK || responseCode == HttpURLConnection.HTTP_NO_CONTENT) {
+	            System.out.println("✅ Successfully deleted variant metafields (Batch " + (i + 1) + "/" + batches + ")");
+	        } else {
 	            try (Scanner errorScanner = new Scanner(connection.getErrorStream())) {
 	                String errorResponse = errorScanner.useDelimiter("\\A").hasNext() ? errorScanner.next() : "";
 	                System.err.println("❌ Failed to delete variant metafields (Batch " + (i + 1) + "/" + batches + ")");
 	                System.err.println("Response code: " + responseCode);
 	                System.err.println("Error message: " + connection.getResponseMessage());
 	                System.err.println("Error details: " + errorResponse);
-	            } catch (Exception e) {
-	                System.err.println("⚠️ Error reading error stream: " + e.getMessage());
-	                throw new Exception(e);
+
+	                // Decide if you want to throw or continue
+	                // throw new Exception("❌ Deletion failed for batch: " + batchIds);
 	            }
-	        } else {
-	            System.out.println("✅ Deleted variant metafields (Batch " + (i + 1) + "/" + batches + ")");
 	        }
+
+	        // Optional pause between batches
+	        Thread.sleep(500);
 	    }
 	}
 
 
+	/**
+	 * Deletes product metafields in batches of 10.
+	 */
+	public void deleteProductMetafieldsInBatches(List<Integer> metafieldIds) throws Exception {
+	    final int BATCH_SIZE = 10;
+
+	    for (int i = 0; i < metafieldIds.size(); i += BATCH_SIZE) {
+	        List<Integer> batch = metafieldIds.subList(i, Math.min(i + BATCH_SIZE, metafieldIds.size()));
+	        System.out.println("🟡 Deleting batch of metafields: " + batch);
+
+	        try {
+	            deleteProductMetafields(batch); // Call your existing method for each batch
+	        } catch (Exception e) {
+	            System.err.println("❌ Error deleting batch: " + batch + ". Skipping to next batch.");
+	            e.printStackTrace();
+	        }
+
+	        // Optional: small pause between batches
+	        Thread.sleep(500);
+	    }
+	}
+
 	public void deleteProductMetafields(List<Integer> metafieldIds) throws Exception {
-		HttpURLConnection connection = BigCommerceApiClient.createRequest(BigCommerceStoreConfig.STORE_HASH,
-				BigCommerceStoreConfig.ACCESS_TOKEN, "catalog/products/metafields", "DELETE");
+	    HttpURLConnection connection = BigCommerceApiClient.createRequest(
+	            BigCommerceStoreConfig.STORE_HASH,
+	            BigCommerceStoreConfig.ACCESS_TOKEN,
+	            "catalog/products/metafields",
+	            "DELETE"
+	    );
 
-		connection.setRequestProperty("Content-Type", "application/json");
-		connection.setDoOutput(true);
+	    connection.setRequestProperty("Content-Type", "application/json");
+	    connection.setDoOutput(true);
 
-		// Construct JSON array body
-		JSONArray payload = new JSONArray();
-		for (Integer id : metafieldIds) {
-			payload.put(id);
-		}
+	    // Construct JSON array body
+	    JSONArray payload = new JSONArray();
+	    for (Integer id : metafieldIds) {
+	        payload.put(id);
+	    }
 
-		try (OutputStream os = connection.getOutputStream()) {
-			byte[] input = payload.toString().getBytes("utf-8");
-			os.write(input, 0, input.length);
-		}
+	    try (OutputStream os = connection.getOutputStream()) {
+	        byte[] input = payload.toString().getBytes(StandardCharsets.UTF_8);
+	        os.write(input, 0, input.length);
+	    }
 
-		int responseCode = connection.getResponseCode();
-		if (responseCode != HttpURLConnection.HTTP_OK && responseCode != HttpURLConnection.HTTP_NO_CONTENT) {
-			try (Scanner errorScanner = new Scanner(connection.getErrorStream())) {
-				String errorResponse = errorScanner.useDelimiter("\\A").hasNext() ? errorScanner.next() : "";
-				System.err.println("❌ Failed to delete variant metafields. Response code: " + responseCode);
-				System.err.println("Error message: " + connection.getResponseMessage());
-				System.err.println("Error details: " + errorResponse);
-			} catch (Exception e) {
-				System.err.println("⚠️ Error occurred while reading the error stream: " + e.getMessage());
-				throw new Exception(e);
-			}
-		} else {
-			System.out.println("✅ Successfully deleted variant metafields.");
-		}
+	    int responseCode = connection.getResponseCode();
+	    if (responseCode != HttpURLConnection.HTTP_OK && responseCode != HttpURLConnection.HTTP_NO_CONTENT) {
+	        try (Scanner errorScanner = new Scanner(connection.getErrorStream())) {
+	            String errorResponse = errorScanner.useDelimiter("\\A").hasNext() ? errorScanner.next() : "";
+	            System.err.println("❌ Failed to delete product metafields. Response code: " + responseCode);
+	            System.err.println("Error message: " + connection.getResponseMessage());
+	            System.err.println("Error details: " + errorResponse);
+	        } catch (Exception e) {
+	            System.err.println("⚠️ Error occurred while reading the error stream: " + e.getMessage());
+	            throw new Exception(e);
+	        }
+	    } else {
+	        System.out.println("✅ Successfully deleted product metafields: " + metafieldIds);
+	    }
 	}
 
 	public void uploadVariantImageToBigCommerce(int productId, int variantId, String fileName, byte[] imageBytes)

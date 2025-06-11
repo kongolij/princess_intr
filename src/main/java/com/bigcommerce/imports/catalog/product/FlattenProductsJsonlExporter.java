@@ -22,7 +22,7 @@ public class FlattenProductsJsonlExporter implements CommandLineRunner {
         ObjectMapper mapper = new ObjectMapper();
         mapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
 
-        InputStream inputStream = getClass().getClassLoader().getResourceAsStream("Sample For EPAM_2.json");
+        InputStream inputStream = getClass().getClassLoader().getResourceAsStream("merged_product_v2.json (2).json");
         if (inputStream == null) {
             System.err.println("❌ Could not find 'Sample For EPAM_2.json' in resources.");
             return;
@@ -34,7 +34,7 @@ public class FlattenProductsJsonlExporter implements CommandLineRunner {
             return;
         }
 
-        File outputFile = new File("src/main/resources/Flattened_Products.jsonl");
+        File outputFile = new File("src/main/resources/Flattened_Products_V3.jsonl");
         outputFile.getParentFile().mkdirs();
 
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(outputFile))) {
