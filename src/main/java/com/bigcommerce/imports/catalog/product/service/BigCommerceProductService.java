@@ -4,6 +4,7 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -117,12 +118,13 @@ public class BigCommerceProductService {
 //				if (!"PA1000001804".equals(productNumber)) {
 //				//variant has no options
 //				//if (!"PA0003461449".equals(productNumber)) {
-     		    if (!"PA0008677999".equals(productNumber)) {
-     		    	continue;
-			    }
+//     		    if (!"PA0008677999".equals(productNumber)) { // one sku: has ref etc
+//     		    	continue;
+//			    }
 //    		    if (!"PA1000001804".equals(productNumber)) {
 // 	       	    	continue;
 //     		    }
+//    		    PA1000001804
 	
 				
 
@@ -268,6 +270,14 @@ public class BigCommerceProductService {
         
 		// 🔄 Update all variant-level data (custom fields, metafields, images, etc.)
 		updateVariantDetails(product, context, attribtueLabelMap, existingProductId, variantsUnresolvedReferencesMap);
+	
+		  // temp Assign to channel
+	    List<Integer> channelIds = Arrays.asList(
+	    	    BigCommerceStoreConfig.BC_CHANNEL_ID,
+	    	    BigCommerceStoreConfig.BC_NCC_CHANNEL_ID
+	    	);
+	    bigCommerceRepository.assignProductToChannels( existingProductId, channelIds);
+	
 	}
 	
 	/**
@@ -404,7 +414,12 @@ public class BigCommerceProductService {
 	    }
 
 	     // 🌐 Assign to channel
-	    bigCommerceRepository.assignProductToChannel( productId, BigCommerceStoreConfig.BC_CHANNEL_ID);
+	    List<Integer> channelIds = Arrays.asList(
+	    	    BigCommerceStoreConfig.BC_CHANNEL_ID,
+	    	    BigCommerceStoreConfig.BC_NCC_CHANNEL_ID
+	    	);
+	    bigCommerceRepository.assignProductToChannels( productId, channelIds);
+//	    bigCommerceRepository.assignProductToChannel( productId, BigCommerceStoreConfig.BC_CHANNEL_ID);
 
 	     // 📦  Upload product-level assets
 	    Map<String, String> uploadedProductAssets = uploadProductsAssets(productId, product);

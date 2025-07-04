@@ -672,30 +672,34 @@ public class BigCommerceProductMapper {
 //	    	    )
 //	    	);
 	    	
-	    flatFields.put("displayName_en",
-	        product.getDisplayName() != null && StringUtils.hasText(product.getDisplayName().getEn())
-	            ? product.getDisplayName().getEn() : "");
-	    flatFields.put("displayName_fr",
-	        product.getDisplayName() != null && StringUtils.hasText(product.getDisplayName().getFr_CA())
-	            ? product.getDisplayName().getFr_CA() : "");
-	    flatFields.put("longDescription_en",
-	        product.getLongDescription() != null && StringUtils.hasText(product.getLongDescription().getEn())
-	            ? product.getLongDescription().getEn() : "");
-	    flatFields.put("longDescription_fr",
-	        product.getLongDescription() != null && StringUtils.hasText(product.getLongDescription().getFr_CA())
-	            ? product.getLongDescription().getFr_CA() : "");
-	    flatFields.put("sharedApplications_en",
-	        product.getPaSharedApplications() != null && StringUtils.hasText(product.getPaSharedApplications().getEn())
-	            ? product.getPaSharedApplications().getEn() : "");
-	    flatFields.put("sharedApplications_fr",
-	        product.getPaSharedApplications() != null && StringUtils.hasText(product.getPaSharedApplications().getFr_CA())
-	            ? product.getPaSharedApplications().getFr_CA() : "");
-	    flatFields.put("sharedFeatures_en",
-	        product.getPaSharedFeatures() != null && StringUtils.hasText(product.getPaSharedFeatures().getEn())
-	            ? product.getPaSharedFeatures().getEn() : "");
-	    flatFields.put("sharedFeatures_fr",
-	        product.getPaSharedFeatures() != null && StringUtils.hasText(product.getPaSharedFeatures().getFr_CA())
-	            ? product.getPaSharedFeatures().getFr_CA() : "");
+	    if (product.getDisplayName() != null && StringUtils.hasText(product.getDisplayName().getEn())) {
+	        flatFields.put("displayName_en", product.getDisplayName().getEn());
+	    }
+	    if (product.getDisplayName() != null && StringUtils.hasText(product.getDisplayName().getFr_CA())) {
+	        flatFields.put("displayName_fr", product.getDisplayName().getFr_CA());
+	    }
+
+	    if (product.getLongDescription() != null && StringUtils.hasText(product.getLongDescription().getEn())) {
+	        flatFields.put("longDescription_en", product.getLongDescription().getEn());
+	    }
+	    if (product.getLongDescription() != null && StringUtils.hasText(product.getLongDescription().getFr_CA())) {
+	        flatFields.put("longDescription_fr", product.getLongDescription().getFr_CA());
+	    }
+
+	    if (product.getPaSharedApplications() != null && StringUtils.hasText(product.getPaSharedApplications().getEn())) {
+	        flatFields.put("sharedApplications_en", product.getPaSharedApplications().getEn());
+	    }
+	    if (product.getPaSharedApplications() != null && StringUtils.hasText(product.getPaSharedApplications().getFr_CA())) {
+	        flatFields.put("sharedApplications_fr", product.getPaSharedApplications().getFr_CA());
+	    }
+
+	    if (product.getPaSharedFeatures() != null && StringUtils.hasText(product.getPaSharedFeatures().getEn())) {
+	        flatFields.put("sharedFeatures_en", product.getPaSharedFeatures().getEn());
+	    }
+	    if (product.getPaSharedFeatures() != null && StringUtils.hasText(product.getPaSharedFeatures().getFr_CA())) {
+	        flatFields.put("sharedFeatures_fr", product.getPaSharedFeatures().getFr_CA());
+	    }
+
 
 	    // 🔄 2️ Add explicit fields as individual metafields (one per locale + attribute)
 	    	

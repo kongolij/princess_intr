@@ -24,6 +24,7 @@ public class ProductGraphQLResponse {
 		public String path;
 		public String sku;
 		public CategoryConnection categories;
+		public Brand brand;
 		public Prices prices;
 		public ImageConnection images;
 		public CustomFieldConnection customFields;
@@ -69,6 +70,15 @@ public class ProductGraphQLResponse {
 
 		public void setCategories(CategoryConnection categories) {
 			this.categories = categories;
+		}
+
+		
+		public Brand getBrand() {
+			return brand;
+		}
+
+		public void setBrand(Brand brand) {
+			this.brand = brand;
 		}
 
 		public Prices getPrices() {
@@ -270,6 +280,18 @@ public class ProductGraphQLResponse {
 		}
 	}
 
+	public static class Brand {
+		public String name;
+
+		public String getName() {
+			return name;
+		}
+
+		public void setName(String name) {
+			this.name = name;
+		}
+	}
+	
 	public static class MetafieldConnection {
 		
 		public PageInfo pageInfo;

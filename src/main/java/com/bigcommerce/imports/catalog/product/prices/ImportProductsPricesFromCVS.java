@@ -64,6 +64,7 @@ public class ImportProductsPricesFromCVS implements CommandLineRunner {
 
 				variantPrices.add(vp);
 			}
+			 System.out.println("✅ Loaded Variant Prices:");
 			bigCommerceProductPriceService.updateVariantPrices(variantPrices);
 		} catch (IOException e) {
 			System.err.println("❌ Error reading JSON line: " + e.getMessage());

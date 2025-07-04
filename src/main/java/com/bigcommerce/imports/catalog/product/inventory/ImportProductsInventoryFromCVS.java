@@ -17,7 +17,7 @@ import com.bigcommerce.imports.catalog.product.prices.dto.VariantPrice;
 import com.bigcommerce.imports.catalog.product.prices.service.BigCommerceProductPriceService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-//@Component
+///@Component
 public class ImportProductsInventoryFromCVS implements CommandLineRunner {
 
 	private final BigCommerceProductInventoryService bigCommerceProductInventoryService;
@@ -64,7 +64,7 @@ public class ImportProductsInventoryFromCVS implements CommandLineRunner {
 				InventoryRecord record = new InventoryRecord(sku, storeId, qty);
 				inventoryRecords.add(record);
 			}
-
+			System.out.println("✅ Loaded inventory :");
 			bigCommerceProductInventoryService.updateVariantInventory(inventoryRecords);
 			System.out.printf("✅ Parsed %d inventory records.%n", inventoryRecords.size());
 			for (InventoryRecord record : inventoryRecords) {

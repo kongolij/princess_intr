@@ -13,8 +13,6 @@ import com.azure.cosmos.CosmosDatabase;
 public class CosmosConfig {
 
 	
-	private static final String CONNECTION_STRING = "";
-	
 
 	// Known names
 	private static final String DATABASE_NAME = "ecom-attr-labels";

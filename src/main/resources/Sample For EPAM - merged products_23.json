@@ -13302,6 +13302,14 @@
 						"option_name_fr_CA": "Format de raccord",
 						"option_value_en": "1/4",
 						"option_value_fr_CA": "1/4"
+					},
+					{
+						"id": "A02260",
+						"seq": "800",
+						"option_name_en": "Overall Length (in.)",
+						"option_name_fr_CA": "Longueur hors tout (po)",
+						"option_value_en": "3",
+						"option_value_fr_CA": "3"
 					}
 				],
 				"assets": [
@@ -25133,7 +25141,7 @@
 		"paProductStatus": "A",
 		"brand": "PN",
 		"displayName": {
-			"en": "",
+			"en": "250A Heavy Duty Multi-Process Welder",
 			"fr_CA": "Soudeuse robuste à processus multiples, 250 A"
 		},
 		"longDescription": {
@@ -25148,7 +25156,7 @@
 			"en": "Ideal for serious DIYers and professional fabricators who require dual voltages and multi-function capability. It welds carbon steel, stainless steel, aluminum (with a spool gun) and any conductive metals.",
 			"fr_CA": "Idéale pour les bricoleurs sérieux et les ouvriers professionnels qui ont besoin d’une bitension et d’une capacité polyvalente. Elle permet de souder l’acier au carbone, l’acier inoxydable, l’aluminium (avec un pistolet à bobine) et tous les métaux conducteurs."
 		},
-		"250A Heavy Duty Multi-Process Welderattributes": [
+		"attributes": [
 			{
 				"id": "A00360",
 				"seq": "100",

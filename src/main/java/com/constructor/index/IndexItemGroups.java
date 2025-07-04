@@ -1,9 +1,10 @@
 package com.constructor.index;
 
 import java.io.FileWriter;
-import java.io.PrintWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -22,14 +23,15 @@ import com.opencsv.CSVWriter;
 //@Component
 public class IndexItemGroups implements CommandLineRunner {
 
-	private static final String API_URL = "https://api.bigcommerce.com/stores/%s/v3/catalog/categories/%d/metafields";
+//	private static final String API_URL = "https://api.bigcommerce.com/stores/%s/v3/catalog/categories/%d/metafields";
 	private static final String TREE_API_URL = "https://api.bigcommerce.com/stores/%s/v3/catalog/trees/%d/categories";
 	private static final String STORE_HASH = BigCommerceStoreConfig.STORE_HASH;
 	private static final String ACCESS_TOKEN = BigCommerceStoreConfig.ACCESS_TOKEN;
 	private static final int CATEGORY_TREE_ID = BigCommerceStoreConfig.CATEGORY_TREE_ID;
 
-	private static final String CSV_PATH_EN = "target/output/item_groups_en.csv";
-	private static final String CSV_PATH_FR = "target/output/item_groups_fr.csv";
+	
+	private static final String CSV_PATH_EN = "target/output/index_en/item_groups.csv";
+	private static final String CSV_PATH_FR = "target/output/index_fr/item_groups.csv";
 
 	@Override
 	public void run(String... args) throws Exception {
@@ -48,8 +50,13 @@ public class IndexItemGroups implements CommandLineRunner {
 			writerEn.writeNext(new String[] { "parent_id", "id", "name", "data" });
 			writerFr.writeNext(new String[] { "parent_id", "id", "name", "data" });
 
+			
+			Map<Integer, Map<String, String>> metafields = fetchAllCategoryLocalizedNames(STORE_HASH);
+			System.out.println("✅ Total categories with localized metafields: " + metafields.size());
+			
 			for (CategoryNode node : allCategories) {
-				Map<String, String> localizedNames = fetchLocalizedNames(STORE_HASH, node.id);
+//				Map<String, String> localizedNames = fetchLocalizedNames(STORE_HASH, node.id);
+				Map<String, String> localizedNames = metafields.get(node.id);
 				String enName = localizedNames.getOrDefault("en", node.name);
 				String frName = localizedNames.getOrDefault("fr", node.name);
 				String url = node.url != null ? node.url : "";
@@ -113,8 +120,13 @@ public class IndexItemGroups implements CommandLineRunner {
 		JSONArray data = new JSONObject(response).getJSONArray("data");
 		List<CategoryNode> all = new ArrayList<>();
 		parseTree(null, data, all);
+		
+		System.out.println("✅ Total categories parsed: " + all.size()); 
+		
 		return all;
 	}
+	
+	
 
 	private void parseTree(Integer parentId, JSONArray nodes, List<CategoryNode> all) {
 		for (int i = 0; i < nodes.length(); i++) {
@@ -145,29 +157,103 @@ public class IndexItemGroups implements CommandLineRunner {
 	}
 
 	private Map<String, String> fetchLocalizedNames(String storeHash, int categoryId) {
-		try {
-			String urlStr = String.format(API_URL, storeHash, categoryId);
-			HttpURLConnection conn = (HttpURLConnection) new URL(urlStr).openConnection();
-			conn.setRequestMethod("GET");
-			conn.setRequestProperty("X-Auth-Token", ACCESS_TOKEN);
-			conn.setRequestProperty("Accept", "application/json");
+	    try {
+	        String urlStr = String.format(
+	            "https://api.bigcommerce.com/stores/%s/v3/catalog/categories/%d/metafields?namespace=category_name_localization",
+	            storeHash, categoryId
+	        );
 
-			if (conn.getResponseCode() != 200)
-				return Map.of();
+	        HttpURLConnection conn = (HttpURLConnection) new URL(urlStr).openConnection();
+	        conn.setRequestMethod("GET");
+	        conn.setRequestProperty("X-Auth-Token", ACCESS_TOKEN);
+	        conn.setRequestProperty("Accept", "application/json");
 
-			Scanner scanner = new Scanner(conn.getInputStream());
-			String response = scanner.useDelimiter("\\A").next();
-			scanner.close();
+	        if (conn.getResponseCode() != 200)
+	            return Map.of();
 
-			JSONArray data = new JSONObject(response).getJSONArray("data");
-			return data.toList().stream().map(obj -> new JSONObject((Map<?, ?>) obj))
-					.filter(meta -> meta.has("key") && meta.has("value"))
-					.collect(Collectors.toMap(m -> m.getString("key"), m -> m.getString("value")));
-		} catch (Exception e) {
-			System.err.println("⚠️ Failed to fetch metafields for category " + categoryId + ": " + e.getMessage());
-			return Map.of();
-		}
+	        Scanner scanner = new Scanner(conn.getInputStream());
+	        String response = scanner.useDelimiter("\\A").next();
+	        scanner.close();
+
+	        JSONArray data = new JSONObject(response).getJSONArray("data");
+
+	        System.out.println("Got mertadata parsed");
+	        
+	        return data.toList().stream()
+	            .map(obj -> new JSONObject((Map<?, ?>) obj))
+	            .filter(meta -> meta.has("key") && meta.has("value"))
+	            .filter(meta -> "en".equals(meta.getString("key")) || "fr".equals(meta.getString("key")))
+	            .collect(Collectors.toMap(
+	                meta -> meta.getString("key"),
+	                meta -> meta.getString("value")
+	            ));
+	        
+	       
+	        
+	    } catch (Exception e) {
+	        System.err.println("⚠️ Failed to fetch metafields for category " + categoryId + ": " + e.getMessage());
+	        return Map.of();
+	    }
 	}
+	
+	private Map<Integer, Map<String, String>> fetchAllCategoryLocalizedNames(String storeHash) {
+	    Map<Integer, Map<String, String>> localizedNames = new HashMap<>();
+	    int page = 1;
+	    boolean hasNext = true;
+
+	    try {
+	        while (hasNext) {
+	            String namespace = "category_name_localization";
+	            String namespaceEncoded = URLEncoder.encode(namespace, StandardCharsets.UTF_8.toString());
+
+	            String url = "https://api.bigcommerce.com/stores/" + storeHash + "/v3/catalog/categories/metafields"
+	                + "?namespace=" + namespaceEncoded
+	                + "&limit=250&page=" + page;
+
+	            HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection();
+	            connection.setRequestMethod("GET");
+	            connection.setRequestProperty("X-Auth-Token", ACCESS_TOKEN);
+	            connection.setRequestProperty("Accept", "application/json");
+
+	            int responseCode = connection.getResponseCode();
+	            if (responseCode != 200) {
+	                throw new RuntimeException("Failed to fetch data. Response code: " + responseCode);
+	            }
+
+	            String response;
+	            try (Scanner scanner = new Scanner(connection.getInputStream())) {
+	                response = scanner.useDelimiter("\\A").next();
+	            }
+
+	            JSONObject jsonResponse = new JSONObject(response);
+	            JSONArray data = jsonResponse.getJSONArray("data");
+
+	            for (int i = 0; i < data.length(); i++) {
+	                JSONObject meta = data.getJSONObject(i);
+	                int categoryId = meta.getInt("resource_id");
+	                String key = meta.getString("key");
+	                String value = meta.getString("value");
+
+	                localizedNames
+	                    .computeIfAbsent(categoryId, k -> new HashMap<>())
+	                    .put(key, value);
+	            }
+
+	            JSONObject pagination = jsonResponse.getJSONObject("meta").getJSONObject("pagination");
+	            int totalPages = pagination.getInt("total_pages");
+	            hasNext = page < totalPages;
+	            page++;
+	        }
+
+	        return localizedNames;
+
+	    } catch (Exception e) {
+	        System.err.println("⚠️ Failed to fetch all category metafields: " + e.getMessage());
+	        return localizedNames;
+	    }
+	}
+	
+	
 
 	private static class CategoryNode {
 		int id;

@@ -168,6 +168,44 @@ public class BigCommerceRepository {
 		}
 	}
 
+	public boolean assignProductToChannels(int productId, List<Integer> channelIds) throws Exception {
+	    HttpURLConnection connection = BigCommerceApiClient.createRequest(
+	        BigCommerceStoreConfig.STORE_HASH,
+	        BigCommerceStoreConfig.ACCESS_TOKEN,
+	        "catalog/products/channel-assignments",
+	        "PUT"
+	    );
+
+	    JSONArray productChannelArray = new JSONArray();
+	    for (Integer channelId : channelIds) {
+	        JSONObject productChannelJson = new JSONObject();
+	        productChannelJson.put("product_id", productId);
+	        productChannelJson.put("channel_id", channelId);
+	        productChannelArray.put(productChannelJson);
+	    }
+
+	    try (OutputStream os = connection.getOutputStream()) {
+	        byte[] input = productChannelArray.toString().getBytes("utf-8");
+	        os.write(input, 0, input.length);
+	    }
+
+	    int responseCode = connection.getResponseCode();
+	    if (responseCode == HttpURLConnection.HTTP_OK || responseCode == HttpURLConnection.HTTP_NO_CONTENT) {
+	        return true;
+	    } else {
+	        try (Scanner errorScanner = new Scanner(connection.getErrorStream())) {
+	            String errorResponse = errorScanner.useDelimiter("\\A").hasNext() ? errorScanner.next() : "";
+	            System.err.println("❌ Failed to assign product. Response code: " + responseCode);
+	            System.err.println("🔴 Message: " + connection.getResponseMessage());
+	            System.err.println("🔍 Details: " + errorResponse);
+	        } catch (Exception e) {
+	            System.err.println("❗ Error reading error stream: " + e.getMessage());
+	            throw new Exception(e);
+	        }
+	        return false;
+	    }
+	}
+	
 	// used on new product creation
 	public boolean setProductCustomFields(JSONArray productCustomFields, int productId) throws Exception {
 

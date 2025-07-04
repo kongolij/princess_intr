@@ -21,7 +21,7 @@ import com.bigcommerce.imports.catalog.product.service.AttributeLabelService;
 import com.bigcommerce.imports.catalog.product.service.BigCommerceProductService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-@Component
+//@Component
 public class ImportProductsFromCVS implements CommandLineRunner {
 
 //	static int CATEGOU_TREE_ID=7;  // jimmy store
@@ -54,7 +54,7 @@ public class ImportProductsFromCVS implements CommandLineRunner {
 //		InputStream inputStream = getClass().getClassLoader().getResourceAsStream("Sample For EPAM (flattened)_1.json");
 
 //		InputStream inputStream = getClass().getClassLoader().getResourceAsStream("Flattened_Products.jsonl");
-		InputStream inputStream = getClass().getClassLoader().getResourceAsStream("Flattened_Products_V3.jsonl");
+		InputStream inputStream = getClass().getClassLoader().getResourceAsStream("Flattened_Products_V6.jsonl");
 		
 //		InputStream inputStream = getClass().getClassLoader().getResourceAsStream("merged_products_flattened.json");
 		

@@ -4,7 +4,10 @@ import com.constructor.index.dto.ProductGraphQLResponse;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.node.TextNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.BooleanNode;
+import com.fasterxml.jackson.databind.node.IntNode;
 
 import java.util.HashMap;
 import java.util.List;
@@ -14,20 +17,40 @@ public class ConstructorJsonlProductMapper {
 
 	private static final ObjectMapper mapper = new ObjectMapper();
 
+//	{
+//	"id": "cotton-t-shirt",
+//	"name": "Cotton T-Shirt",
+//	"data": 
+//	{
+//		"url": "https://constructor.com/",
+//		"image_url": "https://constructorio-integrations.s3.amazonaws.com/tikus-threads/2022-06-29/WOVEN-CASUAL-SHIRT_BUTTON-DOWN-WOVEN-SHIRT_BSH01757SB1918_3_category.jpg",
+//		"product_type": ["Shirts","T-Shirts"],
+//		"group_ids": ["tops-athletic","tops-casual"],
+//		"material": "Cotton",
+//		"keywords": ["gym","casual","athletic","workout","comfort","simple"],
+//		"description": "Treat yourself to a comfy upgrade with this Short Sleeve Shirt from Etchell's Emporium. This short-sleeve T-shirt comes with a classic crew-neck, giving you style and comfort that can easily be paired with a variety of bottoms.",
+//		"active": true,
+//		"price": 18}}
 	public static String mapToJsonlLine(ProductGraphQLResponse.Product product,
-			Map<Integer, List<Integer>> categoriesPath) {
+			Map<Integer, List<Integer>> categoriesPath, String locale) {
 		ObjectNode node = mapper.createObjectNode();
 		ObjectMapper localMapper = new ObjectMapper();
+		ObjectNode data = mapper.createObjectNode();
+		 
 
 		node.put("id", product.getSku());
-		node.put("url", product.getPath());
-		node.put("active", "true");
+		
+		data.set("url", new TextNode(product.getPath()));
+//		node.put("url", product.getPath());
+//		node.put("active", "true");
+		data.set("active", BooleanNode.TRUE);
 
 		// Image URL
 		String imageUrl = product.getImages() != null && product.getImages().getEdges() != null
 				&& !product.getImages().getEdges().isEmpty() ? product.getImages().getEdges().get(0).getNode().getUrl()
 						: "";
-		node.put("image_url", imageUrl);
+//		node.put("image_url", imageUrl);
+		data.set("image_url", new TextNode(imageUrl));
 
 		// Custom Fields
 		Map<String, String> customFieldMap = new HashMap<>();
@@ -36,23 +59,36 @@ public class ConstructorJsonlProductMapper {
 				customFieldMap.put(edge.getNode().getName(), edge.getNode().getValue());
 			}
 		}
+		
+		Map<String, String> metafieldMap = new HashMap<>();
+		if (product.getMetafields() != null && product.getMetafields().getEdges() != null) {
+			for (var edge : product.getMetafields().getEdges()) {
+				var metaNode = edge.getNode();
+				if (node != null && metaNode.getKey() != null) {
+					metafieldMap.put(metaNode.getKey(), metaNode.getValue());
+				}
+			}
+		}
 
 		// Get localized display name from "displayName" custom field
 //        String itemName = product.getName(); // fallback
 		String itemName = ""; // fallback
 		try {
-			String displayNameJson = customFieldMap.get("displayName");
-			if (displayNameJson != null) {
-				JsonNode displayNameNode = localMapper.readTree(displayNameJson);
-				JsonNode valueNode = displayNameNode.path("value").path("en");
-				if (!valueNode.isMissingNode()) {
-					itemName = valueNode.asText();
-				}
-			}
+		    // Use locale to pick the right metafield
+		    String metaKey = "displayName_" + locale; // e.g., "en" or "fr"
+		    String attributesJson = metafieldMap.get(metaKey);
+		    if (attributesJson != null) {
+		            itemName = attributesJson;
+		    }else {
+		    	
+		    	    itemName = product.getName(); // or product.getName() depending on your model
+		    	
+		    }
 		} catch (Exception e) {
-			System.err.println("Failed to parse displayName: " + e.getMessage());
+		    System.err.println("❌ Failed to parse localized product_attributes_" + locale + ": " + e.getMessage());
 		}
-		node.put("item_name", itemName);
+//		node.put("item_name", itemName);
+		node.put("name", itemName);
 
 		// Group IDs
 		ArrayNode groupIdsArray = mapper.createArrayNode();
@@ -64,10 +100,11 @@ public class ConstructorJsonlProductMapper {
 				groupIdsArray.add(String.valueOf(categoryId));
 			}
 		}
-		node.set("group_ids", groupIdsArray);
+//		node.set("group_ids", groupIdsArray);
+		data.set("group_ids", groupIdsArray);
 
 		// Facet Category Name (localized)
-		String targetLocale = "en";
+//		String targetLocale = "en";
 		String facetCategoryName = null;
 		if (product.getCategories() != null && product.getCategories().getEdges() != null
 				&& !product.getCategories().getEdges().isEmpty()) {
@@ -76,7 +113,7 @@ public class ConstructorJsonlProductMapper {
 			if (category.getMetafields() != null && category.getMetafields().getEdges() != null) {
 				for (ProductGraphQLResponse.MetafieldEdge metaEdge : category.getMetafields().getEdges()) {
 					ProductGraphQLResponse.Metafield mf = metaEdge.getNode();
-					if (mf != null && targetLocale.equalsIgnoreCase(mf.getKey())) {
+					if (mf != null && locale.equalsIgnoreCase(mf.getKey())) {
 						facetCategoryName = mf.getValue();
 						break;
 					}
@@ -84,17 +121,28 @@ public class ConstructorJsonlProductMapper {
 			}
 		}
 		if (facetCategoryName != null) {
-			node.put("facet:category_name", facetCategoryName);
+//			node.put("metadata:category_name", facetCategoryName);
+			data.set("metadata:category_name", TextNode.valueOf(facetCategoryName));
 		}
 
-		node.put("metadata:brand", customFieldMap.getOrDefault("brand", ""));
-		node.put("metadata:productType", customFieldMap.getOrDefault("productType", ""));
-		node.put("metadata:productStatus", customFieldMap.getOrDefault("paProductStatus", ""));
-		node.put("metadata:productClearance", customFieldMap.getOrDefault("paProductClearance", ""));
-		node.put("metadata:availabilityCode", customFieldMap.getOrDefault("paAvailabilityCode", ""));
-		node.put("metadata:creationDate", customFieldMap.getOrDefault("occCreationDate", ""));
-		node.put("metadata:Reviews", 0);
-		node.put("metadata:Average Rating", 0);
+		String brandName = product.getBrand() != null ? product.getBrand().getName() : "";
+//		node.put("metadata:brand", brandName);
+//		node.put("metadata:productType", customFieldMap.getOrDefault("productType", ""));
+//		node.put("metadata:productStatus", customFieldMap.getOrDefault("productStatus", ""));
+//		node.put("metadata:productClearance", customFieldMap.getOrDefault("productClearance", ""));
+//		node.put("metadata:availabilityCode", customFieldMap.getOrDefault("availabilityCode", ""));
+//		node.put("metadata:creationDate", customFieldMap.getOrDefault("occCreationDate", ""));
+//		node.put("metadata:Reviews", 0);
+//		node.put("metadata:Average Rating", 0);
+		
+		data.set("metadata:brand", TextNode.valueOf(brandName));
+		data.set("metadata:productType", TextNode.valueOf(customFieldMap.getOrDefault("productType", "")));
+		data.set("metadata:productStatus", TextNode.valueOf(customFieldMap.getOrDefault("productStatus", "")));
+		data.set("metadata:productClearance", TextNode.valueOf(customFieldMap.getOrDefault("productClearance", "")));
+		data.set("metadata:availabilityCode", TextNode.valueOf(customFieldMap.getOrDefault("availabilityCode", "")));
+		data.set("metadata:creationDate", TextNode.valueOf(customFieldMap.getOrDefault("occCreationDate", "")));
+		data.set("metadata:Reviews", IntNode.valueOf(0));
+		data.set("metadata:Average Rating", IntNode.valueOf(0));
 
 		// Metadata availability
 		ArrayNode availabilityArray = mapper.createArrayNode();
@@ -113,28 +161,30 @@ public class ConstructorJsonlProductMapper {
 //        metadataNode.set("availability", availabilityArray);
 //        node.set("metadata", metadataNode);
 
-		node.put("facet:availability", String.valueOf(availabilityArray.size()));
+//		node.put("metadata:availability", String.valueOf(availabilityArray.size()));
+		data.set("metadata:availability", availabilityArray);
 
+		node.set("data", data);
 		return node.toString();
 	}
 
-	public static String mapToJsonlLine(ProductGraphQLResponse.Product product) {
-		return mapToJsonlLine(product, new HashMap<>());
+	public static String mapToJsonlLine(ProductGraphQLResponse.Product product, String langauge) {
+		return mapToJsonlLine(product, new HashMap<>(), langauge);
 	}
 
 	public static void writeJsonl(List<ProductGraphQLResponse.Product> products, String outputFilePath,
-			Map<Integer, List<Integer>> categoriesPath) throws Exception {
+			Map<Integer, List<Integer>> categoriesPath,String langauge ) throws Exception {
 		try (var writer = new java.io.BufferedWriter(new java.io.FileWriter(outputFilePath))) {
 			for (ProductGraphQLResponse.Product product : products) {
-				String jsonLine = mapToJsonlLine(product, categoriesPath);
+				String jsonLine = mapToJsonlLine(product, categoriesPath,  langauge);
 				writer.write(jsonLine);
 				writer.newLine();
 			}
 		}
 	}
 
-	public static void writeJsonl(List<ProductGraphQLResponse.Product> products, String outputFilePath)
+	public static void writeJsonl(List<ProductGraphQLResponse.Product> products, String outputFilePath, String langauge)
 			throws Exception {
-		writeJsonl(products, outputFilePath, new HashMap<>());
+		writeJsonl(products, outputFilePath, new HashMap<>(), langauge);
 	}
 }

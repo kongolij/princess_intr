@@ -29,11 +29,14 @@ public class ConstructorApiClient implements CommandLineRunner {
 		String apiToken = "tok_5NCEybey4GqC52oL";
 		String apiKey = "key_on1j1t2BjFymbXpC"; // public API key
 
-		File itemsCsv = null;
+//		File itemsCsv = null;
 		File variationsCsv = null;
+		File itemGroupsCsv = null;
 
 //		File itemGroupsCsv = new File("item_groups.csv");
-		File itemGroupsCsv = new File("C:\\bigComerce\\catalogImport\\princess_intr\\target\\output\\item_groups.csv");
+		
+//		File itemGroupsCsv = new File("C:\\bigComerce\\catalogImport\\princess_intr\\target\\output\\index_en\\item.csv");
+		File itemsCsv = new File("C:\\bigComerce\\catalogImport\\princess_intr\\target\\output\\index_en\\item.jsonl");
 
 		uploadFullCatalogToConstructor(apiToken, apiKey, itemsCsv, variationsCsv, itemGroupsCsv);
 		System.out.printf("✅ Done!");
@@ -44,7 +47,7 @@ public class ConstructorApiClient implements CommandLineRunner {
 
 	public static void uploadFullCatalogToConstructor(String apiToken, String apiKey, File itemsCsv, File variationsCsv,
 			File itemGroupsCsv) throws Exception {
-		String urlString = "https://ac.cnstrc.com/v1/catalog?key=" + URLEncoder.encode(apiKey, "UTF-8") + "&format=csv"; // Required
+		String urlString = "https://ac.cnstrc.com/v1/catalog?key=" + URLEncoder.encode(apiKey, "UTF-8") + "&format=jsonl"; // Required
 																															// //
 																															// files
 		String boundary = "----Boundary" + System.currentTimeMillis();

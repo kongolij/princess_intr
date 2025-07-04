@@ -525,8 +525,29 @@ public class BigCommerceService {
 
 		if (categoriesForTheChannel.containsKey(externalId)) {
 			currentCategoryId = categoriesForTheChannel.get(externalId);
+			JSONObject existing =null;
+			try {
+			       existing = fetchExistingCategory(currentCategoryId, locale);
+			}catch (Exception  e) {  
+				    System.out.println("⚠️ Category ID " + currentCategoryId + " not found — trying to recreate");
+		            currentCategoryId = createCategory(categoryJson, locale);
+		            if (currentCategoryId != 0) {
+						// set new metaData
+						createCategoryMetaDataBatch(categoryNode, currentCategoryId, locale);
 
-			JSONObject existing = fetchExistingCategory(currentCategoryId, locale);
+						String newImageFileName = CommonConstants.CATEGORY_IMAGE_URL + categoryNode.getImageFileName();
+						if (!StringUtils.isEmpty(newImageFileName) || !"NULL".equalsIgnoreCase(newImageFileName)) {
+							byte[] imageBytes = fetchImageBytesIfValid(newImageFileName, null, currentCategoryId, locale);
+							if (imageBytes != null) {
+								uploadCategoryImageToBigCommerce(currentCategoryId, newImageFileName, imageBytes, locale);
+								System.out.println("📷 Uploaded image for new category ID: " + currentCategoryId);
+							}
+						} else {
+							System.out.println("📷 xxxxxxxxxxx No image for new category ID: " + currentCategoryId);
+						}
+						 return;
+					}
+			}		
 			JSONObject updated = categoryJson.getJSONObject(0);
 
 			String expectedFrName = categoryNode.getLocalizedName().get(LocaleConstants.FR);

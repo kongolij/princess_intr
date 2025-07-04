@@ -129,6 +129,8 @@ public class BigCommerceGraphQlService {
 				              path
 				              name
 				              description
+				              brand{name}
+				              categories{edges{node{name entityId}}}
 				              images { edges { node { url(width: 400) } } }
 				              customFields { edges { node { entityId name value } } }
 				              metafields(namespace: "product_attributes", first: 50) { 
@@ -136,7 +138,7 @@ public class BigCommerceGraphQlService {
 				                      edges { node { entityId key value } 
 				                    } 
 				              }
-				              variants {
+				              variants (first: 100){
 				                pageInfo { 
 				                   hasNextPage 
 				                   endCursor 
@@ -376,6 +378,9 @@ public class BigCommerceGraphQlService {
 	                    product.variants.edges.addAll(variantResult.edges);
 
 	                    // ✅ Variant-level metafield pagination
+	                    if (product.getEntityId()==613) {
+	                    	int a=0;
+	                    }
 	                    for (ProductGraphQLResponse.VariantEdge variantEdge : variantResult.edges) {
 	                        ProductGraphQLResponse.Variant variant = variantEdge.node;
 	                        if (variant.metafields != null &&
@@ -386,8 +391,11 @@ public class BigCommerceGraphQlService {
 	                            boolean variantMetaHasNextPage = variant.metafields.pageInfo.hasNextPage;
 
 	                            while (variantMetaHasNextPage) {
-	                                String metaQuery = buildVariantMetafieldPaginationQuery(
-	                                        variant.entityId, variantMetaAfterCursor);
+	                            	String variantNodeId = "gid://bigcommerce/ProductVariant/" + variant.entityId;
+	                            	String metaQuery = buildVariantMetafieldPaginationQuery(
+	                            			variantNodeId, variantMetaAfterCursor);
+//	                                String metaQuery = buildVariantMetafieldPaginationQuery(
+//	                                        variant.entityId, variantMetaAfterCursor);
 	                                HttpURLConnection metaConn = createGraphQLRequest(
 	                                        BigCommerceStoreConfig.STORE_HASH,
 	                                        BigCommerceStoreConfig.BC_CHANNEL_ID,
@@ -609,7 +617,23 @@ public class BigCommerceGraphQlService {
 	    """.formatted(variantId, afterClause);
 	}
 	
-	
+	private String buildVariantMetafieldPaginationQuery(String variantNodeId, String afterCursor) {
+	    String afterClause = (afterCursor != null) ? ", after: \"" + afterCursor + "\"" : "";
+	    return """
+	        query {
+	          site {
+	            node(id: "%s") {
+	              ... on Variant {
+	                metafields(namespace: "variant_attributes", first: 50%s) {
+	                  pageInfo { hasNextPage endCursor }
+	                  edges { node { entityId key value } }
+	                }
+	              }
+	            }
+	          }
+	        }
+	    """.formatted(variantNodeId, afterClause);
+	}
 	
 	
 
