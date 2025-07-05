@@ -23,9 +23,13 @@ public class BigCommerceStoreConfig {
 	public static final String STORE_HASH = "lde1k2t1lf";
 	public static final String ACCESS_TOKEN = "jh93apn63jqkicxt897p0u62o10f9lx";
 	public static final String STOREFRONT_TOKEN = "eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NiJ9.eyJjaWQiOlsxNzM1NjQwXSwiY29ycyI6W10sImVhdCI6MjA1MTIyMjQwMCwiaWF0IjoxNzQ3OTI0ODcxLCJpc3MiOiJCQyIsInNpZCI6MTAwMzM1MjU0Miwic3ViIjoic21lc2hjOHJ3Z2p6cXNueHU1YXZqOWt4aTZjZ250eCIsInN1Yl90eXBlIjoyLCJ0b2tlbl90eXBlIjoxfQ.mLQ8ibtmDA-tFq-Qx1jPYhMrkHWDtpWdl0bQhE_h6ol6FRum4vIWel0VoZIKeeZluwSRr5znlh_m4_kclcQ9PA";
+	public static final String B2B_ACCESS_TOKEN ="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdG9yZV9oYXNoIjoibGRlMWsydDFsZiIsImRiIjoiZGVmYXVsdCIsImVtYWlsIjoiamltbXlfa29uZ29saUBlcGFtLmNvbSIsIm5hbWUiOiJ2My1hcGktdG9rZW4iLCJldmVudF9jaGFubmVsIjoiYXBwIiwidG9rZW5fdmVyc2lvbiI6InYzIn0.hZjl1-4FMqr5UvABz0JCV5P5ClboXKlFBOUp9elnpvg";
 	public static final int BC_CHANNEL_ID = 1735640;
 	public static final int BC_NCC_CHANNEL_ID=1755868;
 	
 	public static int CATEGORY_TREE_ID=2;  // EPAM-POC  store
+	
+	
+	
 
 }
