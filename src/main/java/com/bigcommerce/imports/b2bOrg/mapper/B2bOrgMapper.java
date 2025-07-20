@@ -99,6 +99,9 @@ public class B2bOrgMapper {
 //		orgJson.put("companyStatus", org.getStatus_1());
 		orgJson.put("acceptCreationEmail", false);
 		
+		if (org.getStatus_1().equalsIgnoreCase("9"))
+			orgJson.put("status", "disabled");
+		
 		// Add extraFields
 	    JSONArray extraFields = new JSONArray();
 
@@ -116,9 +119,15 @@ public class B2bOrgMapper {
 	        extraFields.put(field2);
 	    }
 
+//	    0	Pending	A buyer has applied for a Company account, but the application has not been processed.
+//	    1	Approved	The Company account is active.
+//	    2	Rejected	The application has been rejected and the Company account cannot be used.
+//	    3	Inactive	The Company account does not have any buyers assigned to it.
+//      	    
+	    
 	    if (org.getStatus_1() != null) {
 	        JSONObject field3 = new JSONObject();
-	        field3.put("fieldName", "org_status_code");
+	        field3.put("fieldName", "po_status");
 	        field3.put("fieldValue", org.getStatus_1());
 	        extraFields.put(field3);
 	    }

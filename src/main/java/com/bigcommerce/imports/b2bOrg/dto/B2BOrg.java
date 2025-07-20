@@ -15,8 +15,18 @@ public class B2BOrg {
 	private String country;
 	private String phone;
 	private Integer credit_limit;
-	
 	private Integer credit_available;
+	
+	private String dummyFirstName;
+	private String dummyLastName;
+	private String dummyCompanyEmail;
+	private String dummyAdminEmail;
+	
+	
+	
+	
+	
+	
 
 	public Integer getCustomer_number() {
 		return customer_number;
@@ -128,6 +138,38 @@ public class B2BOrg {
 
 	public void setCredit_available(Integer credit_available) {
 		this.credit_available = credit_available;
+	}
+
+	public String getDummyFirstName() {
+		return dummyFirstName;
+	}
+
+	public void setDummyFirstName(String dummyFirstName) {
+		this.dummyFirstName = dummyFirstName;
+	}
+
+	public String getDummyLastName() {
+		return dummyLastName;
+	}
+
+	public void setDummyLastName(String dummyLastName) {
+		this.dummyLastName = dummyLastName;
+	}
+
+	public String getDummyCompanyEmail() {
+		return dummyCompanyEmail;
+	}
+
+	public void setDummyCompanyEmail(String dummyCompanyEmail) {
+		this.dummyCompanyEmail = dummyCompanyEmail;
+	}
+
+	public String getDummyAdminEmail() {
+		return dummyAdminEmail;
+	}
+
+	public void setDummyAdminEmail(String dummyAdminEmail) {
+		this.dummyAdminEmail = dummyAdminEmail;
 	}
 	
 	

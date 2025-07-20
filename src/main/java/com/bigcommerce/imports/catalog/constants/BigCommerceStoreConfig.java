@@ -31,5 +31,29 @@ public class BigCommerceStoreConfig {
 	
 	
 	
+	
+//	//PAL QA
+//	public static final String STORE_HASH = "4ovt9jdjnc";
+//	public static final String ACCESS_TOKEN = "97ntyk80uebj6ysrldtlbwhwjsknq6q";
+//	public static final String STOREFRONT_TOKEN = "eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NiJ9.eyJjaWQiOlsxNzM1NjQ1XSwiY29ycyI6W10sImVhdCI6MjA1MTIyMjQwMCwiaWF0IjoxNzUwOTU1ODk3LCJpc3MiOiJCQyIsInNpZCI6MTAwMzM1MjU1MCwic3ViIjoib3d2ODE4aGZldmo0ajY1cWhqOGZtY2ZxY2lvaXlreSIsInN1Yl90eXBlIjoyLCJ0b2tlbl90eXBlIjoxfQ.CjaikHyqJykvys_h7B1TxA-ExGZBx_z_L_INiJTu0L_W71ywYfxO0xx_TRmbeBjeOW9FGPJn31kcfze7qgtehQ";
+//	public static final String B2B_ACCESS_TOKEN ="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdG9yZV9oYXNoIjoibGRlMWsydDFsZiIsImRiIjoiZGVmYXVsdCIsImVtYWlsIjoiamltbXlfa29uZ29saUBlcGFtLmNvbSIsIm5hbWUiOiJ2My1hcGktdG9rZW4iLCJldmVudF9jaGFubmVsIjoiYXBwIiwidG9rZW5fdmVyc2lvbiI6InYzIn0.hZjl1-4FMqr5UvABz0JCV5P5ClboXKlFBOUp9elnpvg";
+//	public static final int BC_CHANNEL_ID = 1735645;
+//	public static final int BC_NCC_CHANNEL_ID=1755868;   
+//	
+//	public static int CATEGORY_TREE_ID=2;  // EPAM-POC  store
+	
+	
+	//EPAM PAL QA
+//	public static final String STORE_HASH = "kpz3wrpdrb";
+//	public static final String ACCESS_TOKEN = "tt37h0cc8h7u7mqxi1kyra4qf2jg3wx";
+//	public static final String STOREFRONT_TOKEN = "eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NiJ9.eyJjaWQiOlsxNzMwMTQyXSwiY29ycyI6W10sImVhdCI6MjA1MTIyMjQwMCwiaWF0IjoxNzUyNDk0MTY2LCJpc3MiOiJCQyIsInNpZCI6MTAwMzM1MjU1MCwic3ViIjoib3d2ODE4aGZldmo0ajY1cWhqOGZtY2ZxY2lvaXlreSIsInN1Yl90eXBlIjoyLCJ0b2tlbl90eXBlIjoxfQ.MWafjZ7ykowSKrX4vAszsxlFfqzdHHsUP1kecTdBc_SUc2S6BcM_HYfwZDUf0-_gusSYbiMys9wP1OEyU8e22A";
+//	public static final String B2B_ACCESS_TOKEN ="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdG9yZV9oYXNoIjoibGRlMWsydDFsZiIsImRiIjoiZGVmYXVsdCIsImVtYWlsIjoiamltbXlfa29uZ29saUBlcGFtLmNvbSIsIm5hbWUiOiJ2My1hcGktdG9rZW4iLCJldmVudF9jaGFubmVsIjoiYXBwIiwidG9rZW5fdmVyc2lvbiI6InYzIn0.hZjl1-4FMqr5UvABz0JCV5P5ClboXKlFBOUp9elnpvg";
+//	public static final int BC_CHANNEL_ID = 1730142;
+//	public static final int BC_NCC_CHANNEL_ID=1755868;
+//	
+//	public static int CATEGORY_TREE_ID=2;  // EPAM-POC  store
+//	
+	
+	
 
 }

@@ -1488,6 +1488,17 @@ public class BigCommerceRepository {
 
 		Map<String, Object> queryParams = new HashMap<>();
 
+		//
+		// need to use  Relative Adjustment
+		// https://api.bigcommerce.com/stores/{store_hash}/v3/inventory/adjustments/relative
+		//  example of request
+        //		 {
+        //		      "location_id": 2,
+        //		      "variant_id": 3,
+        //		      "quantity": -1
+        //		    }
+		// where  "quantity": -1 --->  bc current qty - feed qty for the sky/location
+		//
 		HttpURLConnection connection = BigCommerceApiClient.createRequest(BigCommerceStoreConfig.STORE_HASH,
 				BigCommerceStoreConfig.ACCESS_TOKEN, "inventory/adjustments/absolute", "PUT", queryParams);
 
@@ -1514,6 +1525,39 @@ public class BigCommerceRepository {
 
 	}
 
+	
+	public void updateInventorySettingsForLocation(int locationId, JSONObject payload) throws Exception {
+		String endpoint = String.format("inventory/locations/%d/items", locationId);
+
+		HttpURLConnection connection = BigCommerceApiClient.createRequest(
+			BigCommerceStoreConfig.STORE_HASH,
+			BigCommerceStoreConfig.ACCESS_TOKEN,
+			endpoint,
+			"PUT",
+			new HashMap<>()
+		);
+
+		// Write payload
+		try (OutputStream os = connection.getOutputStream()) {
+			byte[] input = payload.toString().getBytes("utf-8");
+			os.write(input, 0, input.length);
+		}
+
+		// Handle response
+		int responseCode = connection.getResponseCode();
+		if (responseCode == HttpURLConnection.HTTP_OK || responseCode == HttpURLConnection.HTTP_NO_CONTENT) {
+			System.out.printf("✅ Inventory settings updated for location %d%n", locationId);
+		} else {
+			String errorResponse = null;
+			try (Scanner scanner = new Scanner(connection.getErrorStream())) {
+				errorResponse = scanner.useDelimiter("\\A").hasNext() ? scanner.next() : null;
+			}
+			throw new RuntimeException(String.format("❌ Failed to update inventory settings for location %d. Code: %d. Error: %s",
+					locationId, responseCode, errorResponse));
+		}
+	}
+	
+	
 	public void activateInventoryTrackingFromSkuMap(Map<String, SkuVariantInfo> skuToIdsMap) throws Exception {
 		Map<String, Object> queryParams = new HashMap<>();
 		JSONObject activateInvTracking = new JSONObject();

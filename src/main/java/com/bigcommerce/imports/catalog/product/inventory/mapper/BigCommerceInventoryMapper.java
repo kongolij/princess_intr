@@ -1,5 +1,6 @@
 package com.bigcommerce.imports.catalog.product.inventory.mapper;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -11,6 +12,48 @@ import com.bigcommerce.imports.catalog.product.inventory.dto.InventoryRecord;
 import com.bigcommerce.imports.catalog.product.inventory.dto.SkuVariantInfo;
 
 public class BigCommerceInventoryMapper {
+	
+	public static Map<Integer, JSONArray> buildInventorySettingsPayloadFromItems(List<JSONObject> items) {
+		Map<Integer, JSONArray> locationToSettingsMap = new HashMap<>();
+
+		for (JSONObject item : items) {
+			String sku = item.getString("sku");
+			int locationId = item.getInt("location_id");
+			
+			
+			JSONObject binPickingLocalized = new JSONObject();
+
+			String binEn = "aisle 1 for " + sku;
+			String binFr = "rayon 1 pour " + sku;
+
+			JSONObject en = new JSONObject().put("value", binEn);
+			JSONObject fr = new JSONObject().put("value", binFr);
+			
+		
+			binPickingLocalized.put("en", en);
+			binPickingLocalized.put("fr", fr);
+			String binPickingNumberString = binPickingLocalized.toString();
+			
+			JSONObject identity = new JSONObject();
+			
+			identity.put("sku", sku);
+
+			
+			JSONObject setting = new JSONObject();
+			setting.put("identity", identity);
+			setting.put("safety_stock", 0);
+			setting.put("is_in_stock", true);
+			setting.put("warning_level", 0);
+			setting.put("bin_picking_number", binPickingNumberString);
+
+			locationToSettingsMap
+				.computeIfAbsent(locationId, k -> new JSONArray())
+				.put(setting);
+		}
+
+		return locationToSettingsMap;
+	}
+
 
 	public static JSONArray buildInventoryAdjustmentPayload(List<InventoryRecord> inventoryRecords,
 			Map<String, SkuVariantInfo> skuToIdsMap, Map<String, Integer> storeLocationMap) {

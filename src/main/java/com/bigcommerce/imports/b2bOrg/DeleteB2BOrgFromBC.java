@@ -27,7 +27,7 @@ public class DeleteB2BOrgFromBC implements CommandLineRunner {
     private static final String ACCESS_TOKEN = BigCommerceStoreConfig.B2B_ACCESS_TOKEN;
 
     // Use a rate limiter (e.g. 2 deletions per second max)
-    private static final RateLimiter rateLimiter = RateLimiter.create(3.0);
+    private static final RateLimiter rateLimiter = RateLimiter.create(4.0);
 
     public DeleteB2BOrgFromBC(BigCommerceB2BOrgRepository bigCommerceB2BOrgRepository) {
         this.bigCommerceB2BOrgRepository = bigCommerceB2BOrgRepository;

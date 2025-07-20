@@ -23,6 +23,7 @@ public class ProductGraphQLResponse {
 		public String name;
 		public String path;
 		public String sku;
+		public String type;
 		public CategoryConnection categories;
 		public Brand brand;
 		public Prices prices;
@@ -62,6 +63,15 @@ public class ProductGraphQLResponse {
 
 		public void setSku(String sku) {
 			this.sku = sku;
+		}
+
+		
+		public String getType() {
+			return type;
+		}
+
+		public void setType(String type) {
+			this.type = type;
 		}
 
 		public CategoryConnection getCategories() {

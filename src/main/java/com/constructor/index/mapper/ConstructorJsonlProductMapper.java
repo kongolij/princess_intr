@@ -1,5 +1,6 @@
 package com.constructor.index.mapper;
 
+import com.bigcommerce.imports.catalog.product.graphqldto.MetafieldConnection;
 import com.constructor.index.dto.ProductGraphQLResponse;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -12,6 +13,7 @@ import com.fasterxml.jackson.databind.node.IntNode;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 public class ConstructorJsonlProductMapper {
 
@@ -40,9 +42,7 @@ public class ConstructorJsonlProductMapper {
 
 		node.put("id", product.getSku());
 		
-		data.set("url", new TextNode(product.getPath()));
-//		node.put("url", product.getPath());
-//		node.put("active", "true");
+		data.set("url",  new TextNode("https://www-dev.princessauto.com/en/product" + product.getPath()));
 		data.set("active", BooleanNode.TRUE);
 
 		// Image URL
@@ -69,14 +69,21 @@ public class ConstructorJsonlProductMapper {
 				}
 			}
 		}
-
+		
+		com.constructor.index.dto.ProductGraphQLResponse.MetafieldConnection mertafileds = product.getMetafields();
+	
+		
+		
 		// Get localized display name from "displayName" custom field
 //        String itemName = product.getName(); // fallback
 		String itemName = ""; // fallback
+		String description = ""; // fallback
 		try {
 		    // Use locale to pick the right metafield
 		    String metaKey = "displayName_" + locale; // e.g., "en" or "fr"
+		    String descriptionMetaKey = "longDescription_" + locale; // e.g., "en" or "fr"
 		    String attributesJson = metafieldMap.get(metaKey);
+		    String descriptionJson = metafieldMap.get(descriptionMetaKey);
 		    if (attributesJson != null) {
 		            itemName = attributesJson;
 		    }else {
@@ -84,11 +91,15 @@ public class ConstructorJsonlProductMapper {
 		    	    itemName = product.getName(); // or product.getName() depending on your model
 		    	
 		    }
+		     description = Objects.requireNonNullElse(descriptionJson, "");
+		   
+		    
 		} catch (Exception e) {
 		    System.err.println("❌ Failed to parse localized product_attributes_" + locale + ": " + e.getMessage());
 		}
-//		node.put("item_name", itemName);
+
 		node.put("name", itemName);
+//		node.put("description", description);
 
 		// Group IDs
 		ArrayNode groupIdsArray = mapper.createArrayNode();
@@ -100,9 +111,10 @@ public class ConstructorJsonlProductMapper {
 				groupIdsArray.add(String.valueOf(categoryId));
 			}
 		}
-//		node.set("group_ids", groupIdsArray);
 		data.set("group_ids", groupIdsArray);
+		data.set("description", TextNode.valueOf(description));
 
+		
 		// Facet Category Name (localized)
 //		String targetLocale = "en";
 		String facetCategoryName = null;
@@ -122,7 +134,7 @@ public class ConstructorJsonlProductMapper {
 		}
 		if (facetCategoryName != null) {
 //			node.put("metadata:category_name", facetCategoryName);
-			data.set("metadata:category_name", TextNode.valueOf(facetCategoryName));
+			data.set("metadata:catalogTaxonomy", TextNode.valueOf(facetCategoryName));
 		}
 
 		String brandName = product.getBrand() != null ? product.getBrand().getName() : "";
@@ -136,7 +148,9 @@ public class ConstructorJsonlProductMapper {
 //		node.put("metadata:Average Rating", 0);
 		
 		data.set("metadata:brand", TextNode.valueOf(brandName));
-		data.set("metadata:productType", TextNode.valueOf(customFieldMap.getOrDefault("productType", "")));
+		data.set("metadata:productType", TextNode.valueOf(
+			    product.getType() != null ? product.getType() : ""
+			));
 		data.set("metadata:productStatus", TextNode.valueOf(customFieldMap.getOrDefault("productStatus", "")));
 		data.set("metadata:productClearance", TextNode.valueOf(customFieldMap.getOrDefault("productClearance", "")));
 		data.set("metadata:availabilityCode", TextNode.valueOf(customFieldMap.getOrDefault("availabilityCode", "")));

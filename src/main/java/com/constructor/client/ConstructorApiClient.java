@@ -35,7 +35,8 @@ public class ConstructorApiClient implements CommandLineRunner {
 
 //		File itemGroupsCsv = new File("item_groups.csv");
 		
-//		File itemGroupsCsv = new File("C:\\bigComerce\\catalogImport\\princess_intr\\target\\output\\index_en\\item.csv");
+		
+//		File itemGroupsCsv = new File("C:\\bigComerce\\catalogImport\\princess_intr\\target\\output\\item_groups_en\\item_groups.csv");
 		File itemsCsv = new File("C:\\bigComerce\\catalogImport\\princess_intr\\target\\output\\index_en\\item.jsonl");
 
 		uploadFullCatalogToConstructor(apiToken, apiKey, itemsCsv, variationsCsv, itemGroupsCsv);

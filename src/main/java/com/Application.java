@@ -5,6 +5,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.ComponentScan;
 
 @SpringBootApplication
+
 @ComponentScan({ "com.bigcommerce.imports", "com.constructor", "com.promotions" })
 public class Application {
 

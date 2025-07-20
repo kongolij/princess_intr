@@ -273,8 +273,8 @@ public class BigCommerceProductService {
 	
 		  // temp Assign to channel
 	    List<Integer> channelIds = Arrays.asList(
-	    	    BigCommerceStoreConfig.BC_CHANNEL_ID,
-	    	    BigCommerceStoreConfig.BC_NCC_CHANNEL_ID
+	    	    BigCommerceStoreConfig.BC_CHANNEL_ID
+//	    	    BigCommerceStoreConfig.BC_NCC_CHANNEL_ID
 	    	);
 	    bigCommerceRepository.assignProductToChannels( existingProductId, channelIds);
 	
@@ -415,8 +415,8 @@ public class BigCommerceProductService {
 
 	     // 🌐 Assign to channel
 	    List<Integer> channelIds = Arrays.asList(
-	    	    BigCommerceStoreConfig.BC_CHANNEL_ID,
-	    	    BigCommerceStoreConfig.BC_NCC_CHANNEL_ID
+	    	    BigCommerceStoreConfig.BC_CHANNEL_ID
+//	    	    BigCommerceStoreConfig.BC_NCC_CHANNEL_ID
 	    	);
 	    bigCommerceRepository.assignProductToChannels( productId, channelIds);
 //	    bigCommerceRepository.assignProductToChannel( productId, BigCommerceStoreConfig.BC_CHANNEL_ID);

@@ -14,7 +14,7 @@ import com.constructor.index.dto.ProductGraphQLResponse;
 import com.constructor.index.mapper.ConstructorJsonlProductMapper;
 import com.opencsv.CSVWriter;
 
-@Component
+//@Component
 public class IndexCatalog implements CommandLineRunner {
 
 	

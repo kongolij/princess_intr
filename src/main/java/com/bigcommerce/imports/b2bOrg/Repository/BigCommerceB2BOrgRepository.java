@@ -2,6 +2,7 @@ package com.bigcommerce.imports.b2bOrg.Repository;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
@@ -32,12 +33,12 @@ public class BigCommerceB2BOrgRepository {
 	    String bulkEndpoint = "https://api-b2b.bigcommerce.com/api/v3/io/companies/bulk";
 
 	    URL url = new URL(bulkEndpoint);
-	    HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+		HttpURLConnection connection = (HttpURLConnection) url.openConnection();
 
-	    connection.setRequestMethod("POST");
-	    connection.setRequestProperty("Content-Type", "application/json");
-	    connection.setRequestProperty("Authorization", "Bearer " + ACCESS_TOKEN); // Correct header
-	    connection.setDoOutput(true);
+		connection.setRequestMethod("POST");
+		connection.setRequestProperty("Content-Type", "application/json");
+		connection.setRequestProperty("authToken", ACCESS_TOKEN);
+		connection.setDoOutput(true);
 
 	    // Send the JSON payload
 	    try (OutputStream os = connection.getOutputStream()) {
@@ -144,7 +145,20 @@ public class BigCommerceB2BOrgRepository {
 	    }
 
 	    int responseCode = connection.getResponseCode();
+	    
+//	    InputStream responseStream = (responseCode >= 200 && responseCode < 300)
+//	        ? connection.getInputStream()
+//	        : connection.getErrorStream();
+//
+//	    StringBuilder responseBody = new StringBuilder();
+//	    try (Scanner scanner = new Scanner(responseStream)) {
+//	        while (scanner.hasNextLine()) {
+//	            responseBody.append(scanner.nextLine());
+//	        }
+//	    }
 	    if (responseCode == HttpURLConnection.HTTP_OK) {
+	    	
+//	    	System.out.printf("✅ Company credit updated for org ID %d. Response: %s%n", companyId, responseBody);
 	        System.out.println("✅ Company credit updated successfully.");
 	    } else {
 	        System.err.println("❌ Failed to update company credit. HTTP code: " + responseCode);

@@ -128,6 +128,7 @@ public class BigCommerceGraphQlService {
 				              sku
 				              path
 				              name
+				              type
 				              description
 				              brand{name}
 				              categories{edges{node{name entityId}}}
