@@ -13,7 +13,7 @@ import com.constructor.index.mapper.ConstructorJsonlProductMapper;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
-@Component
+//@Component
 public class IndexVariantsApi implements CommandLineRunner {
 
 	

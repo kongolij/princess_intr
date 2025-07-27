@@ -21,7 +21,7 @@ import com.bigcommerce.imports.catalog.product.service.AttributeLabelService;
 import com.bigcommerce.imports.catalog.product.service.BigCommerceProductService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-//@Component
+@Component
 public class ImportProductsFromCVS implements CommandLineRunner {
 
 //	static int CATEGOU_TREE_ID=7;  // jimmy store

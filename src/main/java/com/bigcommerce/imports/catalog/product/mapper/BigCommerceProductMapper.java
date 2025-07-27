@@ -558,6 +558,15 @@ public class BigCommerceProductMapper {
 	        flatFields.put("productStatus", product.getPaProductStatus());
 	     }
 
+	     if ( product.getVariants().size()==1 && 
+	    		 ( product.getVariants().get(0).getOption_values() == null || product.getVariants().get(0).getOption_values().isEmpty())) {
+	    	 flatFields.put("shippable", product.getVariants().get(0).getPaShippable());
+	    	 System.out.println(" cccccc found a single variant shippabel " +  product.getVariants().get(0).getPaShippable() );
+	    	
+	     }
+	    
+	     
+	     
 	     if (StringUtils.hasText(product.getProductNumber())) {
 	         flatFields.put(CommonConstants.NEW_External_Product_Number, product.getProductNumber());
 	     }
