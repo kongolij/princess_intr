@@ -37,71 +37,89 @@ public class IndexItemGroups implements CommandLineRunner {
 	public void run(String... args) throws Exception {
 		System.out.println("Working Directory = " + System.getProperty("user.dir"));
 		long startTime = System.currentTimeMillis(); // Start timing
+
 		List<CategoryNode> allCategories = fetchCategoryTree(STORE_HASH, CATEGORY_TREE_ID);
+		Map<Integer, Map<String, String>> metafields = fetchAllCategoryLocalizedNames(STORE_HASH);
 
-		Map<Integer, String> idToSlug = new HashMap<>();
-		for (CategoryNode node : allCategories) {
-			idToSlug.put(node.id, generateSlug(node));
-		}
+		System.out.println("✅ Total categories with localized metafields: " + metafields.size());
 
-		try (CSVWriter writerEn = new CSVWriter(new FileWriter(CSV_PATH_EN));
-				CSVWriter writerFr = new CSVWriter(new FileWriter(CSV_PATH_FR))) {
+		writeCategoryCsvPerLanguage(allCategories, metafields);
+//		writeCategoryJsonlPerLanguage(allCategories, metafields);
 
-			writerEn.writeNext(new String[] { "parent_id", "id", "name", "data" });
-			writerFr.writeNext(new String[] { "parent_id", "id", "name", "data" });
-
-			
-			Map<Integer, Map<String, String>> metafields = fetchAllCategoryLocalizedNames(STORE_HASH);
-			System.out.println("✅ Total categories with localized metafields: " + metafields.size());
-			
-			for (CategoryNode node : allCategories) {
-//				Map<String, String> localizedNames = fetchLocalizedNames(STORE_HASH, node.id);
-				Map<String, String> localizedNames = metafields.get(node.id);
-				String enName = localizedNames.getOrDefault("en", node.name);
-				String frName = localizedNames.getOrDefault("fr", node.name);
-				String url = node.url != null ? node.url : "";
-				String parentId = node.parentId != null ? node.parentId : "";
-				String data = String.format("{\"url\":\"%s\"}", url);
-
-//                   String idSlug = idToSlug.get(node.id);
-//                   String parentSlug = node.parentId != null ? idToSlug.get(Integer.valueOf(node.parentId)) : "all";
-//                   String data = String.format("{\"url\":\"%s\"}", url);
-
-//                   writerEn.writeNext(new String[]{parentSlug, idSlug, enName, data});
-//                   writerFr.writeNext(new String[]{parentSlug, idSlug, frName, data});
-
-				writerEn.writeNext(new String[] { parentId, String.valueOf(node.id), enName, data });
-				writerFr.writeNext(new String[] { parentId, String.valueOf(node.id), frName, data });
-			}
-		}
-
-//        try (PrintWriter writerEn = new PrintWriter(new FileWriter(CSV_PATH_EN));
-//             PrintWriter writerFr = new PrintWriter(new FileWriter(CSV_PATH_FR))) {
-//
-//            writerEn.println("parent_id,id,name,data");
-//            writerFr.println("parent_id,id,name,data");
-//
-//            for (CategoryNode node : allCategories) {
-//                Map<String, String> localizedNames = fetchLocalizedNames(STORE_HASH, node.id);
-//                String enName = localizedNames.getOrDefault("en", node.name);
-//                String frName = localizedNames.getOrDefault("fr", node.name);
-//                String url = node.url != null ? node.url : "";
-//                String parentId = node.parentId != null ? node.parentId : "";
-//                String data = String.format("{ \"url\": \"%s\" }", url);
-//
-//                writerEn.printf("%s,%s,%s,%s%n", parentId, node.id, enName, data);
-//                writerFr.printf("%s,%s,%s,%s%n", parentId, node.id, frName, data);
-//            }
-//        }
+		long totalTime = System.currentTimeMillis() - startTime;
 
 		System.out.println("✅ English CSV written to " + CSV_PATH_EN);
 		System.out.println("✅ French CSV written to " + CSV_PATH_FR);
-		long totalTime = System.currentTimeMillis() - startTime;
+
 		System.out.printf("✅ Done! Runtime: %.2f seconds%n", totalTime / 1000.0);
 
 		System.exit(0);
 	}
+	
+	private void writeCategoryCsvPerLanguage(List<CategoryNode> allCategories, Map<Integer, Map<String, String>> localizedMetafields) throws Exception {
+	    try (
+	        CSVWriter writerEn = new CSVWriter(new FileWriter(CSV_PATH_EN));
+	        CSVWriter writerFr = new CSVWriter(new FileWriter(CSV_PATH_FR))
+	    ) {
+	        writerEn.writeNext(new String[] { "parent_id", "id", "name", "data" });
+	        writerFr.writeNext(new String[] { "parent_id", "id", "name", "data" });
 
+	        for (CategoryNode node : allCategories) {
+	            Map<String, String> localizedNames = localizedMetafields.getOrDefault(node.id, Map.of());
+	            String enName = localizedNames.getOrDefault("en", node.name);
+	            String frName = localizedNames.getOrDefault("fr", node.name);
+	            String url = node.url != null ? node.url : "";
+	            String parentId = node.parentId != null ? node.parentId : "";
+	            String data = String.format("{\"url\":\"%s\"}", url);
+
+	            writerEn.writeNext(new String[] { parentId, String.valueOf(node.id), enName, data });
+	            writerFr.writeNext(new String[] { parentId, String.valueOf(node.id), frName, data });
+	        }
+	    }
+
+	    System.out.println("✅ English CSV written to " + CSV_PATH_EN);
+	    System.out.println("✅ French CSV written to " + CSV_PATH_FR);
+	}
+
+	
+	private void writeCategoryJsonlPerLanguage(List<CategoryNode> allCategories, Map<Integer, Map<String, String>> localizedMetafields) {
+	    String jsonlPathEn = "target/output/index_en/item_groups.jsonl";
+	    String jsonlPathFr = "target/output/index_fr/item_groups.jsonl";
+
+	    try (
+	        FileWriter jsonlWriterEn = new FileWriter(jsonlPathEn);
+	        FileWriter jsonlWriterFr = new FileWriter(jsonlPathFr)
+	    ) {
+	        for (CategoryNode node : allCategories) {
+	            Map<String, String> localizedNames = localizedMetafields.getOrDefault(node.id, Map.of());
+	            String enName = localizedNames.getOrDefault("en", node.name);
+	            String frName = localizedNames.getOrDefault("fr", node.name);
+	            String url = node.url != null ? node.url : "";
+
+	            JSONObject enObject = new JSONObject();
+	            enObject.put("id", String.valueOf(node.id));
+	            enObject.put("name", enName);
+	            enObject.put("data", new JSONObject().put("url", url));
+
+	            JSONObject frObject = new JSONObject();
+	            frObject.put("id", String.valueOf(node.id));
+	            frObject.put("name", frName);
+	            frObject.put("data", new JSONObject().put("url", url));
+
+	            jsonlWriterEn.write(enObject.toString() + "\n");
+	            jsonlWriterFr.write(frObject.toString() + "\n");
+	        }
+
+	        System.out.println("✅ JSONL files written:");
+	        System.out.println("   - " + jsonlPathEn);
+	        System.out.println("   - " + jsonlPathFr);
+
+	    } catch (Exception e) {
+	        System.err.println("❌ Failed to write JSONL files: " + e.getMessage());
+	    }
+	}
+
+	
 	private List<CategoryNode> fetchCategoryTree(String storeHash, int treeId) throws Exception {
 		String urlStr = String.format(TREE_API_URL, storeHash, treeId);
 		HttpURLConnection conn = (HttpURLConnection) new URL(urlStr).openConnection();

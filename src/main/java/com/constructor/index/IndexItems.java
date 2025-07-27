@@ -10,12 +10,13 @@ import org.springframework.stereotype.Component;
 
 import com.bigcommerce.imports.catalog.service.BigCommerceGraphQlService;
 import com.bigcommerce.imports.catalog.service.BigCommerceService;
+import com.constructor.client.BazaarvoiceReviewStatsClient;
 import com.constructor.index.dto.ProductGraphQLResponse;
 import com.constructor.index.mapper.ConstructorJsonlProductMapper;
 import com.opencsv.CSVWriter;
 
 //@Component
-public class IndexCatalog implements CommandLineRunner {
+public class IndexItems implements CommandLineRunner {
 
 	
 	private static final String PATH_EN = "target/output/index_en/item.jsonl";
@@ -23,11 +24,14 @@ public class IndexCatalog implements CommandLineRunner {
 
 	private final BigCommerceService bigCommerceCategoryService;
 	private final BigCommerceGraphQlService bigCommerceGraphQlService;
+	private final ConstructorJsonlProductMapper constructorJsonlProductMapper;
 
-	public IndexCatalog(BigCommerceService bigCommerceCategoryService,
-			BigCommerceGraphQlService bigCommerceGraphQlService) {
+	public IndexItems(BigCommerceService bigCommerceCategoryService,
+			BigCommerceGraphQlService bigCommerceGraphQlService, 
+			ConstructorJsonlProductMapper constructorJsonlProductMapper) {
 		this.bigCommerceCategoryService = bigCommerceCategoryService;
 		this.bigCommerceGraphQlService = bigCommerceGraphQlService;
+		this.constructorJsonlProductMapper=constructorJsonlProductMapper;
 
 	}
 
@@ -62,7 +66,7 @@ public class IndexCatalog implements CommandLineRunner {
 		try (BufferedWriter jsonlWriter = new BufferedWriter(new FileWriter(PATH_EN))) {
 
 			for (ProductGraphQLResponse.Product product : products) {
-				String jsonLine = ConstructorJsonlProductMapper.mapToJsonlLine(product, categoriesPath , "en");
+				String jsonLine = constructorJsonlProductMapper.mapToJsonlLine(product, categoriesPath , "en");
 				jsonlWriter.write(jsonLine);
 				jsonlWriter.newLine();
 				System.out.println("[" + (++a) + "] " + jsonLine); // Optional preview

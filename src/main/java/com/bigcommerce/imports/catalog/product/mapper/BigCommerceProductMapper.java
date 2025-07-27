@@ -20,6 +20,7 @@ import java.util.stream.Collectors;
 import org.springframework.util.StringUtils;
 
 import com.bigcommerce.imports.catalog.constants.CommonConstants;
+import com.bigcommerce.imports.catalog.product.SlugGenerator;
 import com.bigcommerce.imports.catalog.product.constant.AttributeLabels;
 import com.bigcommerce.imports.catalog.product.dto.Asset;
 import com.bigcommerce.imports.catalog.product.dto.Attribute;
@@ -559,6 +560,12 @@ public class BigCommerceProductMapper {
 
 	     if (StringUtils.hasText(product.getProductNumber())) {
 	         flatFields.put(CommonConstants.NEW_External_Product_Number, product.getProductNumber());
+	     }
+	     
+	     String frenchName = product.getDisplayName().getFr_CA();
+	     if (StringUtils.hasText(frenchName)) {
+	    	    String slugFr = SlugGenerator.generateSlug(frenchName);
+	    	    flatFields.put("slug_fr", slugFr);
 	     }
 	   
 

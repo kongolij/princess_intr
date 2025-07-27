@@ -1,4 +1,4 @@
-package com.constructor.client;
+package com.constructor.index.deleterecords;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -46,6 +46,9 @@ public class DeleteItemGroups implements CommandLineRunner {
 			    URLEncoder.encode(section, "UTF-8"),
 			    URLEncoder.encode(clientId, "UTF-8")
 			);
+		
+		
+		
 		
 		
 //		String urlString = "https://ac.cnstrc.com/v1/item_groups";

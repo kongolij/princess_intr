@@ -5,6 +5,7 @@ public class InventoryRecord {
 	private String sku;
 	private int storeId;
 	private int availableQty;
+	
 	private Integer locationId;
 
 	public InventoryRecord(String sku, int storeId, int availableQty) {

@@ -1,5 +1,6 @@
 package com.constructor.index;
 
+import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.net.HttpURLConnection;
@@ -17,169 +18,51 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
 import com.bigcommerce.imports.catalog.constants.BigCommerceStoreConfig;
+import com.bigcommerce.imports.catalog.service.BigCommerceGraphQlService;
+import com.bigcommerce.imports.catalog.service.BigCommerceService;
+import com.constructor.index.dto.ProductGraphQLResponse;
+import com.constructor.index.mapper.ConstructorJsonlProductMapper;
 import com.opencsv.CSVWriter;
 
 //@Component
 public class VariantIndex implements CommandLineRunner {
 
-	private static final String API_URL = "https://api.bigcommerce.com/stores/%s/v3/catalog/categories/%d/metafields";
-	private static final String TREE_API_URL = "https://api.bigcommerce.com/stores/%s/v3/catalog/trees/%d/categories";
-	private static final String STORE_HASH = BigCommerceStoreConfig.STORE_HASH;
-	private static final String ACCESS_TOKEN = BigCommerceStoreConfig.ACCESS_TOKEN;
-	private static final int CATEGORY_TREE_ID = BigCommerceStoreConfig.CATEGORY_TREE_ID;
+//	private static final String PATH_EN = "target/output/variant_en/variations.jsonl";
+	private static final String PATH_EN = "target/output/index_en/variations.jsonl";
+	private static final String PATH_FR = "target/output/index_fr/variations.jsonl";
 
-	private static final String CSV_PATH_EN = "target/output/item_groups_en.csv";
-	private static final String CSV_PATH_FR = "target/output/item_groups_fr.csv";
+	private final BigCommerceService bigCommerceCategoryService;
+	private final BigCommerceGraphQlService bigCommerceGraphQlService;
+	private final ConstructorJsonlProductMapper constructorJsonlProductMapper;
+
+	public VariantIndex(BigCommerceService bigCommerceCategoryService,
+			BigCommerceGraphQlService bigCommerceGraphQlService,
+			ConstructorJsonlProductMapper constructorJsonlProductMapper) {
+		this.bigCommerceCategoryService = bigCommerceCategoryService;
+		this.bigCommerceGraphQlService = bigCommerceGraphQlService;
+		this.constructorJsonlProductMapper=constructorJsonlProductMapper;
+
+	}
 
 	@Override
 	public void run(String... args) throws Exception {
-		System.out.println("Working Directory = " + System.getProperty("user.dir"));
-		long startTime = System.currentTimeMillis(); // Start timing
-		List<CategoryNode> allCategories = fetchCategoryTree(STORE_HASH, CATEGORY_TREE_ID);
 
-		Map<Integer, String> idToSlug = new HashMap<>();
-		for (CategoryNode node : allCategories) {
-			idToSlug.put(node.id, generateSlug(node));
-		}
+		List<ProductGraphQLResponse.Product> products = bigCommerceGraphQlService.getAllProducts();
+		System.out.println("Fetched " + products.size() + " products.");
+		try (BufferedWriter jsonlWriter = new BufferedWriter(new FileWriter(PATH_EN))) {
 
-		try (CSVWriter writerEn = new CSVWriter(new FileWriter(CSV_PATH_EN));
-				CSVWriter writerFr = new CSVWriter(new FileWriter(CSV_PATH_FR))) {
+			for (ProductGraphQLResponse.Product product : products) {
+				List<String> jsonLines = constructorJsonlProductMapper.mapVariantsToJsonlLine(product, "en");
 
-			writerEn.writeNext(new String[] { "parent_id", "id", "name", "data" });
-			writerFr.writeNext(new String[] { "parent_id", "id", "name", "data" });
+				for (String jsonLine : jsonLines) {
+					jsonlWriter.write(jsonLine);
+					jsonlWriter.newLine();
+					System.out.println("📝 " + jsonLine);
+				}
 
-			for (CategoryNode node : allCategories) {
-				Map<String, String> localizedNames = fetchLocalizedNames(STORE_HASH, node.id);
-				String enName = localizedNames.getOrDefault("en", node.name);
-				String frName = localizedNames.getOrDefault("fr", node.name);
-				String url = node.url != null ? node.url : "";
-				String parentId = node.parentId != null ? node.parentId : "";
-				String data = String.format("{\"url\":\"%s\"}", url);
-
-//                   String idSlug = idToSlug.get(node.id);
-//                   String parentSlug = node.parentId != null ? idToSlug.get(Integer.valueOf(node.parentId)) : "all";
-//                   String data = String.format("{\"url\":\"%s\"}", url);
-
-//                   writerEn.writeNext(new String[]{parentSlug, idSlug, enName, data});
-//                   writerFr.writeNext(new String[]{parentSlug, idSlug, frName, data});
-
-				writerEn.writeNext(new String[] { parentId, String.valueOf(node.id), enName, data });
-				writerFr.writeNext(new String[] { parentId, String.valueOf(node.id), frName, data });
 			}
-		}
-
-//        try (PrintWriter writerEn = new PrintWriter(new FileWriter(CSV_PATH_EN));
-//             PrintWriter writerFr = new PrintWriter(new FileWriter(CSV_PATH_FR))) {
-//
-//            writerEn.println("parent_id,id,name,data");
-//            writerFr.println("parent_id,id,name,data");
-//
-//            for (CategoryNode node : allCategories) {
-//                Map<String, String> localizedNames = fetchLocalizedNames(STORE_HASH, node.id);
-//                String enName = localizedNames.getOrDefault("en", node.name);
-//                String frName = localizedNames.getOrDefault("fr", node.name);
-//                String url = node.url != null ? node.url : "";
-//                String parentId = node.parentId != null ? node.parentId : "";
-//                String data = String.format("{ \"url\": \"%s\" }", url);
-//
-//                writerEn.printf("%s,%s,%s,%s%n", parentId, node.id, enName, data);
-//                writerFr.printf("%s,%s,%s,%s%n", parentId, node.id, frName, data);
-//            }
-//        }
-
-		System.out.println("✅ English CSV written to " + CSV_PATH_EN);
-		System.out.println("✅ French CSV written to " + CSV_PATH_FR);
-		long totalTime = System.currentTimeMillis() - startTime;
-		System.out.printf("✅ Done! Runtime: %.2f seconds%n", totalTime / 1000.0);
-
-		System.exit(0);
-	}
-
-	private List<CategoryNode> fetchCategoryTree(String storeHash, int treeId) throws Exception {
-		String urlStr = String.format(TREE_API_URL, storeHash, treeId);
-		HttpURLConnection conn = (HttpURLConnection) new URL(urlStr).openConnection();
-		conn.setRequestMethod("GET");
-		conn.setRequestProperty("X-Auth-Token", ACCESS_TOKEN);
-		conn.setRequestProperty("Accept", "application/json");
-
-		if (conn.getResponseCode() != 200) {
-			throw new RuntimeException("Failed to fetch category tree: " + conn.getResponseCode());
-		}
-
-		Scanner scanner = new Scanner(conn.getInputStream());
-		String response = scanner.useDelimiter("\\A").next();
-		scanner.close();
-
-		JSONArray data = new JSONObject(response).getJSONArray("data");
-		List<CategoryNode> all = new ArrayList<>();
-		parseTree(null, data, all);
-		return all;
-	}
-
-	private void parseTree(Integer parentId, JSONArray nodes, List<CategoryNode> all) {
-		for (int i = 0; i < nodes.length(); i++) {
-			JSONObject obj = nodes.getJSONObject(i);
-			int id = obj.getInt("id");
-			String name = obj.getString("name");
-			String url = obj.optString("url", "");
-
-			CategoryNode node = new CategoryNode(id, name, parentId != null ? parentId.toString() : null, url);
-			all.add(node);
-
-			if (obj.has("children")) {
-				parseTree(id, obj.getJSONArray("children"), all);
-			}
+			System.exit(0);
 		}
 	}
 
-	private String generateSlug(CategoryNode node) {
-		if (node.url != null && !node.url.isEmpty()) {
-			String[] parts = node.url.split("/");
-			return parts.length > 0 ? parts[parts.length - 1] : slugify(node.name);
-		}
-		return slugify(node.name);
-	}
-
-	private String slugify(String input) {
-		return input.toLowerCase().replaceAll("[^a-z0-9]+", "-").replaceAll("(^-|-$)", "");
-	}
-
-	private Map<String, String> fetchLocalizedNames(String storeHash, int categoryId) {
-		try {
-			String urlStr = String.format(API_URL, storeHash, categoryId);
-			HttpURLConnection conn = (HttpURLConnection) new URL(urlStr).openConnection();
-			conn.setRequestMethod("GET");
-			conn.setRequestProperty("X-Auth-Token", ACCESS_TOKEN);
-			conn.setRequestProperty("Accept", "application/json");
-
-			if (conn.getResponseCode() != 200)
-				return Map.of();
-
-			Scanner scanner = new Scanner(conn.getInputStream());
-			String response = scanner.useDelimiter("\\A").next();
-			scanner.close();
-
-			JSONArray data = new JSONObject(response).getJSONArray("data");
-			return data.toList().stream().map(obj -> new JSONObject((Map<?, ?>) obj))
-					.filter(meta -> meta.has("key") && meta.has("value"))
-					.collect(Collectors.toMap(m -> m.getString("key"), m -> m.getString("value")));
-		} catch (Exception e) {
-			System.err.println("⚠️ Failed to fetch metafields for category " + categoryId + ": " + e.getMessage());
-			return Map.of();
-		}
-	}
-
-	private static class CategoryNode {
-		int id;
-		String name;
-		String parentId;
-		String url;
-
-		CategoryNode(int id, String name, String parentId, String url) {
-			this.id = id;
-			this.name = name;
-			this.parentId = parentId;
-			this.url = url;
-		}
-	}
 }

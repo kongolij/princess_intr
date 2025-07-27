@@ -139,6 +139,11 @@ public class BigCommerceGraphQlService {
 				                      edges { node { entityId key value } 
 				                    } 
 				              }
+				              prices {
+				                      basePrice { currencyCode value }
+				                      price     { currencyCode value }
+				                      salePrice { currencyCode value }
+				              }
 				              variants (first: 100){
 				                pageInfo { 
 				                   hasNextPage 
@@ -153,8 +158,9 @@ public class BigCommerceGraphQlService {
 				                    width { value unit }
 				                    weight { value unit }
 				                    prices {
-				                      price { currencyCode value }
-				                      salePrice { currencyCode value }
+				                      basePrice  { currencyCode value }
+				                      price      { currencyCode value }
+				                      salePrice  { currencyCode value }
 				                    }
 				                    defaultImage { url(width: 400) }
 				                    inventory {

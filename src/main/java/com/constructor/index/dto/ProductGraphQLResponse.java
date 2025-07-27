@@ -141,6 +141,8 @@ public class ProductGraphQLResponse {
 	}
 
 	public static class Prices {
+		
+		public Money basePrice;
 		public Money price;
 		public Money salePrice;
 
@@ -159,6 +161,15 @@ public class ProductGraphQLResponse {
 		public void setSalePrice(Money salePrice) {
 			this.salePrice = salePrice;
 		}
+
+		public Money getBasePrice() {
+			return basePrice;
+		}
+
+		public void setBasePrice(Money basePrice) {
+			this.basePrice = basePrice;
+		}
+		
 	}
 
 	public static class Money {

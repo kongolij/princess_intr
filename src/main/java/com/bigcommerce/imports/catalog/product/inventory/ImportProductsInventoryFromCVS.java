@@ -17,7 +17,7 @@ import com.bigcommerce.imports.catalog.product.prices.dto.VariantPrice;
 import com.bigcommerce.imports.catalog.product.prices.service.BigCommerceProductPriceService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-@Component
+//@Component
 public class ImportProductsInventoryFromCVS implements CommandLineRunner {
 
 	private final BigCommerceProductInventoryService bigCommerceProductInventoryService;
